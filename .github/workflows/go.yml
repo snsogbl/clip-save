@@ -22,7 +22,7 @@ jobs:
           - os: macos-latest
             name: macos-arm64
             platform: darwin/arm64
-            archive: clip-save-macos-arm64-${{ github.ref_name }}.zip
+            archive: clip-save-${{ github.ref_name }}.dmg
 
     steps:
       - name: Checkout
@@ -131,18 +131,61 @@ jobs:
           echo "PATH: $PATH"
           wails build -platform ${{ matrix.platform }}
 
-      # --- Archive artifacts ---
-      - name: Pack artifact
+      # --- Create DMG ---
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create installation README
         run: |
-          cd build
-          zip -r "../${{ matrix.archive }}" ./bin
-          cd ..
+          cat > INSTALL.md << 'EOF'
+          # 剪存 - 安装说明
+          
+          ## 安装步骤
+          1. 将 "剪存.app" 拖拽到 "Applications" 文件夹
+          2. 双击 "剪存.app" 启动应用
+          3. 首次启动可能需要在系统偏好设置中允许运行
+          
+          ## 系统要求
+          - macOS 11.0 或更高版本
+          - Apple Silicon (M1/M2/M3) 处理器
+          
+          ## 权限设置
+          如果应用无法启动，请到：
+          系统偏好设置 > 安全性与隐私 > 通用
+          点击"仍要打开"
+          
+          ## 卸载
+          将 Applications 文件夹中的"剪存.app"移到废纸篓即可
+          EOF
+
+      - name: Create DMG
+        run: |
+          # 创建 Applications 符号链接
+          ln -sf /Applications build/bin/Applications
+          
+          # 创建 DMG
+          create-dmg \
+            --volname "剪存" \
+            --volicon "build/appicon.png" \
+            --background-color "FFFFFF" \
+            --window-pos 200 120 \
+            --window-size 700 400 \
+            --icon-size 100 \
+            --icon "剪存.app" 175 200 \
+            --hide-extension "剪存.app" \
+            --icon "Applications" 425 200 \
+            --hide-extension "Applications" \
+            --icon "INSTALL.md" 175 320 \
+            --hide-extension "INSTALL.md" \
+            --app-drop-link 425 320 \
+            "clip-save-${{ github.ref_name }}.dmg" \
+            "build/bin/"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: ${{ matrix.archive }}
+          path: clip-save-${{ github.ref_name }}.dmg
           if-no-files-found: error
 
   release:
