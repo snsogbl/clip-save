@@ -68,31 +68,49 @@ jobs:
         run: |
           choco install -y mingw
 
-      - name: Install Command Line Tools on macOS
+      - name: Setup macOS build environment
         if: runner.os == 'macOS'
         run: |
-          # 检查是否已安装 Command Line Tools
-          if ! xcode-select -p &> /dev/null; then
-            echo "Command Line Tools not found, installing..."
-            # 触发安装对话框（在 CI 环境中会自动安装）
-            sudo xcode-select --install 2>/dev/null || true
-            # 等待安装完成（最多等待 10 分钟）
-            timeout 600 bash -c 'until xcode-select -p &> /dev/null; do sleep 5; done' || {
-              echo "Command Line Tools installation timed out"
-              exit 1
-            }
+          # 检查当前状态
+          echo "Current xcode-select path:"
+          xcode-select -p || echo "No xcode-select path set"
+          
+          # 尝试不同的 clang 路径
+          echo "Checking for clang in common locations:"
+          ls -la /usr/bin/clang* 2>/dev/null || echo "No clang in /usr/bin"
+          ls -la /Library/Developer/CommandLineTools/usr/bin/clang* 2>/dev/null || echo "No clang in CommandLineTools"
+          ls -la /Applications/Xcode.app/Contents/Developer/usr/bin/clang* 2>/dev/null || echo "No clang in Xcode"
+          
+          # 设置 Command Line Tools 路径
+          sudo xcode-select -switch /Library/Developer/CommandLineTools
+          
+          # 验证 clang 可用
+          if /Library/Developer/CommandLineTools/usr/bin/clang --version; then
+            echo "Using Command Line Tools clang"
+            echo "CC=/Library/Developer/CommandLineTools/usr/bin/clang" >> $GITHUB_ENV
+            echo "CXX=/Library/Developer/CommandLineTools/usr/bin/clang++" >> $GITHUB_ENV
+            echo "PATH=/Library/Developer/CommandLineTools/usr/bin:$PATH" >> $GITHUB_ENV
+          elif /usr/bin/clang --version; then
+            echo "Using system clang"
+            echo "CC=/usr/bin/clang" >> $GITHUB_ENV
+            echo "CXX=/usr/bin/clang++" >> $GITHUB_ENV
+          else
+            echo "Installing Command Line Tools..."
+            sudo xcode-select --install
+            # 等待安装完成
+            echo "Waiting for Command Line Tools installation..."
+            sleep 30
+            # 重新设置路径
+            sudo xcode-select -switch /Library/Developer/CommandLineTools
+            echo "CC=/Library/Developer/CommandLineTools/usr/bin/clang" >> $GITHUB_ENV
+            echo "CXX=/Library/Developer/CommandLineTools/usr/bin/clang++" >> $GITHUB_ENV
+            echo "PATH=/Library/Developer/CommandLineTools/usr/bin:$PATH" >> $GITHUB_ENV
           fi
           
-          # 确保选择正确的开发者目录
-          sudo xcode-select -switch /Library/Developer/CommandLineTools 2>/dev/null || \
-          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer 2>/dev/null || true
-          
-          # 明确指定 C/C++ 编译器给 cgo
-          echo "CC=/usr/bin/clang" >> $GITHUB_ENV
-          echo "CXX=/usr/bin/clang++" >> $GITHUB_ENV
-          
-          # 打印版本用于诊断
-          /usr/bin/clang --version
+          # 最终验证
+          echo "Final clang version:"
+          $CC --version || echo "CC not working"
+          echo "Final xcode-select path:"
           xcode-select -p
 
       # --- Build steps ---
@@ -112,7 +130,14 @@ jobs:
           CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
+          CC: ${{ env.CC }}
+          CXX: ${{ env.CXX }}
         run: |
+          echo "Build environment:"
+          echo "CC: $CC"
+          echo "CXX: $CXX"
+          echo "CGO_ENABLED: $CGO_ENABLED"
+          echo "PATH: $PATH"
           wails build -platform ${{ matrix.platform }}
 
       # --- Archive artifacts per OS ---
