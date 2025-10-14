@@ -1,0 +1,15 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "剪存",
+  "outputfilename": "剪存",
+  "appicon": "build/appicon.png",
+  "frontend:dir": "frontend",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "http://localhost:5177",
+  "author": {
+    "name": "yj",
+    "email": "snso3733@gmail.com"
+  }
+}

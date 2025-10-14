@@ -1,0 +1,108 @@
+<script lang="ts" setup>
+import { ref, onMounted } from 'vue'
+import ClipboardHistory from './views/clipboardHistory/clipboardHistory.vue'
+import Login from './views/login/login.vue'
+import { GetAppSettings, VerifyPassword } from '../wailsjs/go/main/App'
+import { ElMessage } from 'element-plus'
+
+const isLocked = ref(true)
+const isLoading = ref(true)
+
+// 检查是否设置了密码
+async function checkPassword() {
+  try {
+    const settings = await GetAppSettings()
+    if (settings) {
+      const parsed = JSON.parse(settings)
+      // 如果没有设置密码或密码为空，直接解锁
+      if (!parsed.password || parsed.password === '') {
+        isLocked.value = false
+        console.log('📖 未设置密码，直接进入应用')
+      } else {
+        console.log('🔒 应用已锁定，需要密码')
+      }
+    } else {
+      // 没有设置，直接解锁
+      isLocked.value = false
+    }
+  } catch (error) {
+    console.error('检查密码失败:', error)
+    // 出错时直接解锁，避免用户被锁在外面
+    isLocked.value = false
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 验证密码
+async function handleUnlock(password: string) {
+  try {
+    const isValid = await VerifyPassword(password)
+    if (isValid) {
+      isLocked.value = false
+      ElMessage.success('解锁成功！')
+      console.log('✅ 密码验证成功')
+    } else {
+      ElMessage.error('密码错误，请重试')
+      console.log('❌ 密码验证失败')
+    }
+  } catch (error) {
+    ElMessage.error('验证失败: ' + error)
+    console.error('验证密码失败:', error)
+  }
+}
+
+onMounted(() => {
+  checkPassword()
+})
+</script>
+
+<template>
+  <div v-if="isLoading" class="loading-screen">
+    <div class="loading-spinner"></div>
+  </div>
+  <Login v-else-if="isLocked" @unlock="handleUnlock" />
+  <ClipboardHistory v-else />
+</template>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
