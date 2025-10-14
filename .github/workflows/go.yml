@@ -13,9 +13,7 @@ jobs:
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     env:
-      # Enable cgo (gohook/Wails 原生部分需要)
       CGO_ENABLED: "1"
-      # 对 macOS 指定最低部署版本，避免 SDK 选择问题
       MACOSX_DEPLOYMENT_TARGET: "11.0"
     strategy:
       fail-fast: false
@@ -70,16 +68,17 @@ jobs:
         run: |
           choco install -y mingw
 
-      - name: Ensure clang on macOS (via Homebrew LLVM)
+      - name: Ensure clang on macOS (use system Xcode toolchain)
         if: runner.os == 'macOS'
         run: |
-          brew update
-          brew install llvm
-          echo "CC=$(brew --prefix llvm)/bin/clang" >> $GITHUB_ENV
-          echo "CXX=$(brew --prefix llvm)/bin/clang++" >> $GITHUB_ENV
-          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+          # 选择一个可用的开发者目录（Xcode 或 CLT），避免 PATH 中缺 clang
+          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer 2>/dev/null || \
+          sudo xcode-select -switch /Library/Developer/CommandLineTools 2>/dev/null || true
+          # 明确指定 C/C++ 编译器给 cgo
+          echo "CC=/usr/bin/clang" >> $GITHUB_ENV
+          echo "CXX=/usr/bin/clang++" >> $GITHUB_ENV
           # 打印版本用于诊断
-          $(brew --prefix llvm)/bin/clang --version
+          /usr/bin/clang --version
           xcode-select -p
 
       # --- Build steps ---
@@ -96,9 +95,7 @@ jobs:
 
       - name: Build (wails)
         env:
-          # 双保险启用 CGO
           CGO_ENABLED: "1"
-          # macOS 上如果前面设了 CC/CXX/SDKROOT，这里会自动继承
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
         run: |
