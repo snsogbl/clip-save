@@ -163,18 +163,23 @@ jobs:
           # 创建 Applications 符号链接
           ln -sf /Applications build/bin/Applications
           
-          # 创建 DMG（简化版本，避免 AppleScript 错误）
+          # 将安装说明复制到 build/bin 目录
+          cp INSTALL.md build/bin/
+          
+          # 创建 DMG（包含安装说明）
           create-dmg \
             --volname "剪存" \
             --volicon "build/appicon.png" \
             --window-pos 200 120 \
-            --window-size 600 350 \
+            --window-size 600 550 \
             --icon-size 100 \
-            --icon "剪存.app" 175 200 \
+            --icon "剪存.app" 175 175 \
             --hide-extension "剪存.app" \
-            --icon "Applications" 425 200 \
+            --icon "Applications" 425 175 \
             --hide-extension "Applications" \
-            --app-drop-link 425 320 \
+            --icon "INSTALL.md" 175 350 \
+            --hide-extension "INSTALL.md" \
+            --app-drop-link 425 350 \
             "clip-save-${{ github.ref_name }}.dmg" \
             "build/bin/"
 
