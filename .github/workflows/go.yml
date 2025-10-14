@@ -19,14 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            name: linux-amd64
-            platform: linux/amd64
-            archive: clip-save-linux-amd64-${{ github.ref_name }}.zip
-          - os: windows-latest
-            name: windows-amd64
-            platform: windows/amd64
-            archive: clip-save-windows-amd64-${{ github.ref_name }}.zip
           - os: macos-latest
             name: macos-arm64
             platform: darwin/arm64
@@ -51,23 +43,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      # --- OS specific prerequisites ---
-      - name: Install Linux deps (GTK/WebKit/CGo)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
-
-      - name: Install Windows deps (mingw)
-        if: runner.os == 'Windows'
-        run: |
-          choco install -y mingw
-
+      # --- macOS specific prerequisites ---
       - name: Setup macOS build environment
         if: runner.os == 'macOS'
         run: |
@@ -155,18 +131,12 @@ jobs:
           echo "PATH: $PATH"
           wails build -platform ${{ matrix.platform }}
 
-      # --- Archive artifacts per OS ---
-      - name: Pack artifact (Linux/macOS)
-        if: runner.os != 'Windows'
+      # --- Archive artifacts ---
+      - name: Pack artifact
         run: |
           cd build
           zip -r "../${{ matrix.archive }}" ./bin
           cd ..
-      - name: Pack artifact (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Compress-Archive -Path build\bin\* -DestinationPath "${{ matrix.archive }}"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
