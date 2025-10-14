@@ -137,7 +137,7 @@ jobs:
 
       - name: Create installation README
         run: |
-          cat > INSTALL.md << 'EOF'
+          cat > 安装说明.md << 'EOF'
           # 剪存 - 安装说明
           
           ## 安装步骤
@@ -153,6 +153,10 @@ jobs:
           如果应用无法启动，请到：
           系统偏好设置 > 安全性与隐私 > 通用
           点击"仍要打开"
+
+          ## 提示 应用已损坏，无法打开。你应该将它移到废纸篓。 运行以下命令
+          sudo xattr -rd com.apple.quarantine /Applications/剪存.app
+          
           
           ## 卸载
           将 Applications 文件夹中的"剪存.app"移到废纸篓即可
