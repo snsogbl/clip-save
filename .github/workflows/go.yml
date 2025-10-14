@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
       - name: Setup Go (from go.mod)
         uses: actions/setup-go@v5
@@ -48,7 +48,6 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
-      # --- OS specific prerequisites ---
       - name: Install Linux deps (GTK/WebKit/CGo)
         if: runner.os == 'Linux'
         run: |
@@ -65,7 +64,6 @@ jobs:
         run: |
           choco install -y mingw
 
-      # --- Build steps from README ---
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
@@ -79,14 +77,11 @@ jobs:
 
       - name: Build (wails)
         env:
-          # Ensure $GOBIN is on PATH for the just-installed CLI
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
         run: |
-          # Use matrix.platform from README's examples
           wails build -platform ${{ matrix.platform }}
 
-      # --- Archive artifacts per OS ---
       - name: Pack artifact (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
