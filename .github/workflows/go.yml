@@ -13,9 +13,9 @@ jobs:
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     env:
-      # Enable cgo (required by gohook on macOS and generally by Wails native parts)
+      # Enable cgo (gohook/Wails 原生部分需要)
       CGO_ENABLED: "1"
-      # Optional but helpful for macOS SDK selection on Apple Silicon runners
+      # 对 macOS 指定最低部署版本，避免 SDK 选择问题
       MACOSX_DEPLOYMENT_TARGET: "11.0"
     strategy:
       fail-fast: false
@@ -70,6 +70,18 @@ jobs:
         run: |
           choco install -y mingw
 
+      - name: Ensure clang on macOS (via Homebrew LLVM)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install llvm
+          echo "CC=$(brew --prefix llvm)/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$(brew --prefix llvm)/bin/clang++" >> $GITHUB_ENV
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+          # 打印版本用于诊断
+          $(brew --prefix llvm)/bin/clang --version
+          xcode-select -p
+
       # --- Build steps ---
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -84,9 +96,9 @@ jobs:
 
       - name: Build (wails)
         env:
-          # Double-confirm CGO enabled during the build step
+          # 双保险启用 CGO
           CGO_ENABLED: "1"
-          # Ensure $GOBIN is on PATH for the just-installed CLI
+          # macOS 上如果前面设了 CC/CXX/SDKROOT，这里会自动继承
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
         run: |
