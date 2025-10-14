@@ -75,42 +75,51 @@ jobs:
           echo "Current xcode-select path:"
           xcode-select -p || echo "No xcode-select path set"
           
-          # 尝试不同的 clang 路径
-          echo "Checking for clang in common locations:"
-          ls -la /usr/bin/clang* 2>/dev/null || echo "No clang in /usr/bin"
-          ls -la /Library/Developer/CommandLineTools/usr/bin/clang* 2>/dev/null || echo "No clang in CommandLineTools"
-          ls -la /Applications/Xcode.app/Contents/Developer/usr/bin/clang* 2>/dev/null || echo "No clang in Xcode"
-          
           # 设置 Command Line Tools 路径
           sudo xcode-select -switch /Library/Developer/CommandLineTools
           
-          # 验证 clang 可用
-          if /Library/Developer/CommandLineTools/usr/bin/clang --version; then
-            echo "Using Command Line Tools clang"
-            echo "CC=/Library/Developer/CommandLineTools/usr/bin/clang" >> $GITHUB_ENV
-            echo "CXX=/Library/Developer/CommandLineTools/usr/bin/clang++" >> $GITHUB_ENV
-            echo "PATH=/Library/Developer/CommandLineTools/usr/bin:$PATH" >> $GITHUB_ENV
-          elif /usr/bin/clang --version; then
-            echo "Using system clang"
-            echo "CC=/usr/bin/clang" >> $GITHUB_ENV
-            echo "CXX=/usr/bin/clang++" >> $GITHUB_ENV
-          else
-            echo "Installing Command Line Tools..."
-            sudo xcode-select --install
-            # 等待安装完成
-            echo "Waiting for Command Line Tools installation..."
-            sleep 30
-            # 重新设置路径
-            sudo xcode-select -switch /Library/Developer/CommandLineTools
-            echo "CC=/Library/Developer/CommandLineTools/usr/bin/clang" >> $GITHUB_ENV
-            echo "CXX=/Library/Developer/CommandLineTools/usr/bin/clang++" >> $GITHUB_ENV
-            echo "PATH=/Library/Developer/CommandLineTools/usr/bin:$PATH" >> $GITHUB_ENV
+          # 查找 macOS SDK
+          echo "Looking for macOS SDK:"
+          SDK_PATH=$(xcrun --show-sdk-path 2>/dev/null || echo "")
+          if [ -z "$SDK_PATH" ]; then
+            echo "No SDK found via xcrun, trying manual search..."
+            SDK_PATH=$(find /Library/Developer/CommandLineTools/SDKs -name "MacOSX.sdk" -type d 2>/dev/null | head -1)
           fi
           
+          echo "SDK Path: $SDK_PATH"
+          
+          # 验证 SDK 存在并包含必要头文件
+          if [ -d "$SDK_PATH" ] && [ -f "$SDK_PATH/usr/include/stdlib.h" ]; then
+            echo "SDK found and contains stdlib.h"
+            echo "SDKROOT=$SDK_PATH" >> $GITHUB_ENV
+          else
+            echo "SDK not found or incomplete, installing Command Line Tools..."
+            sudo xcode-select --install
+            sleep 30
+            sudo xcode-select -switch /Library/Developer/CommandLineTools
+            SDK_PATH=$(xcrun --show-sdk-path)
+            echo "SDKROOT=$SDK_PATH" >> $GITHUB_ENV
+          fi
+          
+          # 设置编译器路径和标志
+          echo "CC=/Library/Developer/CommandLineTools/usr/bin/clang" >> $GITHUB_ENV
+          echo "CXX=/Library/Developer/CommandLineTools/usr/bin/clang++" >> $GITHUB_ENV
+          echo "PATH=/Library/Developer/CommandLineTools/usr/bin:$PATH" >> $GITHUB_ENV
+          
+          # 设置 CGO 标志
+          echo "CGO_CFLAGS=-isysroot $SDK_PATH" >> $GITHUB_ENV
+          echo "CGO_LDFLAGS=-isysroot $SDK_PATH" >> $GITHUB_ENV
+          
           # 最终验证
-          echo "Final clang version:"
-          $CC --version || echo "CC not working"
-          echo "Final xcode-select path:"
+          echo "Final environment:"
+          echo "CC: /Library/Developer/CommandLineTools/usr/bin/clang"
+          echo "SDKROOT: $SDK_PATH"
+          echo "CGO_CFLAGS: -isysroot $SDK_PATH"
+          echo "CGO_LDFLAGS: -isysroot $SDK_PATH"
+          
+          # 测试编译器
+          /Library/Developer/CommandLineTools/usr/bin/clang --version
+          echo "xcode-select path:"
           xcode-select -p
 
       # --- Build steps ---
@@ -132,10 +141,16 @@ jobs:
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
           CC: ${{ env.CC }}
           CXX: ${{ env.CXX }}
+          SDKROOT: ${{ env.SDKROOT }}
+          CGO_CFLAGS: ${{ env.CGO_CFLAGS }}
+          CGO_LDFLAGS: ${{ env.CGO_LDFLAGS }}
         run: |
           echo "Build environment:"
           echo "CC: $CC"
           echo "CXX: $CXX"
+          echo "SDKROOT: $SDKROOT"
+          echo "CGO_CFLAGS: $CGO_CFLAGS"
+          echo "CGO_LDFLAGS: $CGO_LDFLAGS"
           echo "CGO_ENABLED: $CGO_ENABLED"
           echo "PATH: $PATH"
           wails build -platform ${{ matrix.platform }}
