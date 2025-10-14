@@ -68,15 +68,29 @@ jobs:
         run: |
           choco install -y mingw
 
-      - name: Ensure clang on macOS (use system Xcode toolchain)
+      - name: Install Command Line Tools on macOS
         if: runner.os == 'macOS'
         run: |
-          # 选择一个可用的开发者目录（Xcode 或 CLT），避免 PATH 中缺 clang
-          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer 2>/dev/null || \
-          sudo xcode-select -switch /Library/Developer/CommandLineTools 2>/dev/null || true
+          # 检查是否已安装 Command Line Tools
+          if ! xcode-select -p &> /dev/null; then
+            echo "Command Line Tools not found, installing..."
+            # 触发安装对话框（在 CI 环境中会自动安装）
+            sudo xcode-select --install 2>/dev/null || true
+            # 等待安装完成（最多等待 10 分钟）
+            timeout 600 bash -c 'until xcode-select -p &> /dev/null; do sleep 5; done' || {
+              echo "Command Line Tools installation timed out"
+              exit 1
+            }
+          fi
+          
+          # 确保选择正确的开发者目录
+          sudo xcode-select -switch /Library/Developer/CommandLineTools 2>/dev/null || \
+          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer 2>/dev/null || true
+          
           # 明确指定 C/C++ 编译器给 cgo
           echo "CC=/usr/bin/clang" >> $GITHUB_ENV
           echo "CXX=/usr/bin/clang++" >> $GITHUB_ENV
+          
           # 打印版本用于诊断
           /usr/bin/clang --version
           xcode-select -p
