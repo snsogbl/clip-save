@@ -69,9 +69,10 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "剪存 - 剪贴板历史",
-		Width:  1024,
-		Height: 800,
+		Title:             "剪存 - 剪贴板历史",
+		Width:             1024,
+		Height:            800,
+		HideWindowOnClose: true,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
