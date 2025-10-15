@@ -67,6 +67,10 @@ const addKeyListener = () => {
     }
   });
   window.addEventListener("blur", (event) => {
+    // 当有系统对话框（如保存文件）弹出时，不要自动隐藏
+    // 使用全局标记进行抑制
+    const shouldSuppress = (window as any).__suppressHideWindow;
+    if (shouldSuppress) return;
     HideWindow();
   });
 };

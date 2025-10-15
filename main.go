@@ -70,7 +70,7 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:             "剪存 - 剪贴板历史",
-		Width:             1024,
+		Width:             1280,
 		Height:            800,
 		Frameless:         true,
 		HideWindowOnClose: true,

@@ -58,6 +58,10 @@ export function SaveAppSettings(arg1) {
   return window['go']['main']['App']['SaveAppSettings'](arg1);
 }
 
+export function SaveImagePNG(arg1, arg2) {
+  return window['go']['main']['App']['SaveImagePNG'](arg1, arg2);
+}
+
 export function SearchClipboardItems(arg1, arg2, arg3) {
   return window['go']['main']['App']['SearchClipboardItems'](arg1, arg2, arg3);
 }

@@ -7,17 +7,46 @@
       preview-teleported
       :preview-src-list="[`data:image/png;base64,${imageData}`]"
     />
+    <button class="save-btn" @click="handleSave">
+      保存到本地
+    </button>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
+import { SaveImagePNG } from "../../../../wailsjs/go/main/App";
+import { ElMessage } from "element-plus";
 
 interface Props {
   imageData: string;
 }
 
 const props = defineProps<Props>();
+
+function handleSave() {
+  try {
+    const ts = new Date();
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const suggested = `clipboard-${ts.getFullYear()}${pad(ts.getMonth() + 1)}${pad(ts.getDate())}-${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}.png`;
+    // 在保存前抑制窗口隐藏（避免保存对话框导致的 blur 触发）
+    (window as any).__suppressHideWindow = true;
+    SaveImagePNG(props.imageData, suggested).then((savePath) => {
+      if (savePath) {
+        ElMessage.success("图片已保存");
+      }
+    }).catch((e) => {
+      console.error("保存图片失败", e);
+      ElMessage.error("保存失败");
+    }).finally(() => {
+      // 恢复隐藏行为
+      (window as any).__suppressHideWindow = false;
+    });
+  } catch (e) {
+    console.error("保存图片失败", e);
+    ElMessage.error("保存失败");
+  }
+}
 </script>
 
 <style scoped>
@@ -146,5 +175,28 @@ const props = defineProps<Props>();
   min-width: 40px;
   text-align: center;
   font-weight: 500;
+}
+
+.save-btn {
+  width: fit-content;
+  padding: 6px 12px;
+  border: 1px solid #2196f3;
+  border-radius: 6px;
+  background-color: #e3f2fd;
+  color: #2196f3;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-btn:hover {
+  background-color: #2196f3;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 </style>

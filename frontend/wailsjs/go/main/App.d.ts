@@ -30,6 +30,8 @@ export function OpenURL(arg1:string):Promise<void>;
 
 export function SaveAppSettings(arg1:string):Promise<void>;
 
+export function SaveImagePNG(arg1:string,arg2:string):Promise<string>;
+
 export function SearchClipboardItems(arg1:string,arg2:string,arg3:number):Promise<Array<common.ClipboardItem>>;
 
 export function ShowWindow():Promise<void>;

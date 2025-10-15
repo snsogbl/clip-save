@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"os/exec"
+	"time"
 
 	"goWeb3/common"
 
@@ -293,4 +296,52 @@ func (a *App) HideWindow() {
 		runtime.Hide(a.ctx)
 		log.Println("🪟 窗口已隐藏")
 	}
+}
+
+// SaveImagePNG 通过系统对话框将 Base64 PNG 保存到本地（供前端调用）
+func (a *App) SaveImagePNG(base64Data string, suggestedName string) (string, error) {
+	if a.ctx == nil {
+		return "", fmt.Errorf("应用上下文未初始化")
+	}
+
+	// 生成默认文件名
+	now := time.Now()
+	pad := func(n int) string { return fmt.Sprintf("%02d", n) }
+	defaultName := fmt.Sprintf(
+		"clipboard-%d%s%s-%s%s%s.png",
+		now.Year(), pad(int(now.Month())), pad(now.Day()),
+		pad(now.Hour()), pad(now.Minute()), pad(now.Second()),
+	)
+	if suggestedName != "" {
+		defaultName = suggestedName
+	}
+
+	// 弹出保存对话框
+	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		DefaultFilename: defaultName,
+		Filters: []runtime.FileFilter{
+			{DisplayName: "PNG 图片", Pattern: "*.png"},
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("选择保存路径失败: %v", err)
+	}
+	if path == "" {
+		// 用户取消
+		return "", nil
+	}
+
+	// 解码 Base64 数据
+	data, err := base64.StdEncoding.DecodeString(base64Data)
+	if err != nil {
+		return "", fmt.Errorf("解码图片失败: %v", err)
+	}
+
+	// 写入文件
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return "", fmt.Errorf("写入文件失败: %v", err)
+	}
+
+	log.Printf("图片已保存到: %s", path)
+	return path, nil
 }
