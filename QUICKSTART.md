@@ -23,8 +23,8 @@ wails build -platform darwin/universal
 
 ## 3. 主要功能
 
-### 自动监听剪贴板
-应用启动后会自动在后台监听剪贴板变化，无需任何配置。
+### 自动保存剪贴板
+应用启动后会自动保存剪贴板变化，无需任何配置。
 
 ### 搜索和过滤
 - 顶部搜索框：输入关键词实时搜索
@@ -70,7 +70,7 @@ frontend/src/
   └── main.ts                    # 入口文件
 
 common/
-  ├── clipboard.go              # 剪贴板监听
+  ├── clipboard.go              # 剪贴板
   ├── clipboard_darwin.go       # macOS 特定代码
   └── db.go                     # 数据库操作
 

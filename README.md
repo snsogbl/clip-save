@@ -4,7 +4,7 @@
 
 ## 功能特性
 
-- 📋 自动监听并保存剪贴板历史
+- 📋 自动保存剪贴板历史
 - 🖼️ 支持文本和图片
 - 🔍 实时搜索和过滤功能
 - 💾 本地 SQLite 数据库存储
@@ -101,7 +101,7 @@ wails build -platform linux/amd64
 ├── wails.json                   # Wails 配置文件
 ├── go.mod                       # Go 依赖管理
 ├── common/                      # 共享代码
-│   ├── clipboard.go             # 剪贴板监听逻辑
+│   ├── clipboard.go             # 剪贴板逻辑
 │   ├── clipboard_darwin.go      # macOS 特定代码
 │   └── db.go                    # 数据库操作
 ├── frontend/                    # 前端代码
@@ -146,7 +146,7 @@ const items = await SearchClipboardItems('关键词', '所有类型', 100)
 
 ## 使用说明
 
-1. 启动应用后，它会在后台自动监听系统剪贴板
+1. 启动应用后，它会在后台自动保存系统剪贴板
 2. 每次复制内容时，都会自动保存到历史记录
 3. 使用顶部搜索框可以快速查找历史记录
 4. 使用过滤器可以按类型筛选内容（文本/图片/URL等）
@@ -223,7 +223,7 @@ xcode-select --install
 sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.0-dev
 ```
 
-### 2. 剪贴板监听不工作
+### 2. 剪贴板不工作
 
 检查应用是否有访问剪贴板的权限（macOS 需要在系统设置中授权）。
 

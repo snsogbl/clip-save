@@ -74,7 +74,7 @@ const currentColor = ref(props.color);
 const showCopyTip = ref(false);
 let copyTipTimer: number | null = null;
 
-// 监听 props.color 变化，同步到内部状态
+//  props.color 变化，同步到内部状态
 watch(() => props.color, (newColor) => {
   currentColor.value = newColor;
 });

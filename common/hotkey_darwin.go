@@ -229,7 +229,7 @@ func RegisterHotkey(hotkeyStr string, callback HotkeyCallback) error {
 	hotkeyCancel = cancel
 	currentHotkey = hotkeyStr
 
-	// 在新的 goroutine 中启动快捷键监听
+	// 在新的 goroutine 中启动快捷键
 	go func() {
 		// 注册修饰键状态跟踪
 		setupModifierKeyTracking()
@@ -254,10 +254,10 @@ func RegisterHotkey(hotkeyStr string, callback HotkeyCallback) error {
 		s := hook.Start()
 		// log.Printf("✅ 快捷键注册成功: %s", hotkeyStr)
 
-		// 监听取消信号
+		// 取消信号
 		go func() {
 			<-ctx.Done()
-			// log.Println("⏹️ 停止快捷键监听")
+			// log.Println("⏹️ 停止快捷键")
 			hook.End()
 		}()
 

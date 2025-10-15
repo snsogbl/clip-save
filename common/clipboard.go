@@ -58,21 +58,21 @@ func init() {
 		log.Printf("数据库初始化失败: %v", err)
 	}
 
-	// 启动剪贴板监听
+	// 启动剪贴板
 	go run()
 
 	// 启动通知分发器
 	go notifyDispatcher()
 }
 
-// RegisterClipboardListener 注册剪贴板更新监听器
+// RegisterClipboardListener 注册剪贴板更新
 func RegisterClipboardListener() chan ClipboardItem {
 	listener := make(chan ClipboardItem, 10)
 	updateListeners = append(updateListeners, listener)
 	return listener
 }
 
-// notifyDispatcher 分发通知到所有监听器
+// notifyDispatcher 分发通知到所有
 func notifyDispatcher() {
 	for item := range clipboardUpdateChan {
 		for _, listener := range updateListeners {
@@ -80,7 +80,7 @@ func notifyDispatcher() {
 			case listener <- item:
 			default:
 				// 如果 channel 已满，跳过这次通知
-				log.Printf("监听器 channel 已满，跳过通知")
+				log.Printf("channel 已满，跳过通知")
 			}
 		}
 	}

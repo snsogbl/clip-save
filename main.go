@@ -29,7 +29,7 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
-	// 注册剪贴板监听器（后台持续运行）
+	// 注册剪贴板（后台持续运行）
 	clipboardListener := common.RegisterClipboardListener()
 	go func() {
 		for newItem := range clipboardListener {

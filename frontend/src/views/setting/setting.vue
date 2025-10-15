@@ -456,7 +456,7 @@ function captureHotkey(event: KeyboardEvent) {
 }
 
 
-// 监听设置变化，自动保存
+//设置变化，自动保存
 watch(
   settings,
   () => {
