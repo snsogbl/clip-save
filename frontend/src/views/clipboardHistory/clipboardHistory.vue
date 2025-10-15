@@ -13,6 +13,7 @@
           class="search-input"
           placeholder="输入内容过滤..."
           @input="onSearchChange"
+          clearable
         />
         <el-select
           v-model="filterType"
@@ -34,148 +35,147 @@
         </el-button>
       </div>
 
-    <!-- 主内容区域 -->
-    <div class="main-content">
-      <!-- 左侧列表 -->
-      <div class="left-panel">
-        <div class="panel-header">
-          <h3>列表</h3>
-        </div>
-        <div class="item-list">
-          <div v-if="loading" class="loading">加载中...</div>
-          <div v-else-if="items.length === 0" class="empty-state">
-            <div class="empty-icon">📋</div>
-            <div class="empty-text">暂无剪贴板历史</div>
+      <!-- 主内容区域 -->
+      <div class="main-content">
+        <!-- 左侧列表 -->
+        <div class="left-panel">
+          <div class="panel-header">
+            <h3>列表</h3>
           </div>
-          <div
-            v-else
-            v-for="item in items"
-            :key="item.ID"
-            class="list-item"
-            :class="{ active: currentItem?.ID === item.ID }"
-            @click="selectItem(item)"
-          >
-            <div class="item-header">
-              <el-icon class="item-icon" :size="18">
-                <Document v-if="item.ContentType === 'Text'" />
-                <Link v-else-if="item.ContentType === 'URL'" />
-                <Folder v-else-if="item.ContentType === 'File'" />
-                <Brush v-else-if="item.ContentType === 'Color'" />
-                <Picture v-else-if="item.ContentType === 'Image'" />
-                <Document v-else />
-              </el-icon>
-              <span class="item-content">{{ getPreview(item) }}</span>
-              <div
-                v-if="item.ContentType === 'Color'"
-                class="color-circle-small"
-                :style="{ backgroundColor: item.Content }"
-              ></div>
-            </div>
-            <div class="item-footer">
-              <span class="item-type" style="width: 40px">{{
-                item.ContentType
-              }}</span>
-              <span class="item-time">{{ formatTime(item.Timestamp) }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="panel-footer">
-          <strong>剪贴板历史</strong>
-        </div>
-      </div>
-
-      <!-- 右侧详情 -->
-      <div class="right-panel">
-        <div class="content-area">
-          <div class="content-display">
-            <div v-if="!currentItem" class="welcome-text">
-              欢迎使用 剪存！复制任何内容后，它将自动出现在这里。
+          <div class="item-list">
+            <div v-if="loading" class="loading">加载中...</div>
+            <div v-else-if="items.length === 0" class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-text">暂无剪贴板历史</div>
             </div>
             <div
-              v-else-if="
-                currentItem.ContentType === 'Image' && currentItem.ImageData
-              "
+              v-else
+              v-for="item in items"
+              :key="item.ID"
+              class="list-item"
+              :class="{ active: currentItem?.ID === item.ID }"
+              @click="selectItem(item)"
             >
-              <img
-                :src="`data:image/png;base64,${currentItem.ImageData}`"
-                alt="剪贴板图片"
-                class="content-image"
+              <div class="item-header">
+                <el-icon class="item-icon" :size="18">
+                  <Document v-if="item.ContentType === 'Text'" />
+                  <Link v-else-if="item.ContentType === 'URL'" />
+                  <Folder v-else-if="item.ContentType === 'File'" />
+                  <Brush v-else-if="item.ContentType === 'Color'" />
+                  <Picture v-else-if="item.ContentType === 'Image'" />
+                  <Document v-else />
+                </el-icon>
+                <span class="item-content">{{ getPreview(item) }}</span>
+                <div
+                  v-if="item.ContentType === 'Color'"
+                  class="color-circle-small"
+                  :style="{ backgroundColor: item.Content }"
+                ></div>
+              </div>
+              <div class="item-footer">
+                <span class="item-type" style="width: 40px">{{
+                  item.ContentType
+                }}</span>
+                <span class="item-time">{{ formatTime(item.Timestamp) }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <strong>剪贴板历史</strong>
+          </div>
+        </div>
+
+        <!-- 右侧详情 -->
+        <div class="right-panel">
+          <div class="content-area">
+            <div class="content-display">
+              <div v-if="!currentItem" class="welcome-text">
+                欢迎使用 剪存！复制任何内容后，它将自动出现在这里。
+              </div>
+              <!-- 图片内容展示 -->
+              <ClipboardImageView
+                v-else-if="
+                  currentItem.ContentType === 'Image' && currentItem.ImageData
+                "
+                :imageData="currentItem.ImageData"
+              />
+              <!-- 文件内容展示 -->
+              <ClipboardFileView
+                v-else-if="currentItem.ContentType === 'File'"
+                :files="parseFileInfo(currentItem)"
+                @open-file="openInFinder"
+              />
+              <!-- URL 内容展示 -->
+              <ClipboardUrlView
+                v-else-if="currentItem.ContentType === 'URL'"
+                :url="currentItem.Content"
+                @open-url="openURL"
+              />
+              <!-- 颜色内容展示 -->
+              <ClipboardColorView
+                v-else-if="currentItem.ContentType === 'Color'"
+                :color="currentItem.Content"
+              />
+              <!-- 文本内容展示 -->
+              <ClipboardTextView
+                v-else
+                :text="currentItem?.Content || '空内容'"
               />
             </div>
-            <!-- 文件内容展示 -->
-            <ClipboardFileView
-              v-else-if="currentItem.ContentType === 'File'"
-              :files="parseFileInfo(currentItem)"
-              @open-file="openInFinder"
-            />
-            <!-- URL 内容展示 -->
-            <ClipboardUrlView
-              v-else-if="currentItem.ContentType === 'URL'"
-              :url="currentItem.Content"
-              @open-url="openURL"
-            />
-            <!-- 颜色内容展示 -->
-            <ClipboardColorView
-              v-else-if="currentItem.ContentType === 'Color'"
-              :color="currentItem.Content"
-            />
-            <!-- 文本内容展示 -->
-            <ClipboardTextView
-              v-else
-              :text="currentItem?.Content || '空内容'"
-            />
+
+            <div v-if="currentItem" class="info-panel">
+              <div class="info-row">
+                <span class="info-label">来源:</span>
+                <span class="info-value">{{ currentItem.Source }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">内容类型:</span>
+                <span class="info-value">{{ currentItem.ContentType }}</span>
+              </div>
+              <template v-if="currentItem.ContentType !== 'File'">
+                <div class="info-row">
+                  <span class="info-label">字符数:</span>
+                  <span class="info-value">{{ currentItem.CharCount }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">单词数:</span>
+                  <span class="info-value">{{ currentItem.WordCount }}</span>
+                </div>
+              </template>
+              <template v-if="currentItem.ContentType === 'File'">
+                <div class="info-row">
+                  <span class="info-label">文件数:</span>
+                  <span class="info-value">{{ currentItem.WordCount }}</span>
+                </div>
+              </template>
+              <div class="info-row">
+                <span class="info-label">创建时间:</span>
+                <span class="info-value">{{
+                  new Date(currentItem.Timestamp).toLocaleString("zh-CN")
+                }}</span>
+              </div>
+            </div>
           </div>
 
-          <div v-if="currentItem" class="info-panel">
-            <div class="info-row">
-              <span class="info-label">来源:</span>
-              <span class="info-value">{{ currentItem.Source }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">内容类型:</span>
-              <span class="info-value">{{ currentItem.ContentType }}</span>
-            </div>
-            <template v-if="currentItem.ContentType !== 'File'">
-              <div class="info-row">
-                <span class="info-label">字符数:</span>
-                <span class="info-value">{{ currentItem.CharCount }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">单词数:</span>
-                <span class="info-value">{{ currentItem.WordCount }}</span>
-              </div>
-            </template>
-            <template v-if="currentItem.ContentType === 'File'">
-              <div class="info-row">
-                <span class="info-label">文件数:</span>
-                <span class="info-value">{{ currentItem.WordCount }}</span>
-              </div>
-            </template>
-            <div class="info-row">
-              <span class="info-label">创建时间:</span>
-              <span class="info-value">{{
-                new Date(currentItem.Timestamp).toLocaleString("zh-CN")
-              }}</span>
-            </div>
+          <div v-if="currentItem" class="actions-bar">
+            <button class="action-btn" @click="copyItem(currentItem.ID)">
+              <el-icon :size="16" style="margin-right: 6px">
+                <DocumentCopy />
+              </el-icon>
+              复制
+            </button>
+            <button
+              class="action-btn delete"
+              @click="deleteItem(currentItem.ID)"
+            >
+              <el-icon :size="16" style="margin-right: 6px">
+                <Delete />
+              </el-icon>
+              删除
+            </button>
           </div>
-        </div>
-
-        <div v-if="currentItem" class="actions-bar">
-          <button class="action-btn" @click="copyItem(currentItem.ID)">
-            <el-icon :size="16" style="margin-right: 6px">
-              <DocumentCopy />
-            </el-icon>
-            复制
-          </button>
-          <button class="action-btn delete" @click="deleteItem(currentItem.ID)">
-            <el-icon :size="16" style="margin-right: 6px">
-              <Delete />
-            </el-icon>
-            删除
-          </button>
         </div>
       </div>
-    </div>
     </template>
   </div>
 </template>
@@ -205,6 +205,7 @@ import ClipboardUrlView from "./components/clipboardUrlView.vue";
 import ClipboardColorView from "./components/clipboardColorView.vue";
 import ClipboardFileView from "./components/clipboardFileView.vue";
 import ClipboardTextView from "./components/clipboardTextView.vue";
+import ClipboardImageView from "./components/clipboardImageView.vue";
 import SettingView from "../setting/setting.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
 
@@ -246,7 +247,7 @@ async function getSettings() {
       return JSON.parse(savedSettings);
     }
   } catch (e) {
-    console.error('❌ 读取设置失败:', e);
+    console.error("❌ 读取设置失败:", e);
   }
   // 返回默认值（数据库初始化时应该已经创建了默认设置）
   return { pageSize: 100, autoClean: true, retentionDays: 30 };
@@ -258,8 +259,8 @@ async function loadItems() {
     loading.value = true;
     const settings = await getSettings();
     const pageSize = settings.pageSize || 100;
-    console.log('📊 使用页面大小:', pageSize);
-    
+    console.log("📊 使用页面大小:", pageSize);
+
     const result = await SearchClipboardItems(
       searchKeyword.value,
       filterType.value,
@@ -267,8 +268,10 @@ async function loadItems() {
     );
     items.value = result || [];
 
-    if (items.value.length > 0 && !currentItem.value) {
+    if (items.value.length > 0) {
       selectItem(items.value[0]);
+    } else {
+      currentItem.value = null;
     }
   } catch (error) {
     console.error("加载剪贴板项目失败:", error);
@@ -282,7 +285,7 @@ async function checkForUpdates() {
   try {
     const settings = await getSettings();
     const pageSize = settings.pageSize || 100;
-    
+
     const result = await SearchClipboardItems(
       searchKeyword.value,
       filterType.value,
@@ -314,19 +317,6 @@ async function checkForUpdates() {
 // 选择项目
 function selectItem(item: ClipboardItem) {
   currentItem.value = item;
-
-  // 调试：输出当前项目信息
-  if (item.ContentType === "Image") {
-    console.log("📷 选中图片项目:", {
-      ID: item.ID,
-      ContentType: item.ContentType,
-      HasImageData: !!item.ImageData,
-      ImageDataLength: item.ImageData ? item.ImageData.length : 0,
-      ImageDataPreview: item.ImageData
-        ? item.ImageData.substring(0, 50) + "..."
-        : "null",
-    });
-  }
 }
 
 // 复制项目
@@ -343,9 +333,6 @@ async function copyItem(id: string) {
 
 // 删除项目
 async function deleteItem(id: string) {
-  // if (!confirm("确定要删除这个项目吗？")) {
-  //   return;
-  // }
   ElMessageBox.confirm("确定要删除这条记录吗？", "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
@@ -397,12 +384,10 @@ function getPreview(item: ClipboardItem): string {
   return preview;
 }
 
-
 // 搜索和过滤变化时重新加载
-function onSearchChange() {
+const onSearchChange = () => {
   loadItems();
-}
-
+};
 
 // 解析文件信息
 function parseFileInfo(item: ClipboardItem): FileInfo[] {
@@ -442,19 +427,19 @@ async function openURL(url: string) {
 // 自动清理超过指定天数的历史记录
 async function autoCleanOldItems() {
   const settings = await getSettings();
-  
+
   if (!settings.autoClean) {
     return; // 未启用自动清理
   }
-  
+
   const retentionDays = settings.retentionDays || 30;
-  
+
   try {
     console.log(`🗑️ 执行自动清理: 删除超过 ${retentionDays} 天的记录`);
     await ClearItemsOlderThanDays(retentionDays);
     console.log(`✅ 自动清理完成`);
   } catch (error) {
-    console.error('❌ 自动清理失败:', error);
+    console.error("❌ 自动清理失败:", error);
   }
 }
 
@@ -466,10 +451,10 @@ onMounted(() => {
   setInterval(() => {
     checkForUpdates();
   }, 1000);
-  
+
   // 启动时执行一次自动清理
   autoCleanOldItems();
-  
+
   // 每小时执行一次自动清理
   setInterval(() => {
     autoCleanOldItems();
