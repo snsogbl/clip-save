@@ -201,17 +201,6 @@ func isModifiersExactMatch(currentModifiers map[string]bool, expectedModifiers [
 	return true
 }
 
-// getPressedModifiers 获取当前按下的修饰键列表（用于调试）
-func getPressedModifiers(modifiers map[string]bool) []string {
-	var pressed []string
-	for mod, isPressed := range modifiers {
-		if isPressed {
-			pressed = append(pressed, mod)
-		}
-	}
-	return pressed
-}
-
 // resetModifierKeys 重置所有修饰键状态为未按下
 func resetModifierKeys() {
 	for key := range modifierKeysPressed {
