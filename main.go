@@ -72,31 +72,24 @@ func main() {
 		Title:             "剪存 - 剪贴板历史",
 		Width:             1024,
 		Height:            800,
+		Frameless:         true,
 		HideWindowOnClose: true,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 245, G: 245, B: 247, A: 1},
+		// BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 0},
+		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 0},
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
-		Bind: []interface{}{
-			app,
-		},
 		Mac: &mac.Options{
-			TitleBar: &mac.TitleBar{
-				TitlebarAppearsTransparent: false,
-				HideTitle:                  false,
-				HideTitleBar:               false,
-				FullSizeContent:            false,
-				UseToolbar:                 false,
-				HideToolbarSeparator:       true,
-			},
-			WebviewIsTransparent: false,
-			WindowIsTranslucent:  false,
+			WebviewIsTransparent: true,
 			About: &mac.AboutInfo{
 				Title:   "剪存",
 				Message: "剪贴板历史管理工具\n版本 1.0.0",
 			},
+		},
+		Bind: []interface{}{
+			app,
 		},
 	})
 

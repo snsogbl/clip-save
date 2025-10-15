@@ -286,3 +286,11 @@ func (a *App) ShowWindow() {
 		log.Println("🪟 窗口已显示并聚焦")
 	}
 }
+
+// HideWindow 隐藏窗口
+func (a *App) HideWindow() {
+	if a.ctx != nil {
+		runtime.Hide(a.ctx)
+		log.Println("🪟 窗口已隐藏")
+	}
+}

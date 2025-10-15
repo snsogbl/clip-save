@@ -14,6 +14,7 @@
           placeholder="输入内容过滤..."
           @input="onSearchChange"
           clearable
+          style="--wails-draggable:no-drag"
         />
         <el-select
           v-model="filterType"
@@ -86,7 +87,7 @@
         </div>
 
         <!-- 右侧详情 -->
-        <div class="right-panel">
+        <div class="right-panel" style="--wails-draggable:no-drag">
           <div class="content-area">
             <div class="content-display">
               <div v-if="!currentItem" class="welcome-text">
@@ -467,18 +468,13 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #fafafa;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-    "Helvetica Neue", Arial, sans-serif;
 }
 
 .toolbar {
   display: flex;
   gap: 12px;
   padding: 20px;
-  background-color: #ffffff;
   border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .filter-select {
@@ -487,7 +483,6 @@ onMounted(() => {
 
 .setting-btn {
   border: 1px solid #e0e0e0;
-  background-color: #ffffff;
   color: #666;
   transition: all 0.2s ease;
 }
@@ -511,7 +506,6 @@ onMounted(() => {
 
 .left-panel {
   width: 380px;
-  background-color: #ffffff;
   border-right: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
@@ -555,18 +549,15 @@ onMounted(() => {
   /* border-radius: 10px; */
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid #bebebe;
 }
 
 .list-item:hover {
   background-color: #f8f8f8;
-  transform: translateY(-1px);
 }
 
 .list-item.active {
-  background-color: #e3f2fd;
-  border-color: #2196f3;
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+  background-color: #f8f8f8;
 }
 
 .item-header {
@@ -629,7 +620,7 @@ onMounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: transparent;
   overflow: auto;
 }
 
@@ -642,7 +633,7 @@ onMounted(() => {
 .content-display {
   margin-bottom: 24px;
   padding: 24px;
-  background-color: #f8f8f8;
+  background-color: #fff;
   border-radius: 16px;
   border: 1px solid #e8e8e8;
 }
@@ -662,7 +653,7 @@ onMounted(() => {
 
 .info-panel {
   padding: 20px;
-  background-color: #f8f8f8;
+  background-color: rgba(255, 255, 255, 0.5);
   border-radius: 12px;
   border: 1px solid #e8e8e8;
 }
@@ -694,14 +685,14 @@ onMounted(() => {
   gap: 16px;
   padding: 20px;
   border-top: 1px solid #e0e0e0;
-  background-color: #fafafa;
+  background-color: transparent;
 }
 
 .action-btn {
   padding: 12px 24px;
   border: 1px solid #d1d1d6;
   border-radius: 10px;
-  background-color: #ffffff;
+  background-color: transparent;
   color: #1a1a1a;
   font-size: 15px;
   font-weight: 500;

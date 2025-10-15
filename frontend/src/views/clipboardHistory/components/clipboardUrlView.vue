@@ -106,6 +106,7 @@ function handleOpenUrl() {
   word-break: break-all;
   font-family: "SF Mono", Monaco, Consolas, monospace;
   line-height: 1.6;
+  padding: 12px;
 }
 
 .url-open-btn {

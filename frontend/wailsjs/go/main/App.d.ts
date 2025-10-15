@@ -22,6 +22,8 @@ export function GetFileInfo(arg1:string):Promise<Array<common.FileInfo>>;
 
 export function GetStatistics():Promise<Record<string, any>>;
 
+export function HideWindow():Promise<void>;
+
 export function OpenFileInFinder(arg1:string):Promise<void>;
 
 export function OpenURL(arg1:string):Promise<void>;

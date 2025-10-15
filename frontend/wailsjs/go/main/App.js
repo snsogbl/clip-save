@@ -42,6 +42,10 @@ export function GetStatistics() {
   return window['go']['main']['App']['GetStatistics']();
 }
 
+export function HideWindow() {
+  return window['go']['main']['App']['HideWindow']();
+}
+
 export function OpenFileInFinder(arg1) {
   return window['go']['main']['App']['OpenFileInFinder'](arg1);
 }

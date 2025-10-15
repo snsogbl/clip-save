@@ -237,10 +237,7 @@ const copyToClipboard = async (text: string) => {
 }
 
 .color-item-detail {
-  padding: 20px;
-  background-color: #ffffff;
   border-radius: 12px;
-  border: 1px solid #e0e0e0;
   transition: all 0.2s ease;
 }
 
@@ -283,7 +280,7 @@ const copyToClipboard = async (text: string) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.6);
   padding: 12px 16px;
   border-radius: 6px;
   border: 1px solid #e0e0e0;
@@ -308,7 +305,6 @@ const copyToClipboard = async (text: string) => {
   font-size: 15px;
   font-weight: 600;
   color: #1a1a1a;
-  font-family: "SF Mono", Monaco, Consolas, monospace;
   flex: 1;
 }
 
