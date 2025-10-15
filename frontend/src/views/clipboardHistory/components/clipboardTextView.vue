@@ -1,7 +1,7 @@
 <template>
   <div class="text-content">
     <!-- 原始文本显示 -->
-    <pre class="content-text">{{ text }}</pre>
+    <div class="content-text">{{ text }}</div>
 
     <!-- 解码按钮 -->
     <div v-if="showDecodeButtons" class="decode-buttons">
