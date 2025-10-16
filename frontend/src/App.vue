@@ -58,7 +58,10 @@ async function handleUnlock(password: string) {
 
 const addKeyListener = () => {
   document.addEventListener("keydown", (event) => {
-    if (event.keyCode === 27) {
+    // 当图片预览(ElImage Viewer)打开时，按 Esc 不隐藏窗口
+    const hasImagePreview = !!document.querySelector('.el-image-viewer__wrapper');
+    const shouldSuppress = (window as any).__suppressHideWindow || hasImagePreview;
+    if ((event.key === 'Escape' || event.keyCode === 27) && !shouldSuppress) {
       HideWindow();
     }
     if ((event.metaKey || event.ctrlKey) && event.key === "w") {

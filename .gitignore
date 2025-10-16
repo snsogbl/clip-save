@@ -4,3 +4,5 @@ build/bin
 build/darwin
 build/windows
 app
+macappstore-build.sh
+embedded.provisionprofile
