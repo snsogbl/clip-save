@@ -14,7 +14,7 @@
           placeholder="输入内容过滤..."
           @input="onSearchChange"
           clearable
-          style="--wails-draggable:no-drag"
+          style="--wails-draggable: no-drag"
         />
         <el-select
           v-model="filterType"
@@ -29,11 +29,19 @@
           <el-option label="URL" value="URL" />
           <el-option label="颜色" value="颜色" />
         </el-select>
-        <el-button class="setting-btn" @click="showSetting = true" circle>
-          <el-icon :size="20">
-            <Setting />
-          </el-icon>
-        </el-button>
+        <el-dropdown placement="bottom-end">
+          <el-button class="setting-btn" circle>
+            <el-icon :size="20">
+              <More />
+            </el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="showSetting = true">设置</el-dropdown-item>
+              <el-dropdown-item @click="hideApp">关闭</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
 
       <!-- 主内容区域 -->
@@ -87,7 +95,7 @@
         </div>
 
         <!-- 右侧详情 -->
-        <div class="right-panel" style="--wails-draggable:no-drag">
+        <div class="right-panel" style="--wails-draggable: no-drag">
           <div class="content-area">
             <div class="content-display">
               <div v-if="!currentItem" class="welcome-text">
@@ -200,7 +208,7 @@ import {
   Picture,
   DocumentCopy,
   Delete,
-  Setting,
+  More,
 } from "@element-plus/icons-vue";
 import ClipboardUrlView from "./components/clipboardUrlView.vue";
 import ClipboardColorView from "./components/clipboardColorView.vue";
@@ -209,6 +217,7 @@ import ClipboardTextView from "./components/clipboardTextView.vue";
 import ClipboardImageView from "./components/clipboardImageView.vue";
 import SettingView from "../setting/setting.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
+import { Hide } from "../../../wailsjs/runtime/runtime";
 
 interface ClipboardItem {
   ID: string;
@@ -237,7 +246,6 @@ const currentItem = ref<ClipboardItem | null>(null);
 const searchKeyword = ref("");
 const filterType = ref("所有类型");
 const loading = ref(false);
-const lastItemCount = ref(0);
 const showSetting = ref(false);
 
 // 从数据库获取设置
@@ -461,6 +469,12 @@ onMounted(() => {
     autoCleanOldItems();
   }, 60 * 60 * 1000); // 1小时 = 60分钟 * 60秒 * 1000毫秒
 });
+
+function hideApp() {
+  setTimeout(() => {
+    Hide();
+  }, 100);
+}
 </script>
 
 <style scoped>
@@ -496,6 +510,14 @@ onMounted(() => {
 
 .setting-btn:active {
   transform: scale(0.98);
+}
+
+.layout-btn {
+  color: #888;
+}
+
+.close-btn {
+  margin-left: auto;
 }
 
 .main-content {

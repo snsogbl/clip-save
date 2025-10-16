@@ -1,5 +1,6 @@
 <template>
   <div class="login-container">
+    <button class="close-btn" @click="hideApp" aria-label="关闭">×</button>
     <div class="login-box">
       <div class="logo-section">
         <div class="app-icon">🔒</div>
@@ -50,6 +51,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Lock } from '@element-plus/icons-vue';
+import { Hide } from '../../../wailsjs/runtime/runtime';
 
 // 定义事件
 const emit = defineEmits(['unlock']);
@@ -77,6 +79,10 @@ async function handleLogin() {
     loading.value = false;
   }
 }
+
+function hideApp() {
+  Hide();
+}
 </script>
 
 <style scoped>
@@ -86,6 +92,7 @@ async function handleLogin() {
   justify-content: center;
   height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
 }
 
 .login-box {
@@ -163,6 +170,27 @@ async function handleLogin() {
   margin: 4px 0;
   font-size: 12px;
   color: #8e8e93;
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 </style>
 
