@@ -74,7 +74,11 @@ function formatFileSize(size: number): string {
 }
 
 function handleOpenFile(path: string) {
+  (window as any).__suppressHideWindow = true;
   emit("openFile", path);
+  setTimeout(() => {
+    (window as any).__suppressHideWindow = false;
+  }, 200);
 }
 </script>
 

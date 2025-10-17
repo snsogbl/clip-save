@@ -1,6 +1,6 @@
 # 剪存 - 剪贴板历史管理工具
 
-一个基于 Wails + Vue 3 + TypeScript 的跨平台剪贴板历史管理工具。
+一个基于 Wails + Vue 3 + TypeScript 的MAC平台剪贴板历史管理工具。
 
 ## 功能特性
 
