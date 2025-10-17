@@ -516,10 +516,6 @@ function hideApp() {
   color: #888;
 }
 
-.close-btn {
-  margin-left: auto;
-}
-
 .main-content {
   display: flex;
   flex: 1;

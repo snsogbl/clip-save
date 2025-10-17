@@ -6,3 +6,4 @@ build/windows
 app
 macappstore-build.sh
 embedded.provisionprofile
+剪存.pkg
