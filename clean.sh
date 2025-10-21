@@ -32,6 +32,11 @@ if [ "$1" = "--deep" ]; then
     go clean -modcache
 fi
 
+if [ -f "剪存.pkg" ]; then
+    echo "删除剪存.pkg..."
+    rm -f 剪存.pkg
+fi
+
 # 清理临时文件
 find . -name "*.tmp" -delete 2>/dev/null
 find . -name "*.log" -delete 2>/dev/null
