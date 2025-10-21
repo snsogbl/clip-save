@@ -3,8 +3,10 @@ module goWeb3
 go 1.24.0
 
 require (
+	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/robotn/gohook v0.42.2
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/wailsapp/wails/v2 v2.10.2
 	golang.design/x/clipboard v0.7.1
 	golang.org/x/image v0.32.0
@@ -41,6 +43,7 @@ require (
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )
 
 // replace github.com/wailsapp/wails/v2 v2.10.2 => /Users/snso/go/pkg/mod

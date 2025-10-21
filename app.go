@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/png"
 	"log"
 	"net/url"
 	"os"
@@ -15,6 +18,9 @@ import (
 
 	"goWeb3/common"
 
+	"github.com/makiuchi-d/gozxing"
+	"github.com/makiuchi-d/gozxing/qrcode"
+	qrcodegen "github.com/skip2/go-qrcode"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"golang.design/x/clipboard"
 )
@@ -344,4 +350,123 @@ func (a *App) SaveImagePNG(base64Data string, suggestedName string) (string, err
 
 	log.Printf("图片已保存到: %s", path)
 	return path, nil
+}
+
+// DetectQRCode 检测图片中是否包含二维码（供前端调用）
+func (a *App) DetectQRCode(base64Data string) (bool, error) {
+	// 解码 Base64 数据
+	data, err := base64.StdEncoding.DecodeString(base64Data)
+	if err != nil {
+		return false, fmt.Errorf("解码图片失败: %v", err)
+	}
+
+	// 解码图片
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return false, fmt.Errorf("解码图片失败: %v", err)
+	}
+
+	// 将图片转换为灰度图
+	bmp, err := gozxing.NewBinaryBitmapFromImage(img)
+	if err != nil {
+		return false, fmt.Errorf("转换图片失败: %v", err)
+	}
+
+	// 创建二维码读取器
+	reader := qrcode.NewQRCodeReader()
+
+	// 尝试识别二维码
+	_, err = reader.Decode(bmp, nil)
+	if err != nil {
+		// 如果没有找到二维码，返回false
+		return false, nil
+	}
+
+	// 找到二维码
+	return true, nil
+}
+
+// RecognizeQRCode 识别图片中的二维码内容（供前端调用）
+func (a *App) RecognizeQRCode(base64Data string) (string, error) {
+	// 解码 Base64 数据
+	data, err := base64.StdEncoding.DecodeString(base64Data)
+	if err != nil {
+		return "", fmt.Errorf("解码图片失败: %v", err)
+	}
+
+	// 解码图片
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return "", fmt.Errorf("解码图片失败: %v", err)
+	}
+
+	// 将图片转换为灰度图
+	bmp, err := gozxing.NewBinaryBitmapFromImage(img)
+	if err != nil {
+		return "", fmt.Errorf("转换图片失败: %v", err)
+	}
+
+	// 创建二维码读取器
+	reader := qrcode.NewQRCodeReader()
+
+	// 尝试识别二维码
+	result, err := reader.Decode(bmp, nil)
+	if err != nil {
+		return "", fmt.Errorf("识别二维码失败: %v", err)
+	}
+
+	// 返回二维码内容
+	return result.GetText(), nil
+}
+
+// GenerateQRCode 生成二维码并返回Base64编码的PNG图片（供前端调用）
+func (a *App) GenerateQRCode(content string, size int) (string, error) {
+	if content == "" {
+		return "", fmt.Errorf("内容不能为空")
+	}
+
+	// 设置默认尺寸
+	if size <= 0 {
+		size = 256
+	}
+
+	// 生成二维码
+	qr, err := qrcodegen.New(content, qrcodegen.Medium)
+	if err != nil {
+		return "", fmt.Errorf("生成二维码失败: %v", err)
+	}
+
+	// 转换为PNG
+	img := qr.Image(size)
+
+	// 编码为PNG
+	var buf bytes.Buffer
+	err = png.Encode(&buf, img)
+	if err != nil {
+		return "", fmt.Errorf("编码PNG失败: %v", err)
+	}
+
+	// 转换为Base64
+	base64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
+	return base64Str, nil
+}
+
+// CopyImageToClipboard 将Base64编码的图片复制到剪贴板（供前端调用）
+func (a *App) CopyImageToClipboard(base64Data string) error {
+	if base64Data == "" {
+		return fmt.Errorf("图片数据不能为空")
+	}
+
+	// 解码Base64数据
+	data, err := base64.StdEncoding.DecodeString(base64Data)
+	if err != nil {
+		return fmt.Errorf("解码图片数据失败: %v", err)
+	}
+
+	// 写入剪贴板
+	done := clipboard.Write(clipboard.FmtImage, data)
+	<-done // 等待写入完成
+
+	log.Printf("图片已复制到剪贴板，大小: %d bytes", len(data))
+	return nil
 }

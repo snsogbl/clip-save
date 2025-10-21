@@ -14,12 +14,24 @@ export function ClearOldItems(arg1) {
   return window['go']['main']['App']['ClearOldItems'](arg1);
 }
 
+export function CopyImageToClipboard(arg1) {
+  return window['go']['main']['App']['CopyImageToClipboard'](arg1);
+}
+
 export function CopyToClipboard(arg1) {
   return window['go']['main']['App']['CopyToClipboard'](arg1);
 }
 
 export function DeleteClipboardItem(arg1) {
   return window['go']['main']['App']['DeleteClipboardItem'](arg1);
+}
+
+export function DetectQRCode(arg1) {
+  return window['go']['main']['App']['DetectQRCode'](arg1);
+}
+
+export function GenerateQRCode(arg1, arg2) {
+  return window['go']['main']['App']['GenerateQRCode'](arg1, arg2);
 }
 
 export function GetAppSettings() {
@@ -52,6 +64,10 @@ export function OpenFileInFinder(arg1) {
 
 export function OpenURL(arg1) {
   return window['go']['main']['App']['OpenURL'](arg1);
+}
+
+export function RecognizeQRCode(arg1) {
+  return window['go']['main']['App']['RecognizeQRCode'](arg1);
 }
 
 export function SaveAppSettings(arg1) {

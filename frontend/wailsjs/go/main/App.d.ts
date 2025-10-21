@@ -8,9 +8,15 @@ export function ClearItemsOlderThanDays(arg1:number):Promise<void>;
 
 export function ClearOldItems(arg1:number):Promise<void>;
 
+export function CopyImageToClipboard(arg1:string):Promise<void>;
+
 export function CopyToClipboard(arg1:string):Promise<void>;
 
 export function DeleteClipboardItem(arg1:string):Promise<void>;
+
+export function DetectQRCode(arg1:string):Promise<boolean>;
+
+export function GenerateQRCode(arg1:string,arg2:number):Promise<string>;
 
 export function GetAppSettings():Promise<string>;
 
@@ -27,6 +33,8 @@ export function HideWindow():Promise<void>;
 export function OpenFileInFinder(arg1:string):Promise<void>;
 
 export function OpenURL(arg1:string):Promise<void>;
+
+export function RecognizeQRCode(arg1:string):Promise<string>;
 
 export function SaveAppSettings(arg1:string):Promise<void>;
 
