@@ -163,7 +163,7 @@
           </div>
           <div class="about-item">
             <span class="about-label">版本号：</span>
-            <span class="about-value">1.0.1</span>
+            <span class="about-value">1.0.2</span>
           </div>
           <div class="about-item">
             <span class="about-label">描述：</span>

@@ -701,7 +701,7 @@ function hideApp() {
 .actions-bar {
   display: flex;
   gap: 16px;
-  padding: 20px;
+  padding: 10px;
   border-top: 1px solid #e0e0e0;
   background-color: transparent;
 }

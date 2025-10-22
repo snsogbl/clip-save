@@ -72,7 +72,7 @@ func main() {
 		Title:             "剪存 - 剪贴板历史",
 		Width:             1280,
 		Height:            800,
-		Frameless:         true,
+		Frameless:         false,
 		HideWindowOnClose: true,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
@@ -81,10 +81,10 @@ func main() {
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
 		Mac: &mac.Options{
-			WebviewIsTransparent: true,
+			WebviewIsTransparent: false,
 			About: &mac.AboutInfo{
 				Title:   "剪存",
-				Message: "剪贴板历史管理工具\n版本 1.0.1",
+				Message: "剪贴板历史管理工具\n版本 1.0.2",
 			},
 		},
 		Bind: []interface{}{

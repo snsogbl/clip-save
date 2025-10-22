@@ -110,7 +110,7 @@ body {
 #app {
   height: 100vh;
   overflow: hidden;
-  border-radius: 8px;
+  /* border-radius: 8px; */
   background-color: #fff;
   /* background-color: rgba(255, 255, 255, 1);
   backdrop-filter: blur(10px);
