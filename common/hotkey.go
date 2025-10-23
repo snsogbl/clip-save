@@ -263,11 +263,3 @@ func UnregisterHotkey() {
 		hotkeyCancel = nil
 	}
 }
-
-// GetCurrentHotkey 获取当前注册的快捷键
-func GetCurrentHotkey() string {
-	if hk != nil {
-		return hk.String()
-	}
-	return ""
-}

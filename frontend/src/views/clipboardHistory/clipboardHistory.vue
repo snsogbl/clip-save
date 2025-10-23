@@ -217,7 +217,6 @@ import ClipboardTextView from "./components/clipboardTextView.vue";
 import ClipboardImageView from "./components/clipboardImageView.vue";
 import SettingView from "../setting/setting.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
-import { Hide } from "../../../wailsjs/runtime/runtime";
 
 interface ClipboardItem {
   ID: string;
@@ -472,7 +471,7 @@ onMounted(() => {
 
 function hideApp() {
   setTimeout(() => {
-    Hide();
+    (window as any).runtime.WindowHide();
   }, 100);
 }
 </script>
