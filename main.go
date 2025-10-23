@@ -84,7 +84,7 @@ func main() {
 			WebviewIsTransparent: false,
 			About: &mac.AboutInfo{
 				Title:   "剪存",
-				Message: "剪贴板历史管理工具\n版本 1.0.2",
+				Message: "剪贴板历史管理工具\n版本 1.0.3",
 			},
 		},
 		Bind: []interface{}{
