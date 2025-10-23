@@ -1,5 +1,5 @@
 <template>
-  <div class="setting-container">
+  <div class="setting-container" style="--wails-draggable: no-drag">
     <!-- 顶部导航栏 -->
     <div class="setting-header">
       <el-button @click="$emit('back')" text>

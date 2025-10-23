@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div class="login-container" style="--wails-draggable: no-drag">
     <button class="close-btn" @click="hideApp" aria-label="关闭">×</button>
     <div class="login-box">
       <div class="logo-section">

@@ -1,5 +1,5 @@
 <template>
-  <div class="clipboard-container">
+  <div class="clipboard-container" style="--wails-draggable: no-drag">
     <!-- 设置页面 -->
     <SettingView v-if="showSetting" @back="showSetting = false" />
 

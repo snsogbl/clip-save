@@ -5,10 +5,10 @@ go 1.24.0
 require (
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/mattn/go-sqlite3 v1.14.32
-	github.com/robotn/gohook v0.42.2
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/wailsapp/wails/v2 v2.10.2
 	golang.design/x/clipboard v0.7.1
+	golang.design/x/hotkey v0.4.1
 	golang.org/x/image v0.32.0
 )
 
@@ -34,7 +34,6 @@ require (
 	github.com/tkrajina/go-reflector v0.5.8 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	github.com/vcaesar/keycode v0.10.1 // indirect
 	github.com/wailsapp/go-webview2 v1.0.19 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
