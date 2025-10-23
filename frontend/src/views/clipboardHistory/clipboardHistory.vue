@@ -199,6 +199,7 @@ import {
   OpenURL,
   ClearItemsOlderThanDays,
   GetAppSettings,
+  HideWindow
 } from "../../../wailsjs/go/main/App";
 import {
   Document,
@@ -471,7 +472,7 @@ onMounted(() => {
 
 function hideApp() {
   setTimeout(() => {
-    (window as any).runtime.WindowHide();
+    HideWindow()
   }, 100);
 }
 </script>

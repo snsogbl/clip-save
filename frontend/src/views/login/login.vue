@@ -51,6 +51,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Lock } from '@element-plus/icons-vue';
+import {
+  HideWindow,
+} from "../../../wailsjs/go/main/App";
 
 // 定义事件
 const emit = defineEmits(['unlock']);
@@ -80,7 +83,7 @@ async function handleLogin() {
 }
 
 function hideApp() {
-  (window as any).runtime.WindowHide();
+  HideWindow()
 }
 </script>
 

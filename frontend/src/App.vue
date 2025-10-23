@@ -62,11 +62,11 @@ const addKeyListener = () => {
     const hasImagePreview = !!document.querySelector('.el-image-viewer__wrapper');
     const shouldSuppress = (window as any).__suppressHideWindow || hasImagePreview;
     if ((event.key === 'Escape' || event.keyCode === 27) && !shouldSuppress) {
-      (window as any).runtime.WindowHide();
+      HideWindow();
     }
     if ((event.metaKey || event.ctrlKey) && event.key === "w") {
       event.preventDefault();
-      (window as any).runtime.WindowHide();
+      HideWindow();
     }
   });
   window.addEventListener("blur", (event) => {
@@ -74,7 +74,7 @@ const addKeyListener = () => {
     // 使用全局标记进行抑制
     const shouldSuppress = (window as any).__suppressHideWindow;
     if (shouldSuppress) return;
-    (window as any).runtime.WindowHide();
+    HideWindow();
   });
 };
 
