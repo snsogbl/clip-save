@@ -229,11 +229,7 @@ xcode-select --install
 sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.0-dev
 ```
 
-### 2. 剪贴板不工作
-
-检查应用是否有访问剪贴板的权限（macOS 需要在系统设置中授权）。
-
-### 3. 前端无法调用后端 API
+### 2. 前端无法调用后端 API
 
 确保已经运行了 `wails generate module` 生成前端绑定。
 

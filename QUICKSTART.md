@@ -120,9 +120,6 @@ cd frontend && npm install
 wails generate module
 ```
 
-### 剪贴板不工作
-检查系统权限设置，macOS 需要授予辅助功能权限。
-
 ## 下一步
 
 - 阅读 [README.md](README.md) 了解详细信息
