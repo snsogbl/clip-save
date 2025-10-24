@@ -3,7 +3,7 @@
 一个基于 Wails + Vue 3 + TypeScript 的MAC平台剪贴板历史管理工具。
 
 ## 已上架App Store
-https://apps.apple.com/us/app/%E5%89%AA%E5%AD%98/id6754015301
+https://apps.apple.com/us/app/剪存/id6754015301
 
 ## 功能特性
 
