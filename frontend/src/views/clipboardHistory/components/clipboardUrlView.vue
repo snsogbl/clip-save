@@ -218,7 +218,6 @@ async function copyQRCode() {
   background-color: #f8f8f8;
   border-radius: 6px;
   word-break: break-all;
-  font-family: "SF Mono", Monaco, Consolas, monospace;
   line-height: 1.6;
   padding: 12px;
 }
@@ -345,12 +344,10 @@ async function copyQRCode() {
   font-weight: 500;
   color: #1a1a1a;
   border-right: 1px solid #e0e0e0;
-  font-family: "SF Mono", Monaco, Consolas, monospace;
 }
 
 .param-value {
   color: #6d6d70;
-  font-family: "SF Mono", Monaco, Consolas, monospace;
 }
 
 .param-row:last-child .param-key,

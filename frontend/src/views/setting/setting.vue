@@ -601,15 +601,15 @@ onMounted(() => {
 }
 
 .setting-item-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
-  color: #1a1a1a;
+  color: #000;
   margin-bottom: 4px;
 }
 
 .setting-item-desc {
-  font-size: 13px;
-  color: #8e8e93;
+  font-size: 14px;
+  color: #333;
 }
 
 .setting-item-tip {
@@ -634,14 +634,14 @@ onMounted(() => {
 
 .about-label {
   font-weight: 600;
-  color: #1a1a1a;
+  color: #000;
   min-width: 100px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .about-value {
-  color: #6d6d70;
-  font-size: 14px;
+  color: #333;
+  font-size: 16px;
 }
 
 .setting-actions {
@@ -656,7 +656,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   color: #8e8e93;
-  font-size: 13px;
+  font-size: 14px;
   padding: 0 0 24px;
 }
 </style>

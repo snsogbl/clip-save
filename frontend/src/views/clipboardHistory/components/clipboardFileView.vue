@@ -149,7 +149,6 @@ function handleOpenFile(path: string) {
   border-radius: 6px;
   word-break: break-all;
   margin-bottom: 12px;
-  font-family: "SF Mono", Monaco, Consolas, monospace;
 }
 
 .file-open-btn {

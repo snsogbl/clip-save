@@ -492,21 +492,12 @@ func (a *App) RestartRegisterHotkey() error {
 	settingsJSON, err := common.GetSetting("app_settings")
 	if err != nil {
 		log.Printf("获取应用设置失败: %v", err)
-		// 使用默认快捷键
-		return a.registerDefaultHotkey()
-	}
-
-	if settingsJSON == "" {
-		// 没有设置，使用默认快捷键
-		return a.registerDefaultHotkey()
 	}
 
 	// 解析设置
 	var settings map[string]interface{}
 	if err := json.Unmarshal([]byte(settingsJSON), &settings); err != nil {
 		log.Printf("解析应用设置失败: %v", err)
-		// 使用默认快捷键
-		return a.registerDefaultHotkey()
 	}
 
 	// 获取快捷键设置
@@ -524,17 +515,5 @@ func (a *App) RestartRegisterHotkey() error {
 	}
 
 	log.Printf("✅ 快捷键注册成功: %s", hotkey)
-	return nil
-}
-
-// registerDefaultHotkey 注册默认快捷键
-func (a *App) registerDefaultHotkey() error {
-	if err := common.RegisterHotkey("Control+v", func() {
-		a.ShowWindow()
-	}); err != nil {
-		log.Printf("⚠️ 注册默认快捷键失败: %v", err)
-		return fmt.Errorf("注册默认快捷键失败: %v", err)
-	}
-	log.Printf("✅ 默认快捷键注册成功: Control+v")
 	return nil
 }

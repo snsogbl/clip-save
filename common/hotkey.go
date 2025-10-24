@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"sync"
 
 	"golang.design/x/hotkey"
 )
@@ -13,7 +12,6 @@ import (
 var (
 	hk           *hotkey.Hotkey
 	hotkeyCancel context.CancelFunc
-	hotkeyMutex  sync.RWMutex
 )
 
 // HotkeyCallback 快捷键回调函数类型
@@ -192,9 +190,7 @@ func RegisterHotkey(hotkeyStr string, callback HotkeyCallback) error {
 	// 创建新的上下文用于取消
 	ctx, cancel := context.WithCancel(context.Background())
 
-	hotkeyMutex.Lock()
 	hotkeyCancel = cancel
-	hotkeyMutex.Unlock()
 
 	go func() {
 		err := listenHotkeyWithContext(ctx, key, mods, callback)
@@ -208,22 +204,12 @@ func RegisterHotkey(hotkeyStr string, callback HotkeyCallback) error {
 }
 
 func listenHotkeyWithContext(ctx context.Context, key hotkey.Key, mods []hotkey.Modifier, callback HotkeyCallback) (err error) {
-	hotkeyMutex.Lock()
 	hk = hotkey.New(mods, key)
-	hotkeyMutex.Unlock()
 
 	err = hk.Register()
 	if err != nil {
 		return
 	}
-	defer func() {
-		hotkeyMutex.Lock()
-		if hk != nil {
-			hk.Unregister()
-			hk = nil
-		}
-		hotkeyMutex.Unlock()
-	}()
 
 	// 持续监听热键事件
 	for {
@@ -255,9 +241,6 @@ func listenHotkeyWithContext(ctx context.Context, key hotkey.Key, mods []hotkey.
 
 // UnregisterHotkey 取消注册快捷键
 func UnregisterHotkey() {
-	hotkeyMutex.Lock()
-	defer hotkeyMutex.Unlock()
-
 	if hotkeyCancel != nil {
 		hotkeyCancel()
 		hotkeyCancel = nil

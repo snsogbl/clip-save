@@ -401,7 +401,6 @@ onUnmounted(() => {
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   padding: 8px;
-  font-family: monospace;
   font-size: 13px;
   line-height: 1.4;
   word-break: break-all;

@@ -29,7 +29,7 @@
           <el-option label="URL" value="URL" />
           <el-option label="颜色" value="颜色" />
         </el-select>
-        <el-dropdown placement="bottom-end">
+        <el-dropdown placement="bottom-end" trigger="click">
           <el-button class="setting-btn" circle>
             <el-icon :size="20">
               <More />
@@ -159,9 +159,7 @@
               </template>
               <div class="info-row">
                 <span class="info-label">创建时间:</span>
-                <span class="info-value">{{
-                  new Date(currentItem.Timestamp).toLocaleString("zh-CN")
-                }}</span>
+                <span class="info-value">{{new Date(currentItem.Timestamp).toLocaleString("zh-CN")}}</span>
               </div>
             </div>
           </div>
@@ -628,7 +626,7 @@ function hideApp() {
   border-top: 1px solid #f0f0f0;
   color: #000;
   text-align: center;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   margin-top: auto;
   border-radius: 0 0 0 0;
@@ -694,7 +692,7 @@ function hideApp() {
 }
 
 .info-value {
-  color: #6d6d70;
+  color: #333;
   font-size: 14px;
 }
 

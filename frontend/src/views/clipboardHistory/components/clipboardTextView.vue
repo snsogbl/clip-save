@@ -173,7 +173,6 @@ watch(
   border: 1px solid #4caf50;
   padding: 12px 16px;
   border-radius: 6px;
-  font-family: "SF Mono", Monaco, Consolas, monospace;
 }
 </style>
 

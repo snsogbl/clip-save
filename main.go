@@ -37,7 +37,7 @@ func main() {
 	}()
 
 	// 注册全局快捷键
-	app.RestartRegisterHotkey()
+	go app.RestartRegisterHotkey()
 
 	// Create application with options
 	err := wails.Run(&options.App{

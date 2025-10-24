@@ -50,6 +50,19 @@ func InitDB() error {
 		// 不返回错误，允许应用继续运行
 	}
 
+	// 检查是否是第一次创建表（表为空时）
+	var count int
+	err = DB.QueryRow("SELECT COUNT(*) FROM clipboard_items").Scan(&count)
+	if err != nil {
+		log.Printf("检查剪贴板记录失败: %v", err)
+	} else if count == 0 {
+		// 第一次创建表，添加默认文本记录
+		if err := initDefaultTextRecord(); err != nil {
+			log.Printf("警告: 初始化默认文本记录失败: %v", err)
+			// 不返回错误，允许应用继续运行
+		}
+	}
+
 	log.Println("数据库初始化成功")
 	return nil
 }
@@ -439,6 +452,34 @@ func initDefaultSettings() error {
 	}
 
 	log.Printf("✅ 已初始化默认设置: %s", defaultSettings)
+	return nil
+}
+
+// initDefaultTextRecord 初始化默认文本记录
+func initDefaultTextRecord() error {
+	if DB == nil {
+		return fmt.Errorf("数据库未初始化")
+	}
+
+	// 创建默认文本记录
+	defaultText := "剪存：Control+v 唤之即来"
+	timestamp := time.Now()
+	item := ClipboardItem{
+		ID:          fmt.Sprintf("%d", timestamp.UnixNano()),
+		Content:     defaultText,
+		ContentType: "Text",
+		Timestamp:   timestamp,
+		Source:      "系统初始化",
+		CharCount:   len([]rune(defaultText)),
+		WordCount:   countWords(defaultText),
+	}
+
+	// 保存到数据库
+	if err := SaveClipboardItem(&item); err != nil {
+		return fmt.Errorf("保存默认文本记录失败: %v", err)
+	}
+
+	log.Printf("✅ 已初始化默认文本记录: %s", defaultText)
 	return nil
 }
 
