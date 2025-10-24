@@ -36,6 +36,8 @@ export function OpenURL(arg1:string):Promise<void>;
 
 export function RecognizeQRCode(arg1:string):Promise<string>;
 
+export function RestartRegisterHotkey():Promise<void>;
+
 export function SaveAppSettings(arg1:string):Promise<void>;
 
 export function SaveImagePNG(arg1:string,arg2:string):Promise<string>;

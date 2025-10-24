@@ -29,7 +29,7 @@
             </div>
           </div>
           <el-button @click="showPasswordDialog = true" size="small">
-            {{ settings.password ? '修改密码' : '设置密码' }}
+            {{ settings.password ? "修改密码" : "设置密码" }}
           </el-button>
         </div>
 
@@ -46,9 +46,7 @@
           <el-button @click="removePassword" size="small" type="danger">
             移除密码
           </el-button>
-          <el-button @click="lockPassword" size="small">
-            锁定
-          </el-button>
+          <el-button @click="lockPassword" size="small"> 锁定 </el-button>
         </div>
       </div>
 
@@ -95,16 +93,16 @@
             <div class="setting-item-info">
               <div class="setting-item-title">全局快捷键</div>
               <div class="setting-item-desc">
-                按下快捷键唤起应用窗口，例如：Control+V, Command+Shift+C
+                按下快捷键唤起应用窗口，例如：Control+v, Command+Shift+C
               </div>
-              <div class="setting-item-tip">
-                <el-icon :size="14" style="color: #999; margin-right: 4px">
+              <!-- <div class="setting-item-tip" v-if="isHotkeyModified">
+                <el-icon :size="14" style="color: #f56c6c; margin-right: 4px">
                   <Warning />
                 </el-icon>
-                <span style="color: #999; font-size: 12px">
+                <span style="color: #f56c6c; font-size: 12px">
                   修改快捷键后需要重启应用才能生效
                 </span>
-              </div>
+              </div> -->
             </div>
           </div>
           <el-input
@@ -123,7 +121,9 @@
             </el-icon>
             <div class="setting-item-info">
               <div class="setting-item-title">全部清除</div>
-              <div class="setting-item-desc">清除所有剪贴板历史记录，此操作不可恢复</div>
+              <div class="setting-item-desc">
+                清除所有剪贴板历史记录，此操作不可恢复
+              </div>
             </div>
           </div>
           <el-button @click="clearAllItems" size="small" type="danger">
@@ -207,8 +207,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ref, onMounted, watch, computed } from "vue";
+import { ElLoading, ElMessage, ElMessageBox } from "element-plus";
 import {
   ArrowLeft,
   Clock,
@@ -220,11 +220,12 @@ import {
   Operation,
   Warning,
 } from "@element-plus/icons-vue";
-import { 
+import {
   ClearAllItems,
   ClearItemsOlderThanDays,
   GetAppSettings,
-  SaveAppSettings
+  SaveAppSettings,
+  RestartRegisterHotkey,
 } from "../../../wailsjs/go/main/App";
 
 // 定义事件
@@ -236,7 +237,54 @@ const settings = ref({
   retentionDays: 30,
   pageSize: 100,
   password: "", // 加密后的密码
-  hotkey: "Control+V", // 全局快捷键
+  hotkey: "Control+v", // 全局快捷键
+});
+
+// 原始快捷键值，用于比较是否有修改
+const originalHotkey = ref("");
+
+// 快捷键重启状态
+const isHotkeyRestarting = ref(false);
+
+// 计算属性：判断快捷键是否被修改
+const isHotkeyModified = computed(() => {
+  return originalHotkey.value && settings.value.hotkey !== originalHotkey.value;
+});
+
+// 重启快捷键的函数
+const restartHotkey = async () => {
+  if (isHotkeyRestarting.value) {
+    console.log("快捷键正在重启中，跳过重复调用");
+    return;
+  }
+
+  isHotkeyRestarting.value = true;
+
+  try {
+    await RestartRegisterHotkey();
+    ElMessage.success("快捷键已更新");
+    originalHotkey.value = settings.value.hotkey;
+  } catch (error) {
+    console.error("重启快捷键失败:", error);
+    ElMessage.error("快捷键更新失败，请重试");
+  } finally {
+    isHotkeyRestarting.value = false;
+  }
+};
+
+watch(isHotkeyModified, () => {
+  if (isHotkeyModified.value) {
+    const loading = ElLoading.service({
+      lock: true,
+      text: "设置中...",
+      // background: "rgba(0, 0, 0, 0.7)",
+    });
+    // 使用较短的延迟，因为后端已经优化了同步机制
+    setTimeout(() => {
+      restartHotkey();
+      loading.close();
+    }, 500);
+  }
 });
 
 // 密码对话框
@@ -251,11 +299,15 @@ async function loadSettings() {
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
       settings.value = { ...settings.value, ...parsed };
+      // 保存原始快捷键值用于比较
+      originalHotkey.value = settings.value.hotkey;
       console.log("✅ 已从数据库加载设置:", settings.value);
     } else {
       // 数据库应该已经有默认设置，如果没有则使用代码中的默认值
       console.log("⚠️ 数据库中无设置，使用代码默认值");
       await autoSaveSettings(); // 保存默认设置到数据库
+      // 保存原始快捷键值用于比较
+      originalHotkey.value = settings.value.hotkey;
     }
   } catch (e) {
     console.error("❌ 加载设置失败:", e);
@@ -335,9 +387,9 @@ async function savePassword() {
   try {
     const hashedPassword = await hashPassword(newPassword.value);
     settings.value.password = hashedPassword;
-    
+
     await autoSaveSettings();
-    
+
     ElMessage.success("密码设置成功！下次启动应用需要输入密码");
     showPasswordDialog.value = false;
     newPassword.value = "";
@@ -394,7 +446,7 @@ async function clearAllItems() {
 
     ElMessage.success("已成功清除所有记录！");
     console.log("✅ 清除所有记录完成");
-    
+
     // 刷新页面以更新显示
     setTimeout(() => {
       emit("back");
@@ -414,47 +466,48 @@ async function hashPassword(password: string): Promise<string> {
   const data = encoder.encode(password);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
   return hashHex;
 }
 
 // 捕获快捷键输入
 function captureHotkey(event: KeyboardEvent) {
   event.preventDefault();
-  
+
   const modifiers: string[] = [];
   const keyMap: { [key: string]: string } = {
-    Control: 'Control',
-    Meta: 'Command',
-    Shift: 'Shift',
-    Alt: 'Alt',
+    Control: "Control",
+    Meta: "Command",
+    Shift: "Shift",
+    Alt: "Alt",
   };
-  
+
   // 收集修饰键
-  if (event.ctrlKey) modifiers.push('Control');
-  if (event.metaKey) modifiers.push('Command');
-  if (event.shiftKey) modifiers.push('Shift');
-  if (event.altKey) modifiers.push('Alt');
-  
+  if (event.ctrlKey) modifiers.push("Control");
+  if (event.metaKey) modifiers.push("Command");
+  if (event.shiftKey) modifiers.push("Shift");
+  if (event.altKey) modifiers.push("Alt");
+
   // 获取主键
   let key = event.key;
-  
+
   // 跳过单独的修饰键
   if (keyMap[key]) {
     return;
   }
-  
+
   // 将字母转为大写
   if (key.length === 1) {
     key = key.toUpperCase();
   }
-  
+
   // 构建快捷键字符串
   if (modifiers.length > 0) {
-    settings.value.hotkey = [...modifiers, key].join('+');
+    settings.value.hotkey = [...modifiers, key].join("+");
   }
 }
-
 
 //设置变化，自动保存
 watch(
@@ -607,4 +660,3 @@ onMounted(() => {
   padding: 0 0 24px;
 }
 </style>
-

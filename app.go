@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"sync"
 	"time"
 
 	"goWeb3/common"
@@ -468,5 +469,72 @@ func (a *App) CopyImageToClipboard(base64Data string) error {
 	<-done // 等待写入完成
 
 	log.Printf("图片已复制到剪贴板，大小: %d bytes", len(data))
+	return nil
+}
+
+// 添加互斥锁防止重复调用
+var hotkeyRestartMutex sync.Mutex
+
+func (a *App) RestartRegisterHotkey() error {
+	// 使用互斥锁防止重复调用
+	hotkeyRestartMutex.Lock()
+	defer hotkeyRestartMutex.Unlock()
+
+	log.Println("🔄 重启注册快捷键")
+
+	// 先取消当前注册的快捷键
+	common.UnregisterHotkey()
+
+	// 等待一小段时间确保旧快捷键完全清理
+	time.Sleep(100 * time.Millisecond)
+
+	// 获取设置
+	settingsJSON, err := common.GetSetting("app_settings")
+	if err != nil {
+		log.Printf("获取应用设置失败: %v", err)
+		// 使用默认快捷键
+		return a.registerDefaultHotkey()
+	}
+
+	if settingsJSON == "" {
+		// 没有设置，使用默认快捷键
+		return a.registerDefaultHotkey()
+	}
+
+	// 解析设置
+	var settings map[string]interface{}
+	if err := json.Unmarshal([]byte(settingsJSON), &settings); err != nil {
+		log.Printf("解析应用设置失败: %v", err)
+		// 使用默认快捷键
+		return a.registerDefaultHotkey()
+	}
+
+	// 获取快捷键设置
+	hotkey := "Control+v" // 默认快捷键
+	if hotkeyVal, ok := settings["hotkey"].(string); ok && hotkeyVal != "" {
+		hotkey = hotkeyVal
+	}
+
+	// 注册快捷键
+	if err := common.RegisterHotkey(hotkey, func() {
+		a.ShowWindow()
+	}); err != nil {
+		log.Printf("⚠️ 注册快捷键失败: %v", err)
+		return fmt.Errorf("注册快捷键失败: %v", err)
+	}
+
+	log.Printf("✅ 快捷键注册成功: %s", hotkey)
+	return nil
+}
+
+// registerDefaultHotkey 注册默认快捷键
+func (a *App) registerDefaultHotkey() error {
+	if err := common.RegisterHotkey("Control+v", func() {
+		a.ShowWindow()
+	}); err != nil {
+		log.Printf("⚠️ 注册默认快捷键失败: %v", err)
+		return fmt.Errorf("注册默认快捷键失败: %v", err)
+	}
+	log.Printf("✅ 默认快捷键注册成功: Control+v")
 	return nil
 }

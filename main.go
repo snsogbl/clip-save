@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"log"
 
 	"goWeb3/common"
@@ -38,34 +37,7 @@ func main() {
 	}()
 
 	// 注册全局快捷键
-	go func() {
-		// 等待应用完全启动后再注册快捷键
-		// 从数据库读取快捷键设置
-		settingsJSON, err := common.GetSetting("app_settings")
-		if err == nil && settingsJSON != "" {
-			var settings map[string]interface{}
-			if err := json.Unmarshal([]byte(settingsJSON), &settings); err == nil {
-				hotkey := "Control+V" // 默认快捷键
-				if hotkeyVal, ok := settings["hotkey"].(string); ok && hotkeyVal != "" {
-					hotkey = hotkeyVal
-				}
-
-				// 注册快捷键
-				if err := common.RegisterHotkey(hotkey, func() {
-					app.ShowWindow()
-				}); err != nil {
-					log.Printf("⚠️ 注册快捷键失败: %v", err)
-				}
-			}
-		} else {
-			// 使用默认快捷键
-			if err := common.RegisterHotkey("Control+V", func() {
-				app.ShowWindow()
-			}); err != nil {
-				log.Printf("⚠️ 注册默认快捷键失败: %v", err)
-			}
-		}
-	}()
+	app.RestartRegisterHotkey()
 
 	// Create application with options
 	err := wails.Run(&options.App{

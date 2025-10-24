@@ -70,6 +70,10 @@ export function RecognizeQRCode(arg1) {
   return window['go']['main']['App']['RecognizeQRCode'](arg1);
 }
 
+export function RestartRegisterHotkey() {
+  return window['go']['main']['App']['RestartRegisterHotkey']();
+}
+
 export function SaveAppSettings(arg1) {
   return window['go']['main']['App']['SaveAppSettings'](arg1);
 }

@@ -19,7 +19,7 @@ var (
 // HotkeyCallback 快捷键回调函数类型
 type HotkeyCallback func()
 
-// parseHotkeyString 解析快捷键字符串，例如 "ctrl+shift+k" 或 "cmd+alt+c" 或 "Control+V"
+// parseHotkeyString 解析快捷键字符串，例如 "ctrl+shift+k" 或 "cmd+alt+c" 或 "Control+v"
 func parseHotkeyString(hotkeyStr string) ([]hotkey.Modifier, hotkey.Key, error) {
 	parts := strings.Split(strings.ToLower(hotkeyStr), "+")
 	if len(parts) < 2 {
@@ -261,5 +261,12 @@ func UnregisterHotkey() {
 	if hotkeyCancel != nil {
 		hotkeyCancel()
 		hotkeyCancel = nil
+		log.Println("✅ 快捷键已取消注册")
+	}
+
+	// 确保热键对象也被清理
+	if hk != nil {
+		hk.Unregister()
+		hk = nil
 	}
 }
