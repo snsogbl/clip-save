@@ -181,6 +181,27 @@ func (a *App) GetAppSettings() (string, error) {
 	return settings, nil
 }
 
+// GetCurrentLanguage 获取当前语言（供前端调用）
+func (a *App) GetCurrentLanguage() (string, error) {
+	return common.GetCurrentLanguage(), nil
+}
+
+// SetLanguage 设置语言（供前端调用）
+func (a *App) SetLanguage(lang string) error {
+	err := common.SetLanguage(lang)
+	if err != nil {
+		log.Printf("设置语言失败: %v", err)
+		return err
+	}
+	log.Printf("语言已设置为: %s", lang)
+	return nil
+}
+
+// GetSupportedLanguages 获取支持的语言列表（供前端调用）
+func (a *App) GetSupportedLanguages() ([]string, error) {
+	return common.GetSupportedLanguages(), nil
+}
+
 // VerifyPassword 验证密码（供前端调用）
 func (a *App) VerifyPassword(password string) (bool, error) {
 	// 获取设置

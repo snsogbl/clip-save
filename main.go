@@ -16,6 +16,11 @@ import (
 var assets embed.FS
 
 func main() {
+	// 初始化国际化
+	if err := common.InitI18n(); err != nil {
+		log.Fatal("初始化国际化失败:", err)
+	}
+
 	// 确保程序退出时关闭数据库
 	defer func() {
 		if err := common.CloseDB(); err != nil {
@@ -41,7 +46,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:             "剪存 - 剪贴板历史",
+		Title:             common.T("app.title"),
 		Width:             1280,
 		Height:            800,
 		Frameless:         false,
@@ -55,8 +60,8 @@ func main() {
 		Mac: &mac.Options{
 			WebviewIsTransparent: false,
 			About: &mac.AboutInfo{
-				Title:   "剪存",
-				Message: "剪贴板历史管理工具\n版本 1.0.5",
+				Title:   common.T("app.name"),
+				Message: common.T("app.description") + "\n版本 " + common.T("app.version"),
 			},
 		},
 		Bind: []interface{}{

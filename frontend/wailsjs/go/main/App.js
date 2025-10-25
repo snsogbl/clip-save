@@ -46,12 +46,20 @@ export function GetClipboardItems(arg1) {
   return window['go']['main']['App']['GetClipboardItems'](arg1);
 }
 
+export function GetCurrentLanguage() {
+  return window['go']['main']['App']['GetCurrentLanguage']();
+}
+
 export function GetFileInfo(arg1) {
   return window['go']['main']['App']['GetFileInfo'](arg1);
 }
 
 export function GetStatistics() {
   return window['go']['main']['App']['GetStatistics']();
+}
+
+export function GetSupportedLanguages() {
+  return window['go']['main']['App']['GetSupportedLanguages']();
 }
 
 export function HideWindow() {
@@ -84,6 +92,10 @@ export function SaveImagePNG(arg1, arg2) {
 
 export function SearchClipboardItems(arg1, arg2, arg3) {
   return window['go']['main']['App']['SearchClipboardItems'](arg1, arg2, arg3);
+}
+
+export function SetLanguage(arg1) {
+  return window['go']['main']['App']['SetLanguage'](arg1);
 }
 
 export function ShowWindow() {

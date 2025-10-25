@@ -2,7 +2,7 @@
   <div class="image-content">
     <el-image
       :src="`data:image/png;base64,${imageData}`"
-      alt="剪贴板图片"
+      :alt="$t('components.image.clipboardImage')"
       class="content-image"
       fit="scale-down"
       preview-teleported
@@ -11,20 +11,20 @@
     <!-- 二维码识别结果 -->
     <div v-if="qrCodeResult" class="qr-result">
       <div class="qr-result-header">
-        <span class="qr-result-title">二维码内容：</span>
-        <button class="copy-btn" @click="copyQRResult">复制</button>
+        <span class="qr-result-title">{{ $t('components.image.qrContent') }}</span>
+        <button class="copy-btn" @click="copyQRResult">{{ $t('components.image.copy') }}</button>
       </div>
       <div class="qr-result-content">{{ qrCodeResult }}</div>
     </div>
     <div class="button-group">
-      <button class="save-btn" @click="handleSave">保存到本地</button>
+      <button class="save-btn" @click="handleSave">{{ $t('components.image.saveToLocal') }}</button>
       <button
         v-if="isQRCode"
         class="save-btn qr-btn"
         @click="handleQRCode"
         :disabled="isRecognizing"
       >
-        {{ isRecognizing ? "识别中..." : "识别二维码" }}
+        {{ isRecognizing ? $t('components.image.recognizing') : $t('components.image.recognizeQR') }}
       </button>
     </div>
   </div>
@@ -32,12 +32,15 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted, onUnmounted } from "vue";
+import { useI18n } from 'vue-i18n';
 import {
   SaveImagePNG,
   DetectQRCode,
   RecognizeQRCode,
 } from "../../../../wailsjs/go/main/App";
 import { ElMessage } from "element-plus";
+
+const { t } = useI18n();
 
 interface Props {
   imageData: string;
@@ -82,10 +85,10 @@ async function handleQRCode() {
   try {
     const result = await RecognizeQRCode(props.imageData);
     qrCodeResult.value = result;
-    ElMessage.success("二维码识别成功");
+    ElMessage.success(t('components.image.qrGenerated'));
   } catch (error) {
     console.error("识别二维码失败:", error);
-    ElMessage.error("识别二维码失败");
+    ElMessage.error(t('components.image.qrGenerateFailed'));
   } finally {
     isRecognizing.value = false;
   }
@@ -97,10 +100,10 @@ function copyQRResult() {
     navigator.clipboard
       .writeText(qrCodeResult.value)
       .then(() => {
-        ElMessage.success("已复制到剪贴板");
+        ElMessage.success(t('components.image.qrCopied'));
       })
       .catch(() => {
-        ElMessage.error("复制失败");
+        ElMessage.error(t('components.image.qrCopyFailed'));
       });
   }
 }
@@ -119,12 +122,12 @@ function handleSave() {
     SaveImagePNG(props.imageData, suggested)
       .then((savePath) => {
         if (savePath) {
-          ElMessage.success("图片已保存");
+          ElMessage.success(t('components.image.qrSaved'));
         }
       })
       .catch((e) => {
         console.error("保存图片失败", e);
-        ElMessage.error("保存失败");
+        ElMessage.error(t('components.image.qrSaveFailed'));
       })
       .finally(() => {
         // 恢复隐藏行为
@@ -132,7 +135,7 @@ function handleSave() {
       });
   } catch (e) {
     console.error("保存图片失败", e);
-    ElMessage.error("保存失败");
+    ElMessage.error(t('components.image.qrSaveFailed'));
   }
 }
 

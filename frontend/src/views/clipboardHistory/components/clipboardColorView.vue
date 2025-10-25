@@ -6,7 +6,7 @@
           class="color-circle-large" 
           :style="{ backgroundColor: currentColor }"
           @click="openColorPicker"
-          title="点击选择颜色"
+          :title="$t('components.color.clickToSelect')"
         ></div>
         <!-- 隐藏的调色板 -->
         <input 
@@ -19,31 +19,31 @@
         <!-- 隐藏的临时元素用于解析颜色 -->
         <div ref="colorParserRef" :style="{ color: currentColor }" class="color-parser-hidden"></div>
         <div class="color-values-container">
-          <div class="color-value-item" @click="copyToClipboard(currentColor)" title="点击复制">
-            <span class="color-value-label">原始值:</span>
+          <div class="color-value-item" @click="copyToClipboard(currentColor)" :title="$t('components.color.clickToSelect')">
+            <span class="color-value-label">{{ $t('components.color.originalValue') }}</span>
             <span class="color-value">{{ currentColor }}</span>
           </div>
-          <div v-if="rgbValue" class="color-value-item" @click="copyToClipboard(`rgb(${rgbValue.r}, ${rgbValue.g}, ${rgbValue.b})`)" title="点击复制">
-            <span class="color-value-label">RGB:</span>
+          <div v-if="rgbValue" class="color-value-item" @click="copyToClipboard(`rgb(${rgbValue.r}, ${rgbValue.g}, ${rgbValue.b})`)" :title="$t('components.color.clickToSelect')">
+            <span class="color-value-label">{{ $t('components.color.rgb') }}</span>
             <span class="color-value">
               rgb({{ rgbValue.r }}, {{ rgbValue.g }}, {{ rgbValue.b }})
             </span>
           </div>
-          <div v-if="rgbValue" class="color-value-item" @click="copyToClipboard(hexValue)" title="点击复制">
-            <span class="color-value-label">HEX:</span>
+          <div v-if="rgbValue" class="color-value-item" @click="copyToClipboard(hexValue)" :title="$t('components.color.clickToSelect')">
+            <span class="color-value-label">{{ $t('components.color.hex') }}</span>
             <span class="color-value">
               {{ hexValue }}
             </span>
           </div>
-          <div v-if="rgbValue?.a !== undefined" class="color-value-item" @click="copyToClipboard(`${(rgbValue.a * 100).toFixed(0)}%`)" title="点击复制">
-            <span class="color-value-label">透明度:</span>
+          <div v-if="rgbValue?.a !== undefined" class="color-value-item" @click="copyToClipboard(`${(rgbValue.a * 100).toFixed(0)}%`)" :title="$t('components.color.clickToSelect')">
+            <span class="color-value-label">{{ $t('components.color.alpha') }}</span>
             <span class="color-value">
               {{ (rgbValue.a * 100).toFixed(0) }}%
             </span>
           </div>
         </div>
         <!-- 复制成功提示 -->
-        <div v-if="showCopyTip" class="copy-tip">已复制</div>
+        <div v-if="showCopyTip" class="copy-tip">{{ $t('components.color.copied') }}</div>
       </div>
     </div>
   </div>
@@ -51,6 +51,9 @@
 
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue";
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
   color: string;

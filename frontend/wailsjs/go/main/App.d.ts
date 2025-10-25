@@ -24,9 +24,13 @@ export function GetClipboardItemByID(arg1:string):Promise<common.ClipboardItem>;
 
 export function GetClipboardItems(arg1:number):Promise<Array<common.ClipboardItem>>;
 
+export function GetCurrentLanguage():Promise<string>;
+
 export function GetFileInfo(arg1:string):Promise<Array<common.FileInfo>>;
 
 export function GetStatistics():Promise<Record<string, any>>;
+
+export function GetSupportedLanguages():Promise<Array<string>>;
 
 export function HideWindow():Promise<void>;
 
@@ -43,6 +47,8 @@ export function SaveAppSettings(arg1:string):Promise<void>;
 export function SaveImagePNG(arg1:string,arg2:string):Promise<string>;
 
 export function SearchClipboardItems(arg1:string,arg2:string,arg3:number):Promise<Array<common.ClipboardItem>>;
+
+export function SetLanguage(arg1:string):Promise<void>;
 
 export function ShowWindow():Promise<void>;
 

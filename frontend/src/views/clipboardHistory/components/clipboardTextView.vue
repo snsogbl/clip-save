@@ -13,7 +13,7 @@
         <el-icon :size="14" style="margin-right: 4px">
           <Link />
         </el-icon>
-        解码 URI
+        {{ $t('components.text.decodeUri') }}
       </button>
       <button
         v-if="needsUnicodeDecoding"
@@ -23,13 +23,13 @@
         <el-icon :size="14" style="margin-right: 4px">
           <Document />
         </el-icon>
-        解码 Unicode
+        {{ $t('components.text.decodeUnicode') }}
       </button>
     </div>
 
     <!-- 解码后的文本显示区域 -->
     <div v-if="hasDecodedText" class="decoded-section">
-      <div class="section-title">解码后文本</div>
+      <div class="section-title">{{ $t('components.text.decodedText') }}</div>
       <pre class="content-text decoded">{{ decodedText }}</pre>
     </div>
   </div>
@@ -37,8 +37,11 @@
 
 <script lang="ts" setup>
 import { ref, computed, watch, nextTick, onMounted } from "vue";
+import { useI18n } from 'vue-i18n';
 import { Link, Document } from "@element-plus/icons-vue";
 import hljs from "highlight.js";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   text: string;
@@ -85,7 +88,7 @@ function toggleURIDecode() {
     highlightCode(); // 解码后重新高亮
   } catch (e) {
     console.error("URI解码失败:", e);
-    decodedText.value = "解码失败：" + e;
+    decodedText.value = t('components.text.decodeFailed', [e]);
   }
 }
 
@@ -95,7 +98,7 @@ function toggleUnicodeDecode() {
     decodedText.value = decodeUnicode(props.text);
   } catch (e) {
     console.error("Unicode解码失败:", e);
-    decodedText.value = "解码失败：" + e;
+    decodedText.value = t('components.text.decodeFailed', [e]);
   }
 }
 

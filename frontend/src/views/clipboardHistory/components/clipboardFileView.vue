@@ -17,7 +17,7 @@
               formatFileSize(fileInfo.size)
             }}</span>
             <span v-if="!fileInfo.exists" class="file-not-exists"
-              >（文件不存在）</span
+              >{{ $t('components.file.fileNotExists') }}</span
             >
           </div>
         </div>
@@ -31,14 +31,17 @@
         <el-icon :size="14" style="margin-right: 4px">
           <FolderOpened />
         </el-icon>
-        在 Finder 中打开
+        {{ $t('components.file.openInFinder') }}
       </button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n';
 import { Document, Folder, FolderOpened } from "@element-plus/icons-vue";
+
+const { t } = useI18n();
 
 interface FileInfo {
   name: string;

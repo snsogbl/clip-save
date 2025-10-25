@@ -1,11 +1,11 @@
 <template>
   <div class="login-container" style="--wails-draggable: no-drag">
-    <button class="close-btn" @click="hideApp" aria-label="关闭">×</button>
+    <button class="close-btn" @click="hideApp" :aria-label="$t('login.unlockButton')">×</button>
     <div class="login-box">
       <div class="logo-section">
         <div class="app-icon">🔒</div>
-        <h1 class="app-name">剪存</h1>
-        <p class="app-subtitle">请输入密码解锁</p>
+        <h1 class="app-name">{{ $t('app.name') }}</h1>
+        <p class="app-subtitle">{{ $t('login.title') }}</p>
       </div>
 
       <el-form @submit.prevent="handleLogin" class="login-form">
@@ -13,7 +13,7 @@
           <el-input
             v-model="password"
             type="password"
-            placeholder="请输入密码"
+            :placeholder="$t('login.passwordPlaceholder')"
             size="large"
             show-password
             @keyup.enter="handleLogin"
@@ -32,7 +32,7 @@
           :loading="loading"
           class="login-btn"
         >
-          解锁
+          {{ $t('login.unlockButton') }}
         </el-button>
 
         <div v-if="errorMessage" class="error-message">
@@ -41,8 +41,8 @@
       </el-form>
 
       <div class="login-footer">
-        <p class="hint-text">忘记密码？请删除数据库文件重置应用</p>
-        <p class="hint-text">数据库位置: ~/.clipsave/clipboard.db</p>
+        <p class="hint-text">{{ $t('login.forgotPassword') }}</p>
+        <p class="hint-text">{{ $t('login.dbLocation') }}</p>
       </div>
     </div>
   </div>
@@ -51,9 +51,12 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { Lock } from '@element-plus/icons-vue';
+import { useI18n } from 'vue-i18n';
 import {
   HideWindow,
 } from "../../../wailsjs/go/main/App";
+
+const { t } = useI18n();
 
 // 定义事件
 const emit = defineEmits(['unlock']);
@@ -65,7 +68,7 @@ const errorMessage = ref('');
 // 处理登录
 async function handleLogin() {
   if (!password.value) {
-    errorMessage.value = '请输入密码';
+    errorMessage.value = t('login.passwordRequired');
     return;
   }
 
@@ -76,7 +79,7 @@ async function handleLogin() {
     // 发送密码给父组件验证
     emit('unlock', password.value);
   } catch (error) {
-    errorMessage.value = '验证失败，请重试';
+    errorMessage.value = t('login.verifyFailed');
   } finally {
     loading.value = false;
   }

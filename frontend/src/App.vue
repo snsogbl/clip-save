@@ -8,7 +8,10 @@ import {
   HideWindow,
 } from "../wailsjs/go/main/App";
 import { ElMessage } from "element-plus";
+import { useI18n } from 'vue-i18n';
 import "highlight.js/styles/github.css";
+
+const { t } = useI18n();
 
 const isLocked = ref(true);
 const isLoading = ref(true);
@@ -45,14 +48,14 @@ async function handleUnlock(password: string) {
     const isValid = await VerifyPassword(password);
     if (isValid) {
       isLocked.value = false;
-      ElMessage.success("解锁成功！");
+      ElMessage.success(t('login.unlockSuccess'));
       console.log("✅ 密码验证成功");
     } else {
-      ElMessage.error("密码错误，请重试");
+      ElMessage.error(t('login.passwordError'));
       console.log("❌ 密码验证失败");
     }
   } catch (error) {
-    ElMessage.error("验证失败: " + error);
+    ElMessage.error(t('login.verifyError', [error]));
     console.error("验证密码失败:", error);
   }
 }

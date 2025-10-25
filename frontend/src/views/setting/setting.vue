@@ -6,30 +6,30 @@
         <el-icon :size="20" style="margin-right: 8px">
           <ArrowLeft />
         </el-icon>
-        返回
+        {{ $t('settings.back') }}
       </el-button>
-      <h2>设置</h2>
+      <h2>{{ $t('settings.title') }}</h2>
       <div style="width: 80px"></div>
     </div>
 
     <!-- 设置内容 -->
     <div class="setting-content">
       <div class="setting-section">
-        <h3>安全设置</h3>
+        <h3>{{ $t('settings.security') }}</h3>
         <div class="setting-item">
           <div class="setting-item-left">
             <el-icon :size="20" class="setting-icon">
               <Lock />
             </el-icon>
             <div class="setting-item-info">
-              <div class="setting-item-title">应用密码</div>
+              <div class="setting-item-title">{{ $t('settings.appPassword') }}</div>
               <div class="setting-item-desc">
-                设置密码后，每次打开应用需要输入密码
+                {{ $t('settings.passwordDesc') }}
               </div>
             </div>
           </div>
-          <el-button @click="showPasswordDialog = true" size="small">
-            {{ settings.password ? "修改密码" : "设置密码" }}
+          <el-button @click="showPasswordDialog = true">
+            {{ settings.password ? $t('settings.changePassword') : $t('settings.setPassword') }}
           </el-button>
         </div>
 
@@ -39,28 +39,28 @@
               <Key />
             </el-icon>
             <div class="setting-item-info">
-              <div class="setting-item-title">移除密码</div>
-              <div class="setting-item-desc">移除密码后可直接打开应用</div>
+              <div class="setting-item-title">{{ $t('settings.removePassword') }}</div>
+              <div class="setting-item-desc">{{ $t('settings.removePasswordDesc') }}</div>
             </div>
           </div>
-          <el-button @click="removePassword" size="small" type="danger">
-            移除密码
+          <el-button @click="removePassword" type="danger">
+            {{ $t('settings.removePassword') }}
           </el-button>
-          <el-button @click="lockPassword" size="small"> 锁定 </el-button>
+          <el-button @click="lockPassword">{{ $t('settings.lock') }}</el-button>
         </div>
       </div>
 
       <div class="setting-section">
-        <h3>通用设置</h3>
+        <h3>{{ $t('settings.general') }}</h3>
         <div class="setting-item">
           <div class="setting-item-left">
             <el-icon :size="20" class="setting-icon">
               <Clock />
             </el-icon>
             <div class="setting-item-info">
-              <div class="setting-item-title">自动清理历史</div>
+              <div class="setting-item-title">{{ $t('settings.autoClean') }}</div>
               <div class="setting-item-desc">
-                自动删除超过指定天数的剪贴板历史
+                {{ $t('settings.autoCleanDesc') }}
               </div>
             </div>
           </div>
@@ -73,15 +73,14 @@
               <Calendar />
             </el-icon>
             <div class="setting-item-info">
-              <div class="setting-item-title">保留天数</div>
-              <div class="setting-item-desc">历史记录保留的天数</div>
+              <div class="setting-item-title">{{ $t('settings.retentionDays') }}</div>
+              <div class="setting-item-desc">{{ $t('settings.retentionDaysDesc') }}</div>
             </div>
           </div>
           <el-input-number
             v-model="settings.retentionDays"
             :min="1"
             :max="365"
-            size="small"
           />
         </div>
 
@@ -92,8 +91,8 @@
               <Operation />
             </el-icon>
             <div class="setting-item-info">
-              <div class="setting-item-title">全局快捷键</div>
-              <div class="setting-item-desc">按下快捷键唤起应用窗口:{{ settings.hotkey }}</div>
+              <div class="setting-item-title">{{ $t('settings.hotkey') }}</div>
+              <div class="setting-item-desc">{{ $t('settings.hotkeyDesc', [settings.hotkey]) }}</div>
             </div>
           </div>
           <div class="hotkey-input-area">
@@ -110,9 +109,9 @@
               <hotkey-display :hotkey="settings.hotkey" />
             </div>
             <div class="hotkey-placeholder" v-else-if="isRecording">
-              请按下快捷键组合...
+              {{ $t('settings.recordingPlaceholder') }}
             </div>
-            <div class="hotkey-placeholder" v-else>点击录制快捷键</div>
+            <div class="hotkey-placeholder" v-else>{{ $t('settings.recordPlaceholder') }}</div>
             <el-button
               @click="startRecording"
               :disabled="isRecording"
@@ -120,7 +119,7 @@
               type="primary"
               style="margin-left: 12px"
             >
-              {{ isRecording ? "录制中..." : "录制" }}
+              {{ isRecording ? $t('settings.recording') : $t('settings.record') }}
             </el-button>
           </div>
         </div>
@@ -131,28 +130,28 @@
               <Delete />
             </el-icon>
             <div class="setting-item-info">
-              <div class="setting-item-title">全部清除</div>
+              <div class="setting-item-title">{{ $t('settings.clearAll') }}</div>
               <div class="setting-item-desc">
-                清除所有剪贴板历史记录，此操作不可恢复
+                {{ $t('settings.clearAllDesc') }}
               </div>
             </div>
           </div>
-          <el-button @click="clearAllItems" size="small" type="danger">
-            清除全部
+          <el-button @click="clearAllItems" type="danger">
+            {{ $t('settings.clearAllButton') }}
           </el-button>
         </div>
       </div>
 
       <div class="setting-section">
-        <h3>界面设置</h3>
+        <h3>{{ $t('settings.interface') }}</h3>
         <div class="setting-item">
           <div class="setting-item-left">
             <el-icon :size="20" class="setting-icon">
               <List />
             </el-icon>
             <div class="setting-item-info">
-              <div class="setting-item-title">每页显示数量</div>
-              <div class="setting-item-desc">列表中每次加载的记录数量</div>
+              <div class="setting-item-title">{{ $t('settings.pageSize') }}</div>
+              <div class="setting-item-desc">{{ $t('settings.pageSizeDesc') }}</div>
             </div>
           </div>
           <el-input-number
@@ -160,25 +159,43 @@
             :min="10"
             :max="200"
             :step="10"
-            size="small"
           />
+        </div>
+        
+        <!-- 语言设置 -->
+        <div class="setting-item">
+          <div class="setting-item-left">
+            <el-icon :size="20" class="setting-icon">
+              <Operation />
+            </el-icon>
+            <div class="setting-item-info">
+              <div class="setting-item-title">{{ $t('settings.language') }}</div>
+              <div class="setting-item-desc">{{ $t('settings.languageDesc') }}</div>
+            </div>
+          </div>
+          <el-select style="width: 120px;" v-model="currentLanguage" @change="changeLanguage">
+            <el-option label="中文" value="zh-CN" />
+            <el-option label="English" value="en-US" />
+            <el-option label="Français" value="fr-FR" />
+            <el-option label="العربية" value="ar-SA" />
+          </el-select>
         </div>
       </div>
 
       <div class="setting-section">
-        <h3>关于</h3>
+        <h3>{{ $t('settings.about') }}</h3>
         <div class="about-info">
           <div class="about-item">
-            <span class="about-label">应用名称：</span>
-            <span class="about-value">剪存</span>
+            <span class="about-label">{{ $t('settings.appName') }}</span>
+            <span class="about-value">{{ $t('app.name') }}</span>
           </div>
           <div class="about-item">
-            <span class="about-label">版本号：</span>
-            <span class="about-value">1.0.5</span>
+            <span class="about-label">{{ $t('settings.version') }}</span>
+            <span class="about-value">{{ $t('app.version') }}</span>
           </div>
           <div class="about-item">
-            <span class="about-label">描述：</span>
-            <span class="about-value">一个优雅的剪贴板历史管理工具</span>
+            <span class="about-label">{{ $t('settings.description') }}</span>
+            <span class="about-value">{{ $t('app.description') }}</span>
           </div>
         </div>
       </div>
@@ -187,31 +204,31 @@
     <!-- 密码设置对话框 -->
     <el-dialog
       v-model="showPasswordDialog"
-      title="设置应用密码"
+      :title="$t('passwordDialog.title')"
       width="400px"
       :close-on-click-modal="false"
     >
       <el-form @submit.prevent="savePassword">
-        <el-form-item label="新密码" required>
+        <el-form-item :label="$t('passwordDialog.newPassword')" required>
           <el-input
             v-model="newPassword"
             type="password"
-            placeholder="请输入新密码"
+            :placeholder="$t('passwordDialog.newPlaceholder')"
             show-password
           />
         </el-form-item>
-        <el-form-item label="确认密码" required>
+        <el-form-item :label="$t('passwordDialog.confirmPassword')" required>
           <el-input
             v-model="confirmPassword"
             type="password"
-            placeholder="请再次输入密码"
+            :placeholder="$t('passwordDialog.confirmPlaceholder')"
             show-password
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showPasswordDialog = false">取消</el-button>
-        <el-button type="primary" @click="savePassword">确定</el-button>
+        <el-button @click="showPasswordDialog = false">{{ $t('passwordDialog.cancel') }}</el-button>
+        <el-button type="primary" @click="savePassword">{{ $t('passwordDialog.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -233,13 +250,18 @@ import {
 } from "@element-plus/icons-vue";
 import HotkeyDisplay from "./components/HotkeyDisplay.vue";
 import { useHotkey } from "../../composables/useHotkey";
+import { useI18n } from 'vue-i18n';
 import {
   ClearAllItems,
   ClearItemsOlderThanDays,
   GetAppSettings,
   SaveAppSettings,
   RestartRegisterHotkey,
+  GetCurrentLanguage,
+  SetLanguage,
 } from "../../../wailsjs/go/main/App";
+
+const { t, locale } = useI18n();
 
 // 定义事件
 const emit = defineEmits(["back"]);
@@ -252,6 +274,9 @@ const settings = ref({
   password: "", // 加密后的密码
   hotkey: "Command+Option+c", // 全局快捷键
 });
+
+// 当前语言
+const currentLanguage = ref('zh-CN');
 
 // 原始快捷键值，用于比较是否有修改
 const originalHotkey = ref("");
@@ -336,8 +361,30 @@ async function loadSettings() {
       // 保存原始快捷键值用于比较
       originalHotkey.value = settings.value.hotkey;
     }
+    
+    // 加载当前语言
+    try {
+      const lang = await GetCurrentLanguage();
+      currentLanguage.value = lang;
+      locale.value = lang as any;
+    } catch (e) {
+      console.error("❌ 获取当前语言失败:", e);
+    }
   } catch (e) {
     console.error("❌ 加载设置失败:", e);
+  }
+}
+
+// 切换语言
+async function changeLanguage(lang: string) {
+  try {
+    await SetLanguage(lang);
+    locale.value = lang as any;
+    currentLanguage.value = lang;
+    ElMessage.success(t('message.settingsSaved'));
+  } catch (error) {
+    console.error("切换语言失败:", error);
+    ElMessage.error(t('message.settingsError'));
   }
 }
 
@@ -355,11 +402,11 @@ async function autoSaveSettings() {
 async function saveSettings() {
   try {
     await SaveAppSettings(JSON.stringify(settings.value));
-    ElMessage.success("设置已保存");
+    ElMessage.success(t('message.settingsSaved'));
     console.log("✅ 设置已手动保存到数据库:", settings.value);
   } catch (e) {
     console.error("❌ 保存设置失败:", e);
-    ElMessage.error("保存设置失败");
+    ElMessage.error(t('message.settingsError'));
   }
 }
 
@@ -397,17 +444,17 @@ async function manualCleanNow() {
 // 保存密码
 async function savePassword() {
   if (!newPassword.value) {
-    ElMessage.warning("请输入密码");
+    ElMessage.warning(t('passwordDialog.passwordRequired'));
     return;
   }
 
   if (newPassword.value !== confirmPassword.value) {
-    ElMessage.error("两次输入的密码不一致");
+    ElMessage.error(t('passwordDialog.passwordMismatch'));
     return;
   }
 
   if (newPassword.value.length < 4) {
-    ElMessage.warning("密码长度至少4位");
+    ElMessage.warning(t('passwordDialog.passwordTooShort'));
     return;
   }
 
@@ -417,13 +464,13 @@ async function savePassword() {
 
     await autoSaveSettings();
 
-    ElMessage.success("密码设置成功！下次启动应用需要输入密码");
+    ElMessage.success(t('passwordDialog.success'));
     showPasswordDialog.value = false;
     newPassword.value = "";
     confirmPassword.value = "";
   } catch (error) {
     console.error("设置密码失败:", error);
-    ElMessage.error("设置密码失败");
+    ElMessage.error(t('passwordDialog.error'));
   }
 }
 
@@ -431,18 +478,18 @@ async function savePassword() {
 async function removePassword() {
   try {
     await ElMessageBox.confirm(
-      "移除密码后，将不再需要密码即可打开应用。确定要移除密码吗？",
-      "确认移除",
+      t('message.removePasswordConfirm'),
+      t('message.removePasswordTitle'),
       {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+        confirmButtonText: t('passwordDialog.confirm'),
+        cancelButtonText: t('passwordDialog.cancel'),
         type: "warning",
       }
     );
 
     settings.value.password = "";
     await autoSaveSettings();
-    ElMessage.success("密码已移除");
+    ElMessage.success(t('message.removePasswordSuccess'));
   } catch (error) {
     // 用户取消
   }
@@ -457,21 +504,21 @@ async function lockPassword() {
 async function clearAllItems() {
   try {
     await ElMessageBox.confirm(
-      "确定要清除所有剪贴板历史记录吗？此操作不可恢复！",
-      "确认清除",
+      t('message.clearConfirm'),
+      t('message.clearConfirmTitle'),
       {
-        confirmButtonText: "确定清除",
-        cancelButtonText: "取消",
+        confirmButtonText: t('message.clearConfirmBtn'),
+        cancelButtonText: t('message.clearCancelBtn'),
         type: "warning",
       }
     );
 
-    ElMessage.info("正在清除所有记录...");
+    ElMessage.info(t('message.clearProcessing'));
     console.log("🗑️ 开始清除所有剪贴板记录");
 
     await ClearAllItems();
 
-    ElMessage.success("已成功清除所有记录！");
+    ElMessage.success(t('message.clearSuccess'));
     console.log("✅ 清除所有记录完成");
 
     // 刷新页面以更新显示
@@ -484,7 +531,7 @@ async function clearAllItems() {
       return;
     }
     console.error("❌ 清除失败:", error);
-    ElMessage.error("清除失败: " + error);
+    ElMessage.error(t('message.clearError', [error]));
   }
 }
 

@@ -11,7 +11,7 @@
           v-model="searchKeyword"
           type="text"
           class="search-input"
-          placeholder="输入内容过滤..."
+          :placeholder="$t('main.searchPlaceholder')"
           @input="onSearchChange"
           clearable
           style="--wails-draggable: no-drag"
@@ -20,14 +20,14 @@
           v-model="filterType"
           class="filter-select"
           @change="onSearchChange"
-          placeholder="选择类型"
+          :placeholder="$t('main.filterAll')"
         >
-          <el-option label="所有类型" value="所有类型" />
-          <el-option label="文本" value="文本" />
-          <el-option label="图片" value="图片" />
-          <el-option label="文件" value="文件" />
-          <el-option label="URL" value="URL" />
-          <el-option label="颜色" value="颜色" />
+          <el-option :label="$t('main.filterAll')" value="所有类型" />
+          <el-option :label="$t('main.filterText')" value="文本" />
+          <el-option :label="$t('main.filterImage')" value="图片" />
+          <el-option :label="$t('main.filterFile')" value="文件" />
+          <el-option :label="$t('main.filterUrl')" value="URL" />
+          <el-option :label="$t('main.filterColor')" value="颜色" />
         </el-select>
         <el-button class="setting-btn" circle @click="showSetting = true">
             <el-icon :size="20">
@@ -41,13 +41,13 @@
         <!-- 左侧列表 -->
         <div class="left-panel">
           <div class="panel-header">
-            <h3>列表</h3>
+            <h3>{{ $t('main.listTitle') }}</h3>
           </div>
           <div class="item-list">
-            <div v-if="loading" class="loading">加载中...</div>
+            <div v-if="loading" class="loading">{{ $t('main.loading') }}</div>
             <div v-else-if="items.length === 0" class="empty-state">
               <div class="empty-icon">📋</div>
-              <div class="empty-text">暂无剪贴板历史</div>
+              <div class="empty-text">{{ $t('main.emptyState') }}</div>
             </div>
             <div
               v-else
@@ -82,7 +82,7 @@
             </div>
           </div>
           <div class="panel-footer">
-            <strong>剪贴板历史</strong>
+            <strong>{{ $t('main.clipboardHistory') }}</strong>
           </div>
         </div>
 
@@ -91,7 +91,7 @@
           <div class="content-area">
             <div class="content-display">
               <div v-if="!currentItem" class="welcome-text">
-                欢迎使用 剪存！复制任何内容后，它将自动出现在这里。
+                {{ $t('main.welcome') }}
               </div>
               <!-- 图片内容展示 -->
               <ClipboardImageView
@@ -126,31 +126,31 @@
 
             <div v-if="currentItem" class="info-panel">
               <div class="info-row">
-                <span class="info-label">来源:</span>
+                <span class="info-label">{{ $t('main.source') }}</span>
                 <span class="info-value">{{ currentItem.Source }}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">内容类型:</span>
+                <span class="info-label">{{ $t('main.contentType') }}</span>
                 <span class="info-value">{{ currentItem.ContentType }}</span>
               </div>
               <template v-if="currentItem.ContentType !== 'File'">
                 <div class="info-row">
-                  <span class="info-label">字符数:</span>
+                  <span class="info-label">{{ $t('main.charCount') }}</span>
                   <span class="info-value">{{ currentItem.CharCount }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-label">单词数:</span>
+                  <span class="info-label">{{ $t('main.wordCount') }}</span>
                   <span class="info-value">{{ currentItem.WordCount }}</span>
                 </div>
               </template>
               <template v-if="currentItem.ContentType === 'File'">
                 <div class="info-row">
-                  <span class="info-label">文件数:</span>
+                  <span class="info-label">{{ $t('main.fileCount') }}</span>
                   <span class="info-value">{{ currentItem.WordCount }}</span>
                 </div>
               </template>
               <div class="info-row">
-                <span class="info-label">创建时间:</span>
+                <span class="info-label">{{ $t('main.createTime') }}</span>
                 <span class="info-value">{{new Date(currentItem.Timestamp).toLocaleString("zh-CN")}}</span>
               </div>
             </div>
@@ -161,7 +161,7 @@
               <el-icon :size="16" style="margin-right: 6px">
                 <DocumentCopy />
               </el-icon>
-              复制
+              {{ $t('main.copy') }}
             </button>
             <button
               class="action-btn delete"
@@ -170,7 +170,7 @@
               <el-icon :size="16" style="margin-right: 6px">
                 <Delete />
               </el-icon>
-              删除
+              {{ $t('main.delete') }}
             </button>
           </div>
         </div>
@@ -181,6 +181,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
+import { useI18n } from 'vue-i18n';
 import {
   SearchClipboardItems,
   CopyToClipboard,
@@ -191,6 +192,8 @@ import {
   GetAppSettings,
   HideWindow
 } from "../../../wailsjs/go/main/App";
+
+const { t } = useI18n();
 import {
   Document,
   Link,
@@ -322,29 +325,29 @@ function selectItem(item: ClipboardItem) {
 async function copyItem(id: string) {
   try {
     await CopyToClipboard(id);
-    ElMessage.success("已复制到剪贴板");
+    ElMessage.success(t('message.copySuccess'));
     console.log("已复制到剪贴板");
   } catch (error) {
     console.error("复制失败:", error);
-    ElMessage.error("复制失败: " + error);
+    ElMessage.error(t('message.copyError', [error]));
   }
 }
 
 // 删除项目
 async function deleteItem(id: string) {
-  ElMessageBox.confirm("确定要删除这条记录吗？", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
+  ElMessageBox.confirm(t('message.deleteConfirm'), t('message.deleteConfirmTitle'), {
+    confirmButtonText: t('message.deleteConfirmBtn'),
+    cancelButtonText: t('message.deleteCancelBtn'),
     type: "warning",
   }).then(async () => {
     try {
       await DeleteClipboardItem(id);
       currentItem.value = null;
       await loadItems();
-      ElMessage.success("删除成功");
+      ElMessage.success(t('message.deleteSuccess'));
     } catch (error) {
       console.error("删除失败:", error);
-      ElMessage.error("删除失败: " + error);
+      ElMessage.error(t('message.deleteError', [error]));
     }
   });
 }
@@ -403,11 +406,11 @@ function parseFileInfo(item: ClipboardItem): FileInfo[] {
 async function openInFinder(filePath: string) {
   try {
     await OpenFileInFinder(filePath);
-    ElMessage.success("已在 Finder 中打开文件");
+    ElMessage.success(t('message.openFinderSuccess'));
     console.log("已在 Finder 中打开文件");
   } catch (error) {
     console.error("在 Finder 中打开文件失败:", error);
-    ElMessage.error("打开文件失败: " + error);
+    ElMessage.error(t('message.openFinderError', [error]));
   }
 }
 
@@ -415,11 +418,11 @@ async function openInFinder(filePath: string) {
 async function openURL(url: string) {
   try {
     await OpenURL(url);
-    ElMessage.success("已在浏览器中打开链接");
+    ElMessage.success(t('message.openUrlSuccess'));
     console.log("已在浏览器中打开 URL");
   } catch (error) {
     console.error("在浏览器中打开 URL 失败:", error);
-    ElMessage.error("打开链接失败: " + error);
+    ElMessage.error(t('message.openUrlError', [error]));
   }
 }
 
