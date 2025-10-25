@@ -29,19 +29,11 @@
           <el-option label="URL" value="URL" />
           <el-option label="颜色" value="颜色" />
         </el-select>
-        <el-dropdown placement="bottom-end" trigger="click">
-          <el-button class="setting-btn" circle>
+        <el-button class="setting-btn" circle @click="showSetting = true">
             <el-icon :size="20">
-              <More />
+              <Setting />
             </el-icon>
           </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="showSetting = true">设置</el-dropdown-item>
-              <el-dropdown-item @click="hideApp">关闭</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
       </div>
 
       <!-- 主内容区域 -->
@@ -207,7 +199,7 @@ import {
   Picture,
   DocumentCopy,
   Delete,
-  More,
+  Setting,
 } from "@element-plus/icons-vue";
 import ClipboardUrlView from "./components/clipboardUrlView.vue";
 import ClipboardColorView from "./components/clipboardColorView.vue";

@@ -8,6 +8,7 @@ import {
   HideWindow,
 } from "../wailsjs/go/main/App";
 import { ElMessage } from "element-plus";
+import "highlight.js/styles/github.css";
 
 const isLocked = ref(true);
 const isLoading = ref(true);

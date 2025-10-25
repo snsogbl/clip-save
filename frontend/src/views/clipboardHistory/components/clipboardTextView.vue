@@ -1,7 +1,7 @@
 <template>
   <div class="text-content">
     <!-- 原始文本显示 -->
-    <div class="content-text">{{ text }}</div>
+    <pre><code>{{ text }}</code></pre>
 
     <!-- 解码按钮 -->
     <div v-if="showDecodeButtons" class="decode-buttons">
@@ -36,14 +36,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { Link, Document } from "@element-plus/icons-vue";
+import hljs from "highlight.js";
 
 const props = defineProps<{
   text: string;
 }>();
 
 const decodedText = ref("");
+
 
 // 检测是否需要URI解码
 const needsURIDecoding = computed(() => {
@@ -80,6 +82,7 @@ function decodeUnicode(str: string): string {
 function toggleURIDecode() {
   try {
     decodedText.value = decodeURIComponent(props.text);
+    highlightCode(); // 解码后重新高亮
   } catch (e) {
     console.error("URI解码失败:", e);
     decodedText.value = "解码失败：" + e;
@@ -96,13 +99,30 @@ function toggleUnicodeDecode() {
   }
 }
 
-// 当文本变化时，清空解码文本
+// 高亮代码块
+const highlightCode = () => {
+  nextTick(() => {
+    document.querySelectorAll("pre code").forEach((el) => {
+      const result = hljs.highlightAuto(el.textContent || '');
+      el.innerHTML = result.value;
+      el.className = `hljs ${result.language || ''}`;
+    });
+  });
+};
+
+// 当文本变化时，清空解码文本并重新高亮
 watch(
   () => props.text,
   () => {
     decodedText.value = "";
+    highlightCode();
   }
 );
+
+// 组件挂载时进行高亮
+onMounted(() => {
+  highlightCode();
+});
 </script>
 
 <style scoped>
@@ -174,5 +194,15 @@ watch(
   padding: 12px 16px;
   border-radius: 6px;
 }
-</style>
 
+/* highlight.js 字体大小配置 */
+pre code {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hljs {
+  font-size: 14px;
+  line-height: 1.5;
+}
+</style>
