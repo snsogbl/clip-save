@@ -438,8 +438,8 @@ func initDefaultSettings() error {
 		return nil
 	}
 
-	// 创建默认设置 JSON（密码默认为空，表示不需要密码，快捷键默认为 Control+V）
-	defaultSettings := `{"autoClean":true,"retentionDays":30,"pageSize":100,"password":"","hotkey":"Control+v"}`
+	// 创建默认设置 JSON（密码默认为空，表示不需要密码，快捷键默认为 Command+Option++c）
+	defaultSettings := `{"autoClean":true,"retentionDays":30,"pageSize":100,"password":"","hotkey":"Command+Option+c"}`
 
 	insertSQL := `
 	INSERT INTO app_settings (key, value, updated_at) 
@@ -462,7 +462,7 @@ func initDefaultTextRecord() error {
 	}
 
 	// 创建默认文本记录
-	defaultText := "剪存：Control+v 唤之即来"
+	defaultText := "剪存：Command+Option+c 唤之即来"
 	timestamp := time.Now()
 	item := ClipboardItem{
 		ID:          fmt.Sprintf("%d", timestamp.UnixNano()),

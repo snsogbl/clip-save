@@ -501,7 +501,7 @@ func (a *App) RestartRegisterHotkey() error {
 	}
 
 	// 获取快捷键设置
-	hotkey := "Control+v" // 默认快捷键
+	hotkey := "Command+Option+c" // 默认快捷键
 	if hotkeyVal, ok := settings["hotkey"].(string); ok && hotkeyVal != "" {
 		hotkey = hotkeyVal
 	}

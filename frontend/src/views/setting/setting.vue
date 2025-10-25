@@ -85,6 +85,7 @@
           />
         </div>
 
+        <!-- 全局快捷键设置 -->
         <div class="setting-item">
           <div class="setting-item-left">
             <el-icon :size="20" class="setting-icon">
@@ -92,26 +93,36 @@
             </el-icon>
             <div class="setting-item-info">
               <div class="setting-item-title">全局快捷键</div>
-              <div class="setting-item-desc">
-                按下快捷键唤起应用窗口，例如：Control+v, Command+Shift+C
-              </div>
-              <!-- <div class="setting-item-tip" v-if="isHotkeyModified">
-                <el-icon :size="14" style="color: #f56c6c; margin-right: 4px">
-                  <Warning />
-                </el-icon>
-                <span style="color: #f56c6c; font-size: 12px">
-                  修改快捷键后需要重启应用才能生效
-                </span>
-              </div> -->
+              <div class="setting-item-desc">按下快捷键唤起应用窗口:{{ settings.hotkey }}</div>
             </div>
           </div>
-          <el-input
-            v-model="settings.hotkey"
-            placeholder="Control+V"
-            size="small"
-            style="width: 150px"
-            @keydown="captureHotkey"
-          />
+          <div class="hotkey-input-area">
+            <div
+              class="hotkey-display"
+              v-if="isRecording && currentRecordingHotkey"
+            >
+              <hotkey-display :hotkey="currentRecordingHotkey" />
+            </div>
+            <div
+              class="hotkey-display"
+              v-else-if="settings.hotkey && !isRecording"
+            >
+              <hotkey-display :hotkey="settings.hotkey" />
+            </div>
+            <div class="hotkey-placeholder" v-else-if="isRecording">
+              请按下快捷键组合...
+            </div>
+            <div class="hotkey-placeholder" v-else>点击录制快捷键</div>
+            <el-button
+              @click="startRecording"
+              :disabled="isRecording"
+              size="small"
+              type="primary"
+              style="margin-left: 12px"
+            >
+              {{ isRecording ? "录制中..." : "录制" }}
+            </el-button>
+          </div>
         </div>
 
         <div class="setting-item">
@@ -207,7 +218,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { ElLoading, ElMessage, ElMessageBox } from "element-plus";
 import {
   ArrowLeft,
@@ -220,6 +231,8 @@ import {
   Operation,
   Warning,
 } from "@element-plus/icons-vue";
+import HotkeyDisplay from "./components/HotkeyDisplay.vue";
+import { useHotkey } from "../../composables/useHotkey";
 import {
   ClearAllItems,
   ClearItemsOlderThanDays,
@@ -237,7 +250,7 @@ const settings = ref({
   retentionDays: 30,
   pageSize: 100,
   password: "", // 加密后的密码
-  hotkey: "Control+v", // 全局快捷键
+  hotkey: "Command+Option+c", // 全局快捷键
 });
 
 // 原始快捷键值，用于比较是否有修改
@@ -245,6 +258,18 @@ const originalHotkey = ref("");
 
 // 快捷键重启状态
 const isHotkeyRestarting = ref(false);
+
+// 快捷键启用状态
+const hotkeyEnabled = ref(true);
+
+// 使用快捷键组合式函数
+const {
+  isRecording,
+  currentRecordingHotkey,
+  startRecording,
+  stopRecording,
+  cleanup: cleanupHotkey,
+} = useHotkey(settings);
 
 // 计算属性：判断快捷键是否被修改
 const isHotkeyModified = computed(() => {
@@ -301,6 +326,8 @@ async function loadSettings() {
       settings.value = { ...settings.value, ...parsed };
       // 保存原始快捷键值用于比较
       originalHotkey.value = settings.value.hotkey;
+      // 初始化快捷键启用状态
+      hotkeyEnabled.value = !!settings.value.hotkey;
       console.log("✅ 已从数据库加载设置:", settings.value);
     } else {
       // 数据库应该已经有默认设置，如果没有则使用代码中的默认值
@@ -472,42 +499,6 @@ async function hashPassword(password: string): Promise<string> {
   return hashHex;
 }
 
-// 捕获快捷键输入
-function captureHotkey(event: KeyboardEvent) {
-  event.preventDefault();
-
-  const modifiers: string[] = [];
-  const keyMap: { [key: string]: string } = {
-    Control: "Control",
-    Meta: "Command",
-    Shift: "Shift",
-    Alt: "Alt",
-  };
-
-  // 收集修饰键
-  if (event.ctrlKey) modifiers.push("Control");
-  if (event.metaKey) modifiers.push("Command");
-  if (event.shiftKey) modifiers.push("Shift");
-  if (event.altKey) modifiers.push("Alt");
-
-  // 获取主键
-  let key = event.key;
-
-  // 跳过单独的修饰键
-  if (keyMap[key]) {
-    return;
-  }
-
-  // 将字母转为大写
-  if (key.length === 1) {
-    key = key.toUpperCase();
-  }
-
-  // 构建快捷键字符串
-  if (modifiers.length > 0) {
-    settings.value.hotkey = [...modifiers, key].join("+");
-  }
-}
 
 //设置变化，自动保存
 watch(
@@ -520,6 +511,11 @@ watch(
 
 onMounted(() => {
   loadSettings();
+});
+
+// 组件卸载时清理快捷键相关资源
+onUnmounted(() => {
+  cleanupHotkey();
 });
 </script>
 
@@ -658,5 +654,25 @@ onMounted(() => {
   color: #8e8e93;
   font-size: 14px;
   padding: 0 0 24px;
+}
+
+/* 快捷键设置样式 */
+.hotkey-input-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+  justify-content: end;
+}
+
+.hotkey-display {
+  margin: 0;
+}
+
+.hotkey-placeholder {
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+  min-width: 120px;
 }
 </style>

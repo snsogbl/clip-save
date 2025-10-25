@@ -1,7 +1,7 @@
 <template>
   <div class="text-content">
     <!-- 原始文本显示 -->
-    <pre><code>{{ text }}</code></pre>
+    <pre class="content-text"><code>{{ text }}</code></pre>
 
     <!-- 解码按钮 -->
     <div v-if="showDecodeButtons" class="decode-buttons">
@@ -45,7 +45,7 @@ const props = defineProps<{
 }>();
 
 const decodedText = ref("");
-
+const languageType = ref("");
 
 // 检测是否需要URI解码
 const needsURIDecoding = computed(() => {
@@ -103,9 +103,13 @@ function toggleUnicodeDecode() {
 const highlightCode = () => {
   nextTick(() => {
     document.querySelectorAll("pre code").forEach((el) => {
-      const result = hljs.highlightAuto(el.textContent || '');
-      el.innerHTML = result.value;
-      el.className = `hljs ${result.language || ''}`;
+      const result = hljs.highlightAuto(el.textContent || "");
+      languageType.value = result.language || "";
+      console.log("languageType", languageType.value);
+      if (result.language) {
+        el.innerHTML = result.value;
+        el.className = `hljs ${result.language || ""}`;
+      }
     });
   });
 };
@@ -197,12 +201,12 @@ onMounted(() => {
 
 /* highlight.js 字体大小配置 */
 pre code {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.3;
 }
 
 .hljs {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.3;
 }
 </style>

@@ -17,7 +17,6 @@ var (
 // HotkeyCallback 快捷键回调函数类型
 type HotkeyCallback func()
 
-// parseHotkeyString 解析快捷键字符串，例如 "ctrl+shift+k" 或 "cmd+alt+c" 或 "Control+v"
 func parseHotkeyString(hotkeyStr string) ([]hotkey.Modifier, hotkey.Key, error) {
 	parts := strings.Split(strings.ToLower(hotkeyStr), "+")
 	if len(parts) < 2 {

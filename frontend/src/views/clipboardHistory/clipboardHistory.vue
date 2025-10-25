@@ -640,7 +640,7 @@ function hideApp() {
 
 .content-display {
   margin-bottom: 24px;
-  padding: 24px;
+  padding: 14px;
   background-color: #fff;
   border-radius: 16px;
   border: 1px solid #e8e8e8;
