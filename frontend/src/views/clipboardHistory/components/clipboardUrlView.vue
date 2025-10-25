@@ -213,7 +213,7 @@ async function copyQRCode() {
 }
 
 .url-display {
-  font-size: 14px;
+  font-size: 15px;
   color: #2196f3;
   background-color: #f8f8f8;
   border-radius: 6px;
