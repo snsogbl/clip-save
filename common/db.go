@@ -109,7 +109,7 @@ func SaveClipboardItem(item *ClipboardItem) error {
 		return fmt.Errorf("数据库未初始化")
 	}
 
-	// 检查是否存在相同内容的项目
+	// 检查是否存在相同内容的项目（只在哈希值不为空时检查）
 	if item.ContentHash != "" {
 		var existingID string
 		checkSQL := `SELECT id FROM clipboard_items WHERE content_hash = ? AND content_type = ? LIMIT 1`
@@ -151,7 +151,13 @@ func SaveClipboardItem(item *ClipboardItem) error {
 		return fmt.Errorf("保存剪贴板项目失败: %v", err)
 	}
 
-	log.Printf("已保存剪贴板项目: ID=%s, 类型=%s, 哈希=%s", item.ID, item.ContentType, item.ContentHash[:8])
+	hashDisplay := "无"
+	if len(item.ContentHash) >= 8 {
+		hashDisplay = item.ContentHash[:8]
+	} else if item.ContentHash != "" {
+		hashDisplay = item.ContentHash
+	}
+	log.Printf("已保存剪贴板项目: ID=%s, 类型=%s, 哈希=%s", item.ID, item.ContentType, hashDisplay)
 	return nil
 }
 
@@ -162,7 +168,7 @@ func GetClipboardItems(limit int) ([]ClipboardItem, error) {
 	}
 
 	query := `
-	SELECT id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+	SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
 	FROM clipboard_items
 	ORDER BY timestamp DESC
 	LIMIT ?
@@ -207,7 +213,7 @@ func GetClipboardItemByID(id string) (*ClipboardItem, error) {
 	}
 
 	query := `
-	SELECT id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+	SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
 	FROM clipboard_items
 	WHERE id = ?
 	`
@@ -334,7 +340,7 @@ func SearchClipboardItems(keyword string, filterType string, limit int) ([]Clipb
 	}
 
 	query := `
-	SELECT id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+	SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
 	FROM clipboard_items
 	WHERE 1=1
 	`
