@@ -680,17 +680,17 @@ func checkAndAddNewFields() error {
 		log.Printf("✅ 已创建content_hash索引")
 
 		// 为现有数据添加哈希值（只在字段刚添加时进行）
-		if err := migrateContentHash(); err != nil {
-			log.Printf("⚠️ 警告: 为现有数据添加哈希值失败: %v", err)
-			// 不返回错误，允许应用继续运行
-		}
+		// if err := migrateContentHash(); err != nil {
+		// 	log.Printf("⚠️ 警告: 为现有数据添加哈希值失败: %v", err)
+		// 	// 不返回错误，允许应用继续运行
+		// }
 	} else {
 		log.Printf("✅ content_hash字段已存在")
 		// 字段已存在，但检查是否有未设置哈希值的记录（处理意外情况）
-		if err := migrateContentHash(); err != nil {
-			log.Printf("⚠️ 警告: 检查并更新哈希值失败: %v", err)
-			// 不返回错误，允许应用继续运行
-		}
+		// if err := migrateContentHash(); err != nil {
+		// 	log.Printf("⚠️ 警告: 检查并更新哈希值失败: %v", err)
+		// 	// 不返回错误，允许应用继续运行
+		// }
 	}
 
 	return nil
