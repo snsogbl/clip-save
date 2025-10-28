@@ -44,6 +44,11 @@ func InitDB() error {
 		return fmt.Errorf("创建表失败: %v", err)
 	}
 
+	// 检查并添加新字段（兼容老用户）
+	if err := checkAndAddNewFields(); err != nil {
+		return fmt.Errorf("添加新字段失败: %v", err)
+	}
+
 	// 初始化默认设置
 	if err := initDefaultSettings(); err != nil {
 		log.Printf("警告: 初始化默认设置失败: %v", err)
@@ -98,21 +103,41 @@ func createTables() error {
 	return err
 }
 
-// SaveClipboardItem 保存剪贴板项目
+// SaveClipboardItem 保存剪贴板项目（支持去重）
 func SaveClipboardItem(item *ClipboardItem) error {
 	if DB == nil {
 		return fmt.Errorf("数据库未初始化")
 	}
 
+	// 检查是否存在相同内容的项目
+	if item.ContentHash != "" {
+		var existingID string
+		checkSQL := `SELECT id FROM clipboard_items WHERE content_hash = ? AND content_type = ? LIMIT 1`
+		err := DB.QueryRow(checkSQL, item.ContentHash, item.ContentType).Scan(&existingID)
+
+		if err == nil {
+			// 找到重复项，先删除旧记录
+			deleteSQL := `DELETE FROM clipboard_items WHERE id = ?`
+			_, deleteErr := DB.Exec(deleteSQL, existingID)
+			if deleteErr != nil {
+				log.Printf("⚠️ 删除重复项目失败: %v", deleteErr)
+			} else {
+				log.Printf("🔄 删除重复项目: ID=%s", existingID)
+			}
+		}
+	}
+
+	// 插入新记录
 	insertSQL := `
-	INSERT INTO clipboard_items (id, content, content_type, image_data, file_paths, file_info, timestamp, source, char_count, word_count)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO clipboard_items (id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := DB.Exec(insertSQL,
 		item.ID,
 		item.Content,
 		item.ContentType,
+		item.ContentHash,
 		item.ImageData,
 		item.FilePaths,
 		item.FileInfo,
@@ -126,7 +151,7 @@ func SaveClipboardItem(item *ClipboardItem) error {
 		return fmt.Errorf("保存剪贴板项目失败: %v", err)
 	}
 
-	log.Printf("已保存剪贴板项目: ID=%s, 类型=%s", item.ID, item.ContentType)
+	log.Printf("已保存剪贴板项目: ID=%s, 类型=%s, 哈希=%s", item.ID, item.ContentType, item.ContentHash[:8])
 	return nil
 }
 
@@ -137,7 +162,7 @@ func GetClipboardItems(limit int) ([]ClipboardItem, error) {
 	}
 
 	query := `
-	SELECT id, content, content_type, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+	SELECT id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
 	FROM clipboard_items
 	ORDER BY timestamp DESC
 	LIMIT ?
@@ -156,6 +181,7 @@ func GetClipboardItems(limit int) ([]ClipboardItem, error) {
 			&item.ID,
 			&item.Content,
 			&item.ContentType,
+			&item.ContentHash,
 			&item.ImageData,
 			&item.FilePaths,
 			&item.FileInfo,
@@ -181,7 +207,7 @@ func GetClipboardItemByID(id string) (*ClipboardItem, error) {
 	}
 
 	query := `
-	SELECT id, content, content_type, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+	SELECT id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
 	FROM clipboard_items
 	WHERE id = ?
 	`
@@ -191,6 +217,7 @@ func GetClipboardItemByID(id string) (*ClipboardItem, error) {
 		&item.ID,
 		&item.Content,
 		&item.ContentType,
+		&item.ContentHash,
 		&item.ImageData,
 		&item.FilePaths,
 		&item.FileInfo,
@@ -307,7 +334,7 @@ func SearchClipboardItems(keyword string, filterType string, limit int) ([]Clipb
 	}
 
 	query := `
-	SELECT id, content, content_type, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+	SELECT id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
 	FROM clipboard_items
 	WHERE 1=1
 	`
@@ -356,6 +383,7 @@ func SearchClipboardItems(keyword string, filterType string, limit int) ([]Clipb
 			&item.ID,
 			&item.Content,
 			&item.ContentType,
+			&item.ContentHash,
 			&item.ImageData,
 			&item.FilePaths,
 			&item.FileInfo,
@@ -474,6 +502,9 @@ func initDefaultTextRecord() error {
 		WordCount:   countWords(defaultText),
 	}
 
+	// 计算内容哈希
+	item.ContentHash = calculateContentHash(&item)
+
 	// 保存到数据库
 	if err := SaveClipboardItem(&item); err != nil {
 		return fmt.Errorf("保存默认文本记录失败: %v", err)
@@ -550,6 +581,119 @@ func GetAllSettings() (map[string]string, error) {
 	}
 
 	return settings, nil
+}
+
+// migrateContentHash 为现有数据添加哈希值
+func migrateContentHash() error {
+	if DB == nil {
+		return fmt.Errorf("数据库未初始化")
+	}
+
+	// 查找所有没有哈希值的记录
+	query := `
+	SELECT id, content, content_type, image_data, file_paths
+	FROM clipboard_items 
+	WHERE content_hash IS NULL OR content_hash = ''
+	`
+
+	rows, err := DB.Query(query)
+	if err != nil {
+		return fmt.Errorf("查询需要迁移的记录失败: %v", err)
+	}
+	defer rows.Close()
+
+	var migratedCount int
+	updateSQL := `UPDATE clipboard_items SET content_hash = ? WHERE id = ?`
+
+	for rows.Next() {
+		var item ClipboardItem
+		err := rows.Scan(
+			&item.ID,
+			&item.Content,
+			&item.ContentType,
+			&item.ImageData,
+			&item.FilePaths,
+		)
+		if err != nil {
+			log.Printf("扫描迁移记录失败: %v", err)
+			continue
+		}
+
+		// 计算哈希值
+		contentHash := calculateContentHash(&item)
+		if contentHash == "" {
+			log.Printf("计算哈希失败，跳过记录: %s", item.ID)
+			continue
+		}
+
+		// 更新数据库
+		_, err = DB.Exec(updateSQL, contentHash, item.ID)
+		if err != nil {
+			log.Printf("更新记录哈希失败: %v (ID: %s)", err, item.ID)
+			continue
+		}
+
+		migratedCount++
+	}
+
+	if migratedCount > 0 {
+		log.Printf("✅ 成功为 %d 条现有记录添加了哈希值", migratedCount)
+	} else {
+		log.Printf("✅ 所有记录都已有哈希值，无需迁移")
+	}
+
+	return nil
+}
+
+// checkAndAddNewFields 检查并添加新字段（兼容老用户）
+func checkAndAddNewFields() error {
+	if DB == nil {
+		return fmt.Errorf("数据库未初始化")
+	}
+
+	// 检查content_hash字段是否存在
+	checkSQL := `SELECT COUNT(*) FROM pragma_table_info('clipboard_items') WHERE name = 'content_hash'`
+	var count int
+	err := DB.QueryRow(checkSQL).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("检查content_hash字段是否存在失败: %v", err)
+	}
+
+	if count == 0 {
+		// 字段不存在，需要添加
+		log.Printf("🔧 检测到老版本数据库，正在添加content_hash字段...")
+
+		// 添加content_hash字段
+		alterSQL := `ALTER TABLE clipboard_items ADD COLUMN content_hash TEXT`
+		_, err := DB.Exec(alterSQL)
+		if err != nil {
+			return fmt.Errorf("添加content_hash字段失败: %v", err)
+		}
+		log.Printf("✅ 已添加content_hash字段")
+
+		// 创建索引
+		indexSQL := `CREATE INDEX IF NOT EXISTS idx_content_hash ON clipboard_items(content_hash, content_type)`
+		_, err = DB.Exec(indexSQL)
+		if err != nil {
+			return fmt.Errorf("创建content_hash索引失败: %v", err)
+		}
+		log.Printf("✅ 已创建content_hash索引")
+
+		// 为现有数据添加哈希值（只在字段刚添加时进行）
+		if err := migrateContentHash(); err != nil {
+			log.Printf("⚠️ 警告: 为现有数据添加哈希值失败: %v", err)
+			// 不返回错误，允许应用继续运行
+		}
+	} else {
+		log.Printf("✅ content_hash字段已存在")
+		// 字段已存在，但检查是否有未设置哈希值的记录（处理意外情况）
+		if err := migrateContentHash(); err != nil {
+			log.Printf("⚠️ 警告: 检查并更新哈希值失败: %v", err)
+			// 不返回错误，允许应用继续运行
+		}
+	}
+
+	return nil
 }
 
 // CloseDB 关闭数据库连接

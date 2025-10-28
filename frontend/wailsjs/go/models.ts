@@ -4,6 +4,7 @@ export namespace common {
 	    ID: string;
 	    Content: string;
 	    ContentType: string;
+	    ContentHash: string;
 	    ImageData: number[];
 	    FilePaths: string;
 	    FileInfo: string;
@@ -22,6 +23,7 @@ export namespace common {
 	        this.ID = source["ID"];
 	        this.Content = source["Content"];
 	        this.ContentType = source["ContentType"];
+	        this.ContentHash = source["ContentHash"];
 	        this.ImageData = source["ImageData"];
 	        this.FilePaths = source["FilePaths"];
 	        this.FileInfo = source["FileInfo"];

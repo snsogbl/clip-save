@@ -2,6 +2,8 @@ package common
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -12,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -28,6 +31,7 @@ type ClipboardItem struct {
 	ID          string
 	Content     string
 	ContentType string
+	ContentHash string // 内容哈希值，用于去重
 	ImageData   []byte // 图片数据（PNG格式）
 	FilePaths   string // 文件路径（JSON 数组格式）
 	FileInfo    string // 文件信息（JSON 格式）
@@ -216,6 +220,9 @@ func handleTextClipboard(content string, appName string) {
 		WordCount:   countWords(content),
 	}
 
+	// 计算内容哈希
+	item.ContentHash = calculateContentHash(&item)
+
 	// log.Printf("📝 新文本剪贴板: %s, 类型: %s", truncateString(item.Content, 50), item.ContentType)
 
 	// 保存到数据库
@@ -264,6 +271,9 @@ func handleImageClipboard(imgData []byte, appName string) {
 		CharCount:   len(pngData),
 		WordCount:   0,
 	}
+
+	// 计算内容哈希
+	item.ContentHash = calculateContentHash(&item)
 
 	// 保存到数据库
 	if err := SaveClipboardItem(&item); err != nil {
@@ -476,6 +486,9 @@ func handleFileClipboard(fileJSON string, fileCount int, appName string) {
 		WordCount:   len(filePaths),
 	}
 
+	// 计算内容哈希
+	item.ContentHash = calculateContentHash(&item)
+
 	log.Printf("📁 新文件剪贴板: %s", content)
 
 	// 保存到数据库
@@ -528,4 +541,60 @@ func formatFileSize(size int64) string {
 		exp++
 	}
 	return fmt.Sprintf("%.1f %cB", float64(size)/float64(div), "KMGTPE"[exp])
+}
+
+// calculateContentHash 计算剪贴板项目的内容哈希值
+func calculateContentHash(item *ClipboardItem) string {
+	switch item.ContentType {
+	case "Text", "URL", "Color":
+		// 文本类型直接对内容计算哈希
+		hash := sha256.Sum256([]byte(item.Content))
+		return hex.EncodeToString(hash[:])
+	case "Image":
+		// 图片类型对图片数据计算哈希
+		if len(item.ImageData) == 0 {
+			return ""
+		}
+		hash := sha256.Sum256(item.ImageData)
+		return hex.EncodeToString(hash[:])
+	case "File":
+		// 文件类型对排序后的文件路径计算哈希
+		return calculateFilePathsHash(item.FilePaths)
+	default:
+		// 其他类型对内容计算哈希
+		hash := sha256.Sum256([]byte(item.Content))
+		return hex.EncodeToString(hash[:])
+	}
+}
+
+// calculateFilePathsHash 计算文件路径的哈希值
+func calculateFilePathsHash(filePathsJSON string) string {
+	if filePathsJSON == "" {
+		return ""
+	}
+
+	// 解析文件路径列表
+	var filePaths []string
+	if err := json.Unmarshal([]byte(filePathsJSON), &filePaths); err != nil {
+		// 如果解析失败，直接对原始字符串计算哈希
+		hash := sha256.Sum256([]byte(filePathsJSON))
+		return hex.EncodeToString(hash[:])
+	}
+
+	// 对路径列表排序以确保相同的文件集合产生相同的哈希
+	sortedPaths := make([]string, len(filePaths))
+	copy(sortedPaths, filePaths)
+	sort.Strings(sortedPaths)
+
+	// 将排序后的路径重新序列化为JSON
+	sortedJSON, err := json.Marshal(sortedPaths)
+	if err != nil {
+		// 如果序列化失败，直接对原始字符串计算哈希
+		hash := sha256.Sum256([]byte(filePathsJSON))
+		return hex.EncodeToString(hash[:])
+	}
+
+	// 对排序后的JSON计算哈希
+	hash := sha256.Sum256(sortedJSON)
+	return hex.EncodeToString(hash[:])
 }
