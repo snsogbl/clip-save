@@ -44,6 +44,20 @@ jobs:
             mingw-w64-x86_64-pkg-config
           path-type: inherit
 
+      - name: Add MinGW64 to PATH (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $mingwBin = 'C:\\msys64\\mingw64\\bin'
+          if (!(Test-Path $mingwBin)) {
+            Write-Error "MinGW bin not found at $mingwBin"
+            exit 1
+          }
+          echo $mingwBin | Out-File -FilePath $env:GITHUB_PATH -Append
+          echo "CC=$mingwBin\\gcc.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CXX=$mingwBin\\g++.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Updated PATH with $mingwBin"
+
       - name: Setup Go (from go.mod)
         uses: actions/setup-go@v5
         with:
