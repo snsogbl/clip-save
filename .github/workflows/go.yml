@@ -151,8 +151,22 @@ jobs:
         run: |
           # 安装 NSIS（用于可选的安装包构建）
           choco install nsis -y
-          # 验证 gcc 是否可用（来自 MSYS2/mingw64）
-          gcc --version
+          # 设置并验证 gcc 绝对路径（来自 MSYS2/mingw64）
+          $gcc = 'C:\\msys64\\mingw64\\bin\\gcc.exe'
+          $gxx = 'C:\\msys64\\mingw64\\bin\\g++.exe'
+          if (!(Test-Path $gcc)) {
+            Write-Host "gcc not found at $gcc, searching..."
+            Get-ChildItem -Path 'C:\\msys64' -Recurse -Filter 'gcc.exe' -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName
+            throw "gcc.exe not found"
+          }
+          if (!(Test-Path $gxx)) {
+            Write-Host "g++ not found at $gxx, searching..."
+            Get-ChildItem -Path 'C:\\msys64' -Recurse -Filter 'g++.exe' -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName
+            throw "g++.exe not found"
+          }
+          & $gcc --version
+          echo "CC=$gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CXX=$gxx" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # --- Build steps ---
       - name: Install Wails CLI
@@ -194,15 +208,16 @@ jobs:
           CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
-          CC: gcc
+          CC: ${{ env.CC }}
+          CXX: ${{ env.CXX }}
         shell: pwsh
         run: |
           echo "Build environment (Windows):"
           echo "CGO_ENABLED: $env:CGO_ENABLED"
           echo "CC: $env:CC"
+          echo "CXX: $env:CXX"
           echo "PATH: $env:PATH"
-          where gcc
-          gcc --version
+          if (Test-Path $env:CC) { & $env:CC --version } else { Write-Host 'CC not set or path invalid' }
           wails build -platform ${{ matrix.platform }}
 
       # --- Create DMG (macOS) ---
