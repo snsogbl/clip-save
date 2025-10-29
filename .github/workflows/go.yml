@@ -108,17 +108,33 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
+          update: true
           install: >-
-            mingw-w64-x86_64-gcc
+            base-devel
+            mingw-w64-x86_64-toolchain
 
       - name: Configure Windows toolchain env
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $GccPath = 'C:\\msys64\\mingw64\\bin'
-          echo "PATH=$GccPath;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CC=$GccPath\\gcc.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CXX=$GccPath\\g++.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+          if (!(Test-Path $GccPath)) {
+            Write-Error "MSYS2 mingw64 bin not found at $GccPath"
+          }
+          # 将 mingw64\bin 追加到 PATH（使用 GITHUB_PATH 方式）
+          "$GccPath" | Out-File -FilePath $env:GITHUB_PATH -Append
+          # 设定编译器为 gcc/g++（依赖 PATH 查找）
+          echo "CC=gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CXX=g++" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Verify gcc availability
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "where gcc:"
+          where gcc
+          Write-Host "gcc --version:"
+          gcc --version
 
       # --- Build steps ---
       - name: Install Wails CLI
