@@ -39,10 +39,33 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           choco install mingw --yes --no-progress
-          $mingwBin = 'C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw64\\bin'
-          if (!(Test-Path $mingwBin)) { throw "MinGW bin not found at $mingwBin" }
-          echo $mingwBin | Out-File -FilePath $env:GITHUB_PATH -Append
-          & (Join-Path $mingwBin 'gcc.exe') --version
+          $candidateBins = @(
+            'C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw64\\bin',
+            'C:\\ProgramData\\chocolatey\\lib\\mingw-w64\\tools\\install\\mingw64\\bin',
+            'C:\\tools\\mingw64\\bin'
+          )
+          $foundBin = $null
+          foreach ($dir in $candidateBins) {
+            if (Test-Path (Join-Path $dir 'gcc.exe')) { $foundBin = $dir; break }
+          }
+          if (-not $foundBin) {
+            Write-Host 'Searching for gcc.exe under Chocolatey and tools directories...'
+            $searchRoots = @('C:\\ProgramData\\chocolatey','C:\\tools')
+            foreach ($root in $searchRoots) {
+              if (Test-Path $root) {
+                $gccPath = Get-ChildItem -Path $root -Recurse -Filter 'gcc.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+                if ($gccPath) { $foundBin = $gccPath.DirectoryName; break }
+              }
+            }
+          }
+          if (-not $foundBin) {
+            Write-Host 'Dumping candidate directories:'
+            $candidateBins | ForEach-Object { Write-Host $_ }
+            throw 'MinGW gcc.exe was not found after installation.'
+          }
+          Write-Host "Using MinGW bin: $foundBin"
+          echo $foundBin | Out-File -FilePath $env:GITHUB_PATH -Append
+          & (Join-Path $foundBin 'gcc.exe') --version
 
       - name: Configure CC/CXX for CGO (Windows)
         if: runner.os == 'Windows'
