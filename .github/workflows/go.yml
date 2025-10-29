@@ -148,11 +148,14 @@ jobs:
           cd frontend
           npm ci
 
+      - name: Add local GOBIN to PATH
+        run: |
+          echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+
       - name: Build (wails)
         env:
           CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
-          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
           CC: ${{ env.CC }}
           CXX: ${{ env.CXX }}
           SDKROOT: ${{ env.SDKROOT }}
