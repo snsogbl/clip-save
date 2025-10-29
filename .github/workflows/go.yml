@@ -32,13 +32,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup MinGW-w64 GCC for Windows via Marketplace Action
-      - name: Set up MinGW (Windows)
+      # Install MinGW-w64 via Chocolatey (Windows)
+      - name: Install MinGW-w64 (Chocolatey)
         if: runner.os == 'Windows'
-        uses: egor-tensin/setup-mingw@v1
-        with:
-          version: latest
-          platform: x64
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          choco install mingw --yes --no-progress
+          $mingwBin = 'C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw64\\bin'
+          if (!(Test-Path $mingwBin)) { throw "MinGW bin not found at $mingwBin" }
+          echo $mingwBin | Out-File -FilePath $env:GITHUB_PATH -Append
+          & (Join-Path $mingwBin 'gcc.exe') --version
 
       - name: Configure CC/CXX for CGO (Windows)
         if: runner.os == 'Windows'
