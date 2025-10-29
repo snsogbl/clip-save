@@ -23,6 +23,10 @@ jobs:
             name: macos-arm64
             platform: darwin/arm64
             archive: clip-save-${{ github.ref_name }}.dmg
+          - os: windows-latest
+            name: windows-amd64
+            platform: windows/amd64
+            archive: clip-save-${{ github.ref_name }}-win.zip
 
     steps:
       - name: Checkout
@@ -98,6 +102,16 @@ jobs:
           echo "xcode-select path:"
           xcode-select -p
 
+      # --- Windows specific prerequisites ---
+      - name: Setup Windows build environment
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # 确认 MSVC/SDK
+          cl /?
+          # 安装 NSIS（用于可选的安装包构建）
+          choco install nsis -y
+
       # --- Build steps ---
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -131,11 +145,13 @@ jobs:
           echo "PATH: $PATH"
           wails build -platform ${{ matrix.platform }}
 
-      # --- Create DMG ---
+      # --- Create DMG (macOS) ---
       - name: Install create-dmg
+        if: runner.os == 'macOS'
         run: brew install create-dmg
 
-      - name: Create installation README
+      - name: Create installation README (macOS)
+        if: runner.os == 'macOS'
         run: |
           cat > 安装说明.md << 'EOF'
           # 剪存 - 安装说明
@@ -163,6 +179,7 @@ jobs:
           EOF
 
       - name: Create DMG
+        if: runner.os == 'macOS'
         run: |
           # 创建 Applications 符号链接
           ln -sf /Applications build/bin/Applications
@@ -187,11 +204,28 @@ jobs:
             "clip-save-${{ github.ref_name }}.dmg" \
             "build/bin/"
 
-      - name: Upload build artifact
+      - name: Package Windows zip
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zipPath = "${{ github.workspace }}\\${{ matrix.archive }}"
+          Compress-Archive -Path "build/bin/*" -DestinationPath $zipPath -Force
+
+      - name: Upload build artifact (macOS)
+        if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
           path: clip-save-${{ github.ref_name }}.dmg
+          if-no-files-found: error
+
+      - name: Upload build artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.archive }}
           if-no-files-found: error
 
   release:
