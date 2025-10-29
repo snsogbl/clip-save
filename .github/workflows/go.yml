@@ -32,48 +32,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup MSYS2 + mingw-w64 toolchain (Windows)
-      - name: Setup MSYS2 (Windows)
+      # Setup MSYS2 + mingw-w64 toolchain (Windows 32-bit specific)
+      - name: Setup MSYS2 (Windows 32-bit)
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: MINGW32  # 明确使用32位环境
           update: true
           install: >-
             base-devel
-            mingw-w64-i686-toolchain
-            mingw-w64-x86_64-pkg-config
+            mingw-w64-i686-toolchain  # 32位工具链
+            mingw-w64-i686-pkg-config  # 32位pkg-config
           path-type: inherit
 
-      - name: Add MinGW64 to PATH (Windows)
+      # 仅保留一次Windows工具链路径配置（32位专用）
+      - name: Setup Windows build environment
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $mingwBin = 'C:\\msys64\\mingw64\\bin'
-          if (!(Test-Path $mingwBin)) {
-            Write-Error "MinGW bin not found at $mingwBin"
-            exit 1
+          $ErrorActionPreference = 'Stop'
+          # 32位平台固定使用mingw32工具链
+          $toolBin = 'C:\\msys64\\mingw32\\bin'
+          Write-Host "Using 32-bit toolchain: $toolBin"
+          
+          if (!(Test-Path $toolBin)) {
+            throw "32-bit toolchain directory not found: $toolBin"
           }
-          # Add to PATH for subsequent steps
-          echo $mingwBin | Out-File -FilePath $env:GITHUB_PATH -Append
-          # Export CC/CXX for CGO
-          echo "CC=$mingwBin\\gcc.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CXX=$mingwBin\\g++.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Write-Host "Updated PATH with $mingwBin"
-
-      - name: Add MinGW64 to PATH (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $mingwBin = 'C:\\msys64\\mingw64\\bin'
-          if (!(Test-Path $mingwBin)) {
-            Write-Error "MinGW bin not found at $mingwBin"
-            exit 1
-          }
-          echo $mingwBin | Out-File -FilePath $env:GITHUB_PATH -Append
-          echo "CC=$mingwBin\\gcc.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CXX=$mingwBin\\g++.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Write-Host "Updated PATH with $mingwBin"
+          
+          # 验证编译器存在
+          $gcc = Join-Path $toolBin 'gcc.exe'
+          $gxx = Join-Path $toolBin 'g++.exe'
+          if (!(Test-Path $gcc)) { throw "gcc.exe not found at $gcc" }
+          if (!(Test-Path $gxx)) { throw "g++.exe not found at $gxx" }
+          
+          # 添加到PATH并设置环境变量
+          echo $toolBin | Out-File -FilePath $env:GITHUB_PATH -Append
+          echo "CC=$gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CXX=$gxx" | Out-File -FilePath $env:GITHUB_ENV -Append
+          
+          # 验证编译器版本
+          Write-Host "GCC version:"
+          & $gcc --version
 
       - name: Setup Go (from go.mod)
         uses: actions/setup-go@v5
@@ -94,14 +93,11 @@ jobs:
       - name: Setup macOS build environment
         if: runner.os == 'macOS'
         run: |
-          # 检查当前状态
           echo "Current xcode-select path:"
           xcode-select -p || echo "No xcode-select path set"
           
-          # 设置 Command Line Tools 路径
           sudo xcode-select -switch /Library/Developer/CommandLineTools
           
-          # 查找 macOS SDK
           echo "Looking for macOS SDK:"
           SDK_PATH=$(xcrun --show-sdk-path 2>/dev/null || echo "")
           if [ -z "$SDK_PATH" ]; then
@@ -111,7 +107,6 @@ jobs:
           
           echo "SDK Path: $SDK_PATH"
           
-          # 验证 SDK 存在并包含必要头文件
           if [ -d "$SDK_PATH" ] && [ -f "$SDK_PATH/usr/include/stdlib.h" ]; then
             echo "SDK found and contains stdlib.h"
             echo "SDKROOT=$SDK_PATH" >> $GITHUB_ENV
@@ -124,54 +119,17 @@ jobs:
             echo "SDKROOT=$SDK_PATH" >> $GITHUB_ENV
           fi
           
-          # 设置编译器路径和标志
           echo "CC=/Library/Developer/CommandLineTools/usr/bin/clang" >> $GITHUB_ENV
           echo "CXX=/Library/Developer/CommandLineTools/usr/bin/clang++" >> $GITHUB_ENV
           echo "PATH=/Library/Developer/CommandLineTools/usr/bin:$PATH" >> $GITHUB_ENV
-          
-          # 设置 CGO 标志
           echo "CGO_CFLAGS=-isysroot $SDK_PATH" >> $GITHUB_ENV
           echo "CGO_LDFLAGS=-isysroot $SDK_PATH" >> $GITHUB_ENV
           
-          # 最终验证
           echo "Final environment:"
-          echo "CC: /Library/Developer/CommandLineTools/usr/bin/clang"
+          echo "CC: $CC"
           echo "SDKROOT: $SDK_PATH"
-          echo "CGO_CFLAGS: -isysroot $SDK_PATH"
-          echo "CGO_LDFLAGS: -isysroot $SDK_PATH"
-          
-          # 测试编译器
           /Library/Developer/CommandLineTools/usr/bin/clang --version
-          echo "xcode-select path:"
           xcode-select -p
-
-      # --- Windows specific prerequisites ---
-      - name: Setup Windows build environment
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          # 安装 NSIS（用于可选的安装包构建）
-          choco install nsis -y
-          # 依据目标平台选择工具链（amd64 -> mingw64, 386 -> mingw32）
-          if ('${{ matrix.platform }}' -match '386') {
-            $toolBin = 'C:\\msys64\\mingw32\\bin'
-          } else {
-            $toolBin = 'C:\\msys64\\mingw64\\bin'
-          }
-          Write-Host "Using toolchain bin: $toolBin for ${{ matrix.platform }}"
-          if (!(Test-Path $toolBin)) { throw "Toolchain bin not found: $toolBin" }
-          # 设置并验证 gcc 绝对路径
-          $gcc = Join-Path $toolBin 'gcc.exe'
-          $gxx = Join-Path $toolBin 'g++.exe'
-          if (!(Test-Path $gcc)) {
-            throw "gcc.exe not found at $gcc"
-          }
-          if (!(Test-Path $gxx)) {
-            throw "g++.exe not found at $gxx"
-          }
-          & $gcc --version
-          echo "CC=$gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CXX=$gxx" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # --- Build steps ---
       - name: Install Wails CLI
@@ -188,7 +146,6 @@ jobs:
       - name: Build (wails) - macOS
         if: runner.os == 'macOS'
         env:
-          CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
           CC: ${{ env.CC }}
@@ -199,18 +156,12 @@ jobs:
         run: |
           echo "Build environment:"
           echo "CC: $CC"
-          echo "CXX: $CXX"
           echo "SDKROOT: $SDKROOT"
-          echo "CGO_CFLAGS: $CGO_CFLAGS"
-          echo "CGO_LDFLAGS: $CGO_LDFLAGS"
-          echo "CGO_ENABLED: $CGO_ENABLED"
-          echo "PATH: $PATH"
           wails build -platform ${{ matrix.platform }}
 
       - name: Build (wails) - Windows
         if: runner.os == 'Windows'
         env:
-          CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
           CC: ${{ env.CC }}
@@ -218,11 +169,9 @@ jobs:
         shell: pwsh
         run: |
           echo "Build environment (Windows):"
-          echo "CGO_ENABLED: $env:CGO_ENABLED"
           echo "CC: $env:CC"
-          echo "CXX: $env:CXX"
           echo "PATH: $env:PATH"
-          if (Test-Path $env:CC) { & $env:CC --version } else { Write-Host 'CC not set or path invalid' }
+          & $env:CC --version  # 再次验证编译器可访问
           wails build -platform ${{ matrix.platform }}
 
       # --- Create DMG (macOS) ---
@@ -253,7 +202,6 @@ jobs:
           ## 提示 应用已损坏，无法打开。你应该将它移到废纸篓。 运行以下命令
           sudo xattr -rd com.apple.quarantine /Applications/剪存.app
           
-          
           ## 卸载
           将 Applications 文件夹中的"剪存.app"移到废纸篓即可
           EOF
@@ -261,13 +209,8 @@ jobs:
       - name: Create DMG
         if: runner.os == 'macOS'
         run: |
-          # 创建 Applications 符号链接
           ln -sf /Applications build/bin/Applications
-          
-          # 将安装说明复制到 build/bin 目录
           cp 安装说明.md build/bin/
-          
-          # 创建 DMG（包含安装说明）
           create-dmg \
             --volname "剪存" \
             --volicon "build/appicon.png" \
