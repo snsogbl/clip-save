@@ -24,41 +24,41 @@ jobs:
             platform: darwin/arm64
             archive: clip-save-${{ github.ref_name }}.dmg
           - os: windows-latest
-            name: windows-ia32
-            platform: windows/386
-            archive: clip-save-${{ github.ref_name }}-win-ia32.zip
+            name: windows-x64
+            platform: windows/amd64
+            archive: clip-save-${{ github.ref_name }}-win-x64.zip
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       # Setup MSYS2 + mingw-w64 toolchain (Windows 32-bit specific)
-      - name: Setup MSYS2 (Windows 32-bit)
+      - name: Setup MSYS2 (Windows 64-bit)
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW32  # 明确使用32位环境
+          msystem: MINGW64  # 使用64位环境
           update: true
-          install: base-devel mingw-w64-i686-gcc mingw-w64-i686-pkgconf
+          install: base-devel mingw-w64-x86_64-gcc mingw-w64-x86_64-pkgconf
           path-type: inherit
 
       # 仅保留一次Windows工具链路径配置（32位专用）
-      - name: Setup Windows build environment
+      - name: Setup Windows build environment (x64)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          # 32位平台固定使用mingw32工具链
-          $toolBin = 'C:\\msys64\\mingw32\\bin'
-          Write-Host "Using 32-bit toolchain: $toolBin"
+          # 64位平台使用mingw64工具链
+          $toolBin = 'C:\\msys64\\mingw64\\bin'
+          Write-Host "Using 64-bit toolchain: $toolBin"
           
           if (!(Test-Path $toolBin)) {
             throw "32-bit toolchain directory not found: $toolBin"
           }
           
           # 查找可能的编译器可执行文件（不同MSYS2包命名）
-          $gccCandidates = @('gcc.exe','i686-w64-mingw32-gcc.exe') | ForEach-Object { Join-Path $toolBin $_ }
-          $gxxCandidates = @('g++.exe','i686-w64-mingw32-g++.exe') | ForEach-Object { Join-Path $toolBin $_ }
+          $gccCandidates = @('gcc.exe','x86_64-w64-mingw32-gcc.exe') | ForEach-Object { Join-Path $toolBin $_ }
+          $gxxCandidates = @('g++.exe','x86_64-w64-mingw32-g++.exe') | ForEach-Object { Join-Path $toolBin $_ }
 
           $gcc = $gccCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
           $gxx = $gxxCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
