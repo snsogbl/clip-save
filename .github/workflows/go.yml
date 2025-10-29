@@ -32,43 +32,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup MSYS2 + mingw-w64 toolchain (Windows 32-bit specific)
-      - name: Setup MSYS2 (Windows UCRT64)
+      # Setup GCC for Windows via Marketplace Action
+      - name: Set up GCC (Windows)
         if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
+        uses: egor-tensin/setup-gcc@v1
         with:
-          msystem: UCRT64  # 使用 UCRT64 64位环境（CI更稳定）
-          update: true
-          install: base-devel mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf
-          path-type: inherit
+          version: latest
+          platform: x64
 
-      # 仅保留一次Windows工具链路径配置（32位专用）
-      - name: Setup Windows build environment (UCRT64)
+      - name: Configure CC/CXX for CGO (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          # 64位平台使用 UCRT64 工具链
-          $toolBin = 'C:\\msys64\\ucrt64\\bin'
-          Write-Host "Using UCRT64 toolchain: $toolBin"
-          
-          if (!(Test-Path $toolBin)) {
-            throw "32-bit toolchain directory not found: $toolBin"
-          }
-          
-          # 查找可能的编译器可执行文件（不同MSYS2包命名）
-          $gccCandidates = @('gcc.exe','x86_64-w64-mingw32-gcc.exe') | ForEach-Object { Join-Path $toolBin $_ }
-          $gxxCandidates = @('g++.exe','x86_64-w64-mingw32-g++.exe') | ForEach-Object { Join-Path $toolBin $_ }
-
-          $gcc = $gccCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          $gxx = $gxxCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-          if (-not $gcc -or -not $gxx) {
-            Write-Host "Listing toolchain directory for debugging: $toolBin"
-            Get-ChildItem -Name $toolBin | Out-Host
-          }
-          if (-not $gcc) { throw "GCC not found in $toolBin (tried: $($gccCandidates -join ', '))" }
-          if (-not $gxx) { throw "G++ not found in $toolBin (tried: $($gxxCandidates -join ', '))" }
+          echo "CC=cc" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CXX=c++" | Out-File -FilePath $env:GITHUB_ENV -Append
           
           # 添加到PATH并设置环境变量
           echo $toolBin | Out-File -FilePath $env:GITHUB_PATH -Append
