@@ -1,3 +1,6 @@
+//go:build darwin || windows
+// +build darwin windows
+
 package common
 
 import (
@@ -29,16 +32,9 @@ func parseHotkeyString(hotkeyStr string) ([]hotkey.Modifier, hotkey.Key, error) 
 	// 解析修饰键
 	for i := 0; i < len(parts)-1; i++ {
 		part := strings.TrimSpace(parts[i])
-		switch part {
-		case "ctrl", "control":
-			mods = append(mods, hotkey.ModCtrl)
-		case "shift":
-			mods = append(mods, hotkey.ModShift)
-		case "alt", "option":
-			mods = append(mods, hotkey.ModOption)
-		case "cmd", "command", "meta":
-			mods = append(mods, hotkey.ModCmd)
-		default:
+		if m, ok := mapModifier(part); ok {
+			mods = append(mods, m)
+		} else {
 			return nil, 0, fmt.Errorf("不支持的修饰键: %s", part)
 		}
 	}
