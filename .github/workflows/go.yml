@@ -32,10 +32,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup GCC for Windows via Marketplace Action
-      - name: Set up GCC (Windows)
+      # Setup MinGW-w64 GCC for Windows via Marketplace Action
+      - name: Set up MinGW (Windows)
         if: runner.os == 'Windows'
-        uses: egor-tensin/setup-gcc@v1
+        uses: egor-tensin/setup-mingw@v1
         with:
           version: latest
           platform: x64
@@ -44,8 +44,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          echo "CC=cc" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CXX=c++" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CC=gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CXX=g++" | Out-File -FilePath $env:GITHUB_ENV -Append
           
           # 添加到PATH并设置环境变量
           echo $toolBin | Out-File -FilePath $env:GITHUB_PATH -Append
