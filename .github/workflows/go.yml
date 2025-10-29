@@ -33,24 +33,24 @@ jobs:
         uses: actions/checkout@v4
 
       # Setup MSYS2 + mingw-w64 toolchain (Windows 32-bit specific)
-      - name: Setup MSYS2 (Windows 64-bit)
+      - name: Setup MSYS2 (Windows UCRT64)
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64  # 使用64位环境
+          msystem: UCRT64  # 使用 UCRT64 64位环境（CI更稳定）
           update: true
-          install: base-devel mingw-w64-x86_64-gcc mingw-w64-x86_64-pkgconf
+          install: base-devel mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-pkgconf
           path-type: inherit
 
       # 仅保留一次Windows工具链路径配置（32位专用）
-      - name: Setup Windows build environment (x64)
+      - name: Setup Windows build environment (UCRT64)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          # 64位平台使用mingw64工具链
-          $toolBin = 'C:\\msys64\\mingw64\\bin'
-          Write-Host "Using 64-bit toolchain: $toolBin"
+          # 64位平台使用 UCRT64 工具链
+          $toolBin = 'C:\\msys64\\ucrt64\\bin'
+          Write-Host "Using UCRT64 toolchain: $toolBin"
           
           if (!(Test-Path $toolBin)) {
             throw "32-bit toolchain directory not found: $toolBin"
