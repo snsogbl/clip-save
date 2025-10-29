@@ -56,11 +56,19 @@ jobs:
             throw "32-bit toolchain directory not found: $toolBin"
           }
           
-          # 验证编译器存在
-          $gcc = Join-Path $toolBin 'gcc.exe'
-          $gxx = Join-Path $toolBin 'g++.exe'
-          if (!(Test-Path $gcc)) { throw "gcc.exe not found at $gcc" }
-          if (!(Test-Path $gxx)) { throw "g++.exe not found at $gxx" }
+          # 查找可能的编译器可执行文件（不同MSYS2包命名）
+          $gccCandidates = @('gcc.exe','i686-w64-mingw32-gcc.exe') | ForEach-Object { Join-Path $toolBin $_ }
+          $gxxCandidates = @('g++.exe','i686-w64-mingw32-g++.exe') | ForEach-Object { Join-Path $toolBin $_ }
+
+          $gcc = $gccCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          $gxx = $gxxCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if (-not $gcc -or -not $gxx) {
+            Write-Host "Listing toolchain directory for debugging: $toolBin"
+            Get-ChildItem -Name $toolBin | Out-Host
+          }
+          if (-not $gcc) { throw "GCC not found in $toolBin (tried: $($gccCandidates -join ', '))" }
+          if (-not $gxx) { throw "G++ not found in $toolBin (tried: $($gxxCandidates -join ', '))" }
           
           # 添加到PATH并设置环境变量
           echo $toolBin | Out-File -FilePath $env:GITHUB_PATH -Append
