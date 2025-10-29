@@ -39,10 +39,7 @@ jobs:
         with:
           msystem: MINGW32  # 明确使用32位环境
           update: true
-          install: >-
-            base-devel
-            mingw-w64-i686-toolchain  # 32位工具链
-            mingw-w64-i686-pkg-config  # 32位pkg-config
+          install: base-devel mingw-w64-i686-toolchain mingw-w64-i686-pkg-config
           path-type: inherit
 
       # 仅保留一次Windows工具链路径配置（32位专用）
