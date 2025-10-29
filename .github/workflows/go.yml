@@ -107,8 +107,6 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # 确认 MSVC/SDK
-          cl /?
           # 安装 NSIS（用于可选的安装包构建）
           choco install nsis -y
 
@@ -124,7 +122,8 @@ jobs:
           cd frontend
           npm ci
 
-      - name: Build (wails)
+      - name: Build (wails) - macOS
+        if: runner.os == 'macOS'
         env:
           CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
@@ -143,6 +142,19 @@ jobs:
           echo "CGO_LDFLAGS: $CGO_LDFLAGS"
           echo "CGO_ENABLED: $CGO_ENABLED"
           echo "PATH: $PATH"
+          wails build -platform ${{ matrix.platform }}
+
+      - name: Build (wails) - Windows
+        if: runner.os == 'Windows'
+        env:
+          CGO_ENABLED: "0"
+          GOBIN: ${{ github.workspace }}/bin
+          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
+        shell: pwsh
+        run: |
+          echo "Build environment (Windows):"
+          echo "CGO_ENABLED: $env:CGO_ENABLED"
+          echo "PATH: $env:PATH"
           wails build -platform ${{ matrix.platform }}
 
       # --- Create DMG (macOS) ---
