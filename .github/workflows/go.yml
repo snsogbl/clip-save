@@ -24,64 +24,13 @@ jobs:
             platform: darwin/arm64
             archive: clip-save-${{ github.ref_name }}.dmg
           - os: windows-latest
-            name: windows-x64
+            name: windows-amd64
             platform: windows/amd64
-            archive: clip-save-${{ github.ref_name }}-win-x64.zip
+            archive: clip-save-${{ github.ref_name }}-win64.zip
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # Install MinGW-w64 via Chocolatey (Windows)
-      - name: Install MinGW-w64 (Chocolatey)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          choco install mingw --yes --no-progress
-          $candidateBins = @(
-            'C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw64\\bin',
-            'C:\\ProgramData\\chocolatey\\lib\\mingw-w64\\tools\\install\\mingw64\\bin',
-            'C:\\tools\\mingw64\\bin'
-          )
-          $foundBin = $null
-          foreach ($dir in $candidateBins) {
-            if (Test-Path (Join-Path $dir 'gcc.exe')) { $foundBin = $dir; break }
-          }
-          if (-not $foundBin) {
-            Write-Host 'Searching for gcc.exe under Chocolatey and tools directories...'
-            $searchRoots = @('C:\\ProgramData\\chocolatey','C:\\tools')
-            foreach ($root in $searchRoots) {
-              if (Test-Path $root) {
-                $gccPath = Get-ChildItem -Path $root -Recurse -Filter 'gcc.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
-                if ($gccPath) { $foundBin = $gccPath.DirectoryName; break }
-              }
-            }
-          }
-          if (-not $foundBin) {
-            Write-Host 'Dumping candidate directories:'
-            $candidateBins | ForEach-Object { Write-Host $_ }
-            throw 'MinGW gcc.exe was not found after installation.'
-          }
-          Write-Host "Using MinGW bin: $foundBin"
-          echo $foundBin | Out-File -FilePath $env:GITHUB_PATH -Append
-          & (Join-Path $foundBin 'gcc.exe') --version
-
-      - name: Configure CC/CXX for CGO (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          echo "CC=gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CXX=g++" | Out-File -FilePath $env:GITHUB_ENV -Append
-          
-          # 添加到PATH并设置环境变量
-          echo $toolBin | Out-File -FilePath $env:GITHUB_PATH -Append
-          echo "CC=$gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CXX=$gxx" | Out-File -FilePath $env:GITHUB_ENV -Append
-          
-          # 验证编译器版本
-          Write-Host "GCC version:"
-          & $gcc --version
 
       - name: Setup Go (from go.mod)
         uses: actions/setup-go@v5
@@ -102,11 +51,14 @@ jobs:
       - name: Setup macOS build environment
         if: runner.os == 'macOS'
         run: |
+          # 检查当前状态
           echo "Current xcode-select path:"
           xcode-select -p || echo "No xcode-select path set"
           
+          # 设置 Command Line Tools 路径
           sudo xcode-select -switch /Library/Developer/CommandLineTools
           
+          # 查找 macOS SDK
           echo "Looking for macOS SDK:"
           SDK_PATH=$(xcrun --show-sdk-path 2>/dev/null || echo "")
           if [ -z "$SDK_PATH" ]; then
@@ -116,6 +68,7 @@ jobs:
           
           echo "SDK Path: $SDK_PATH"
           
+          # 验证 SDK 存在并包含必要头文件
           if [ -d "$SDK_PATH" ] && [ -f "$SDK_PATH/usr/include/stdlib.h" ]; then
             echo "SDK found and contains stdlib.h"
             echo "SDKROOT=$SDK_PATH" >> $GITHUB_ENV
@@ -128,17 +81,37 @@ jobs:
             echo "SDKROOT=$SDK_PATH" >> $GITHUB_ENV
           fi
           
+          # 设置编译器路径和标志
           echo "CC=/Library/Developer/CommandLineTools/usr/bin/clang" >> $GITHUB_ENV
           echo "CXX=/Library/Developer/CommandLineTools/usr/bin/clang++" >> $GITHUB_ENV
           echo "PATH=/Library/Developer/CommandLineTools/usr/bin:$PATH" >> $GITHUB_ENV
+          
+          # 设置 CGO 标志
           echo "CGO_CFLAGS=-isysroot $SDK_PATH" >> $GITHUB_ENV
           echo "CGO_LDFLAGS=-isysroot $SDK_PATH" >> $GITHUB_ENV
           
+          # 最终验证
           echo "Final environment:"
-          echo "CC: $CC"
+          echo "CC: /Library/Developer/CommandLineTools/usr/bin/clang"
           echo "SDKROOT: $SDK_PATH"
+          echo "CGO_CFLAGS: -isysroot $SDK_PATH"
+          echo "CGO_LDFLAGS: -isysroot $SDK_PATH"
+          
+          # 测试编译器
           /Library/Developer/CommandLineTools/usr/bin/clang --version
+          echo "xcode-select path:"
           xcode-select -p
+
+      # --- Windows specific prerequisites ---
+      - name: Setup Windows build environment
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install -y mingw
+          choco install -y zip
+          $env:Path = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin;" + $env:Path
+          echo "CC=gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CXX=g++" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # --- Build steps ---
       - name: Install Wails CLI
@@ -152,9 +125,9 @@ jobs:
           cd frontend
           npm ci
 
-      - name: Build (wails) - macOS
-        if: runner.os == 'macOS'
+      - name: Build (wails)
         env:
+          CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
           CC: ${{ env.CC }}
@@ -165,22 +138,12 @@ jobs:
         run: |
           echo "Build environment:"
           echo "CC: $CC"
+          echo "CXX: $CXX"
           echo "SDKROOT: $SDKROOT"
-          wails build -platform ${{ matrix.platform }}
-
-      - name: Build (wails) - Windows
-        if: runner.os == 'Windows'
-        env:
-          GOBIN: ${{ github.workspace }}/bin
-          PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
-          CC: ${{ env.CC }}
-          CXX: ${{ env.CXX }}
-        shell: pwsh
-        run: |
-          echo "Build environment (Windows):"
-          echo "CC: $env:CC"
-          echo "PATH: $env:PATH"
-          & $env:CC --version  # 再次验证编译器可访问
+          echo "CGO_CFLAGS: $CGO_CFLAGS"
+          echo "CGO_LDFLAGS: $CGO_LDFLAGS"
+          echo "CGO_ENABLED: $CGO_ENABLED"
+          echo "PATH: $PATH"
           wails build -platform ${{ matrix.platform }}
 
       # --- Create DMG (macOS) ---
@@ -188,7 +151,7 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install create-dmg
 
-      - name: Create installation README (macOS)
+      - name: Create installation README
         if: runner.os == 'macOS'
         run: |
           cat > 安装说明.md << 'EOF'
@@ -211,6 +174,7 @@ jobs:
           ## 提示 应用已损坏，无法打开。你应该将它移到废纸篓。 运行以下命令
           sudo xattr -rd com.apple.quarantine /Applications/剪存.app
           
+          
           ## 卸载
           将 Applications 文件夹中的"剪存.app"移到废纸篓即可
           EOF
@@ -218,8 +182,13 @@ jobs:
       - name: Create DMG
         if: runner.os == 'macOS'
         run: |
+          # 创建 Applications 符号链接
           ln -sf /Applications build/bin/Applications
+          
+          # 将安装说明复制到 build/bin 目录
           cp 安装说明.md build/bin/
+          
+          # 创建 DMG（包含安装说明）
           create-dmg \
             --volname "剪存" \
             --volicon "build/appicon.png" \
@@ -236,15 +205,18 @@ jobs:
             "clip-save-${{ github.ref_name }}.dmg" \
             "build/bin/"
 
+      # --- Package (Windows zip) ---
       - name: Package Windows zip
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          $zipPath = "${{ github.workspace }}\\${{ matrix.archive }}"
-          Compress-Archive -Path "build/bin/*" -DestinationPath $zipPath -Force
+          $ArchiveName = "${{ matrix.archive }}"
+          cd build/bin
+          # 打包整个输出目录为 zip
+          Compress-Archive -Path * -DestinationPath "../$ArchiveName" -Force
+          cd ../..
 
-      - name: Upload build artifact (macOS)
+      - name: Upload macOS artifact
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
@@ -252,12 +224,12 @@ jobs:
           path: clip-save-${{ github.ref_name }}.dmg
           if-no-files-found: error
 
-      - name: Upload build artifact (Windows)
+      - name: Upload Windows artifact
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: ${{ matrix.archive }}
+          path: build/${{ matrix.archive }}
           if-no-files-found: error
 
   release:
