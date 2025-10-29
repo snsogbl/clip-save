@@ -24,9 +24,9 @@ jobs:
             platform: darwin/arm64
             archive: clip-save-${{ github.ref_name }}.dmg
           - os: windows-latest
-            name: windows-amd64
-            platform: windows/amd64
-            archive: clip-save-${{ github.ref_name }}-win.zip
+            name: windows-ia32
+            platform: windows/386
+            archive: clip-save-${{ github.ref_name }}-win-ia32.zip
 
     steps:
       - name: Checkout
@@ -40,7 +40,8 @@ jobs:
           msystem: MINGW64
           update: true
           install: >-
-            mingw-w64-x86_64-gcc
+            base-devel
+            mingw-w64-i686-toolchain
             mingw-w64-x86_64-pkg-config
           path-type: inherit
 
@@ -151,18 +152,22 @@ jobs:
         run: |
           # 安装 NSIS（用于可选的安装包构建）
           choco install nsis -y
-          # 设置并验证 gcc 绝对路径（来自 MSYS2/mingw64）
-          $gcc = 'C:\\msys64\\mingw64\\bin\\gcc.exe'
-          $gxx = 'C:\\msys64\\mingw64\\bin\\g++.exe'
+          # 依据目标平台选择工具链（amd64 -> mingw64, 386 -> mingw32）
+          if ('${{ matrix.platform }}' -match '386') {
+            $toolBin = 'C:\\msys64\\mingw32\\bin'
+          } else {
+            $toolBin = 'C:\\msys64\\mingw64\\bin'
+          }
+          Write-Host "Using toolchain bin: $toolBin for ${{ matrix.platform }}"
+          if (!(Test-Path $toolBin)) { throw "Toolchain bin not found: $toolBin" }
+          # 设置并验证 gcc 绝对路径
+          $gcc = Join-Path $toolBin 'gcc.exe'
+          $gxx = Join-Path $toolBin 'g++.exe'
           if (!(Test-Path $gcc)) {
-            Write-Host "gcc not found at $gcc, searching..."
-            Get-ChildItem -Path 'C:\\msys64' -Recurse -Filter 'gcc.exe' -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName
-            throw "gcc.exe not found"
+            throw "gcc.exe not found at $gcc"
           }
           if (!(Test-Path $gxx)) {
-            Write-Host "g++ not found at $gxx, searching..."
-            Get-ChildItem -Path 'C:\\msys64' -Recurse -Filter 'g++.exe' -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName
-            throw "g++.exe not found"
+            throw "g++.exe not found at $gxx"
           }
           & $gcc --version
           echo "CC=$gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
