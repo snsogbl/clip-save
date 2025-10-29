@@ -109,6 +109,17 @@ jobs:
         run: |
           # 安装 NSIS（用于可选的安装包构建）
           choco install nsis -y
+          # 安装 mingw-w64 提供 gcc 以启用 CGO（供 go-sqlite3 使用）
+          choco install mingw -y
+          $mingwBin = "C:\\tools\\mingw64\\bin"
+          if (Test-Path $mingwBin) {
+            echo "CC=$mingwBin\\gcc.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+            echo "CXX=$mingwBin\\g++.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+            echo "PATH=$mingwBin;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } else {
+            echo "未找到 C:\\tools\\mingw64\\bin，尝试 where gcc"
+            where gcc
+          }
 
       # --- Build steps ---
       - name: Install Wails CLI
@@ -147,13 +158,17 @@ jobs:
       - name: Build (wails) - Windows
         if: runner.os == 'Windows'
         env:
-          CGO_ENABLED: "0"
+          CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
+          CC: ${{ env.CC }}
+          CXX: ${{ env.CXX }}
         shell: pwsh
         run: |
           echo "Build environment (Windows):"
           echo "CGO_ENABLED: $env:CGO_ENABLED"
+          echo "CC: $env:CC"
+          echo "CXX: $env:CXX"
           echo "PATH: $env:PATH"
           wails build -platform ${{ matrix.platform }}
 
