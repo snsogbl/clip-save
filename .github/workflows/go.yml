@@ -32,71 +32,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup MSYS2 + 32-bit toolchain (关键：用MSYS2 shell验证安装)
+      # Setup MSYS2 + mingw-w64 toolchain (Windows 32-bit specific)
       - name: Setup MSYS2 (Windows 32-bit)
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW32  # 强制32位环境
+          msystem: MINGW32  # 明确使用32位环境
           update: true
-          install: >-
-            base-devel
-            mingw-w64-i686-toolchain
-            mingw-w64-i686-pkg-config
+          install: base-devel mingw-w64-i686-gcc mingw-w64-i686-pkgconf
           path-type: inherit
-          # 新增：用MSYS2 shell验证工具链安装，确保gcc存在
-          shell: msys2 {0}
-          run: |
-            echo "=== Verify 32-bit toolchain installation ==="
-            # 检查mingw32路径是否存在
-            if [ ! -d "/mingw32/bin" ]; then
-              echo "Error: /mingw32/bin directory not found (toolchain not installed)"
-              exit 1
-            fi
-            # 检查gcc是否存在并输出版本
-            if [ -f "/mingw32/bin/gcc.exe" ]; then
-              echo "GCC found: $(/mingw32/bin/gcc.exe --version | head -1)"
-            else
-              echo "Error: gcc.exe not found in /mingw32/bin"
-              exit 1
-            fi
 
-      # 修复：通过MSYS2环境变量获取工具链路径，避免硬编码错误
+      # 仅保留一次Windows工具链路径配置（32位专用）
       - name: Setup Windows build environment
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          # 关键：从MSYS2环境变量获取32位工具链路径（避免硬编码偏差）
-          $msysRoot = $env:MSYS2_ROOT
-          if (-not $msysRoot) {
-            $msysRoot = 'C:\msys64'  #  fallback默认路径
-            Write-Warning "MSYS2_ROOT not set, using fallback: $msysRoot"
-          }
-          $toolBin = Join-Path -Path $msysRoot -ChildPath 'mingw32\bin'
-          Write-Host "Using 32-bit toolchain path: $toolBin"
-
-          # 验证路径存在
+          # 32位平台固定使用mingw32工具链
+          $toolBin = 'C:\\msys64\\mingw32\\bin'
+          Write-Host "Using 32-bit toolchain: $toolBin"
+          
           if (!(Test-Path $toolBin)) {
-            throw "32-bit toolchain directory missing: $toolBin"
+            throw "32-bit toolchain directory not found: $toolBin"
           }
-
-          # 验证gcc/g++存在
+          
+          # 验证编译器存在
           $gcc = Join-Path $toolBin 'gcc.exe'
           $gxx = Join-Path $toolBin 'g++.exe'
           if (!(Test-Path $gcc)) { throw "gcc.exe not found at $gcc" }
           if (!(Test-Path $gxx)) { throw "g++.exe not found at $gxx" }
-
-          # 强制将工具链路径添加到当前会话PATH（优先级最高）
-          $env:PATH = "$toolBin;$env:PATH"
-          # 同时写入GitHub环境变量，供后续步骤使用
+          
+          # 添加到PATH并设置环境变量
           echo $toolBin | Out-File -FilePath $env:GITHUB_PATH -Append
           echo "CC=$gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "CXX=$gxx" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-          # 最终验证：当前会话能否调用gcc
-          Write-Host "=== Final GCC verification ==="
-          gcc --version  # 直接调用，验证PATH生效
+          
+          # 验证编译器版本
+          Write-Host "GCC version:"
+          & $gcc --version
 
       - name: Setup Go (from go.mod)
         uses: actions/setup-go@v5
@@ -192,13 +165,10 @@ jobs:
           CXX: ${{ env.CXX }}
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          echo "=== Windows Build Environment ==="
+          echo "Build environment (Windows):"
           echo "CC: $env:CC"
           echo "PATH: $env:PATH"
-          # 再次验证gcc可调用
-          gcc --version
-          # 执行Wails构建
+          & $env:CC --version  # 再次验证编译器可访问
           wails build -platform ${{ matrix.platform }}
 
       # --- Create DMG (macOS) ---
