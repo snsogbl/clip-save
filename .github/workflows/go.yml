@@ -103,15 +103,22 @@ jobs:
           xcode-select -p
 
       # --- Windows specific prerequisites ---
-      - name: Setup Windows build environment
+      - name: Setup MSYS2 (mingw64 toolchain)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-gcc
+
+      - name: Configure Windows toolchain env
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          choco install -y mingw
-          choco install -y zip
-          $env:Path = "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin;" + $env:Path
-          echo "CC=gcc" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "CXX=g++" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $GccPath = 'C:\\msys64\\mingw64\\bin'
+          echo "PATH=$GccPath;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CC=$GccPath\\gcc.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "CXX=$GccPath\\g++.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # --- Build steps ---
       - name: Install Wails CLI
