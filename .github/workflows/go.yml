@@ -32,12 +32,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Install MinGW (Windows) to provide gcc for CGO (sqlite3)
-      - name: Setup MinGW (Windows)
+      # Setup MSYS2 + mingw-w64 toolchain (Windows)
+      - name: Setup MSYS2 (Windows)
         if: runner.os == 'Windows'
-        uses: egor-tensin/setup-mingw@v2
+        uses: msys2/setup-msys2@v2
         with:
-          platform: x64
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-pkg-config
+          path-type: inherit
 
       - name: Setup Go (from go.mod)
         uses: actions/setup-go@v5
@@ -116,7 +121,7 @@ jobs:
         run: |
           # 安装 NSIS（用于可选的安装包构建）
           choco install nsis -y
-          # 验证 gcc 是否可用
+          # 验证 gcc 是否可用（来自 MSYS2/mingw64）
           gcc --version
 
       # --- Build steps ---
@@ -159,10 +164,12 @@ jobs:
           CGO_ENABLED: "1"
           GOBIN: ${{ github.workspace }}/bin
           PATH: ${{ github.workspace }}/bin:${{ env.PATH }}
+          CC: gcc
         shell: pwsh
         run: |
           echo "Build environment (Windows):"
           echo "CGO_ENABLED: $env:CGO_ENABLED"
+          echo "CC: $env:CC"
           echo "PATH: $env:PATH"
           where gcc
           gcc --version
