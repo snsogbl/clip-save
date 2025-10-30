@@ -251,17 +251,47 @@ func hashPassword(password string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// OpenFileInFinder 在 Finder 中打开文件（供前端调用）
+// OpenFileInFinder 在系统文件管理器中显示/打开文件（供前端调用）
 func (a *App) OpenFileInFinder(filePath string) error {
-	// 使用 open -R 命令在 Finder 中显示文件
-	cmd := exec.Command("open", "-R", filePath)
-	err := cmd.Run()
-	if err != nil {
-		log.Printf("在 Finder 中打开文件失败: %v", err)
-		return fmt.Errorf("打开文件失败: %v", err)
+	switch gRuntime.GOOS {
+	case "darwin":
+		// macOS: Finder
+		cmd := exec.Command("open", "-R", filePath)
+		if err := cmd.Run(); err != nil {
+			log.Printf("在 Finder 中打开文件失败: %v", err)
+			return fmt.Errorf("打开文件失败: %v", err)
+		}
+		log.Printf("已在 Finder 中打开文件: %s", filePath)
+		return nil
+	case "windows":
+		// Windows: Explorer，/select, 展示并选中文件
+		// 如果是目录，则直接打开目录
+		if fi, err := os.Stat(filePath); err == nil && fi.IsDir() {
+			cmd := exec.Command("explorer", filePath)
+			if err := cmd.Run(); err != nil {
+				log.Printf("在资源管理器中打开目录失败: %v", err)
+				return fmt.Errorf("打开目录失败: %v", err)
+			}
+			log.Printf("已在资源管理器中打开目录: %s", filePath)
+			return nil
+		}
+		cmd := exec.Command("explorer", "/select,", filePath)
+		if err := cmd.Run(); err != nil {
+			log.Printf("在资源管理器中显示文件失败: %v", err)
+			return fmt.Errorf("打开文件失败: %v", err)
+		}
+		log.Printf("已在资源管理器中显示文件: %s", filePath)
+		return nil
+	default:
+		// Linux: xdg-open 直接打开路径
+		cmd := exec.Command("xdg-open", filePath)
+		if err := cmd.Run(); err != nil {
+			log.Printf("在文件管理器中打开失败: %v", err)
+			return fmt.Errorf("打开文件失败: %v", err)
+		}
+		log.Printf("已在文件管理器中打开: %s", filePath)
+		return nil
 	}
-	log.Printf("已在 Finder 中打开文件: %s", filePath)
-	return nil
 }
 
 // GetFileInfo 获取文件详细信息（供前端调用）
@@ -293,15 +323,34 @@ func (a *App) OpenURL(urlStr string) error {
 		decodedURL = urlStr
 	}
 
-	// 使用 open 命令在默认浏览器中打开 URL
-	cmd := exec.Command("open", decodedURL)
-	err = cmd.Run()
-	if err != nil {
-		log.Printf("打开 URL 失败: %v (原始: %s, 解码后: %s)", err, urlStr, decodedURL)
-		return fmt.Errorf("打开 URL 失败: %v", err)
+	switch gRuntime.GOOS {
+	case "darwin":
+		cmd := exec.Command("open", decodedURL)
+		if err := cmd.Run(); err != nil {
+			log.Printf("打开 URL 失败: %v (原始: %s, 解码后: %s)", err, urlStr, decodedURL)
+			return fmt.Errorf("打开 URL 失败: %v", err)
+		}
+		log.Printf("已在浏览器中打开 URL: %s (原始: %s)", decodedURL, urlStr)
+		return nil
+	case "windows":
+		// 使用 rundll32 调起默认浏览器，避免 cmd/start 的转义问题
+		cmd := exec.Command("rundll32", "url.dll,FileProtocolHandler", decodedURL)
+		if err := cmd.Run(); err != nil {
+			log.Printf("在 Windows 打开 URL 失败: %v (原始: %s, 解码后: %s)", err, urlStr, decodedURL)
+			return fmt.Errorf("打开 URL 失败: %v", err)
+		}
+		log.Printf("已在浏览器中打开 URL: %s (原始: %s)", decodedURL, urlStr)
+		return nil
+	default:
+		// Linux: xdg-open
+		cmd := exec.Command("xdg-open", decodedURL)
+		if err := cmd.Run(); err != nil {
+			log.Printf("在 Linux 打开 URL 失败: %v (原始: %s, 解码后: %s)", err, urlStr, decodedURL)
+			return fmt.Errorf("打开 URL 失败: %v", err)
+		}
+		log.Printf("已在浏览器中打开 URL: %s (原始: %s)", decodedURL, urlStr)
+		return nil
 	}
-	log.Printf("已在浏览器中打开 URL: %s (原始: %s)", decodedURL, urlStr)
-	return nil
 }
 
 // ShowWindow 显示并聚焦窗口（供快捷键调用）

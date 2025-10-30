@@ -1,6 +1,6 @@
 <template>
   <div class="login-container" style="--wails-draggable: no-drag">
-    <button class="close-btn" @click="hideApp" :aria-label="$t('login.unlockButton')">×</button>
+    <!-- <button class="close-btn" @click="hideApp" :aria-label="$t('login.unlockButton')">×</button> -->
     <div class="login-box">
       <div class="logo-section">
         <div class="app-icon">🔒</div>
