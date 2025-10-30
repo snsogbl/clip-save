@@ -123,6 +123,7 @@ func run() {
 			// 剪贴板没有变化，继续下一次循环
 			continue
 		}
+		lastPasteboardChangeCount = currentChangeCount
 
 		// 剪贴板发生了变化，决定使用哪个应用名称
 		// 如果刚刚切换应用（400ms内），很可能复制是在前一个应用中进行的
@@ -137,15 +138,13 @@ func run() {
 		// 优先级1: 先检查是否有文件
 		fileJSON, fileCount := ReadFileURLs()
 		if fileCount > 0 && fileJSON != "" {
-			// 计算文件哈希值来判断是否是新的文件列表
-			fileHash := fmt.Sprintf("%x-%d", []byte(fileJSON)[:min(32, len(fileJSON))], fileCount)
+			// 使用完整路径集合的稳定哈希，避免前缀相同导致的误判
+			fileHash := calculateFilePathsHash(fileJSON)
 			if fileHash != lastFileHash {
 				lastFileHash = fileHash
 				lastTextContent = ""
 				lastImageHash = ""
 				handleFileClipboard(fileJSON, fileCount, sourceAppName)
-				// 成功处理后再更新变化计数，避免丢事件
-				lastPasteboardChangeCount = currentChangeCount
 			}
 			continue
 		}
@@ -153,15 +152,14 @@ func run() {
 		// 优先级2: 检查是否有图片 - 尝试多种格式
 		imgData := tryReadImage()
 		if len(imgData) > 0 {
-			// 计算图片哈希值来判断是否是新图片
-			imageHash := fmt.Sprintf("%x", imgData[:min(32, len(imgData))])
+			// 计算图片哈希值来判断是否是新图片（对完整数据做 SHA-256，避免前缀碰撞）
+			h := sha256.Sum256(imgData)
+			imageHash := hex.EncodeToString(h[:])
 			if imageHash != lastImageHash {
 				lastImageHash = imageHash
 				lastTextContent = ""
 				lastFileHash = ""
 				handleImageClipboard(imgData, sourceAppName)
-				// 成功处理后再更新变化计数
-				lastPasteboardChangeCount = currentChangeCount
 			}
 		} else {
 			// 优先级3: 没有图片，检查文本
@@ -173,8 +171,6 @@ func run() {
 					lastImageHash = ""
 					lastFileHash = ""
 					handleTextClipboard(content, sourceAppName)
-					// 成功处理后再更新变化计数
-					lastPasteboardChangeCount = currentChangeCount
 				}
 			}
 		}

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"syscall"
-	"time"
 	"unicode/utf16"
 	"unsafe"
 )
@@ -108,28 +107,13 @@ func ReadPasteboardData(typeName string) []byte {
 // ReadFileURLs 读取剪贴板中的文件路径（CF_HDROP）
 func ReadFileURLs() (string, int) {
 	// BOOL OpenClipboard(HWND hWndNewOwner);
-	opened := false
-	for i := 0; i < 5; i++ {
-		if ok, _, _ := procOpenClipboard.Call(0); ok != 0 {
-			opened = true
-			break
-		}
-		time.Sleep(60 * time.Millisecond)
-	}
-	if !opened {
+	if ok, _, _ := procOpenClipboard.Call(0); ok == 0 {
 		return "", 0
 	}
 	defer procCloseClipboard.Call()
 
 	// HANDLE GetClipboardData(UINT uFormat);
-	var hDrop uintptr
-	for i := 0; i < 3; i++ {
-		hDrop, _, _ = procGetClipboardData.Call(CF_HDROP)
-		if hDrop != 0 {
-			break
-		}
-		time.Sleep(40 * time.Millisecond)
-	}
+	hDrop, _, _ := procGetClipboardData.Call(CF_HDROP)
 	if hDrop == 0 {
 		return "", 0
 	}
