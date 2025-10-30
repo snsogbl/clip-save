@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	gRuntime "runtime"
 	"sync"
 	"time"
 
@@ -321,8 +322,13 @@ func (a *App) ShowWindow() {
 // HideWindow 隐藏窗口
 func (a *App) HideWindow() {
 	if a.ctx != nil {
-		runtime.Hide(a.ctx)
-		log.Println("🪟 窗口已隐藏")
+		// Windows: 最小化而不是隐藏，确保任务栏图标可见
+		if gRuntime.GOOS == "windows" {
+			runtime.WindowMinimise(a.ctx)
+		} else {
+			// 其他平台：保持原有隐藏行为
+			runtime.Hide(a.ctx)
+		}
 	}
 }
 
