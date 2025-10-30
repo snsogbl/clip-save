@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-const AppVersion = "1.1.2"
+const AppVersion = "3"
 
 // 支持的语言
 const (

@@ -16,7 +16,10 @@
 import { ref, watch, onMounted } from "vue";
 import JsonEditorVue from "json-editor-vue";
 import { Mode } from "vanilla-jsoneditor";
-import { ClipboardSetText } from "../../../../wailsjs/runtime/runtime";
+import { CopyTextToClipboard } from "../../../../wailsjs/go/main/App";
+import { ElMessage } from "element-plus";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n();
 
 const props = defineProps<{
   text: string;
@@ -28,7 +31,7 @@ watch(
   () => props.text,
   (val) => {
     try {
-      model.value = val ? JSON.parse(val) : {};
+      model.value = val ? val : {};
     } catch {
       model.value = {};
     }
@@ -38,11 +41,18 @@ watch(
 
 async function copyEdited() {
   try {
-    const str = JSON.stringify(model.value, null, 2);
-    await ClipboardSetText(str);
-  } catch (e) {}
+    await CopyTextToClipboard(model.value);
+    ElMessage.success(t("message.copySuccess"));
+    console.log("已复制到剪贴板");
+  } catch (error) {
+    console.error("复制失败:", error);
+    ElMessage.error(t("message.copyError", [error]));
+  }
 }
 
+defineExpose({
+  copyEdited
+});
 onMounted(() => {});
 </script>
 

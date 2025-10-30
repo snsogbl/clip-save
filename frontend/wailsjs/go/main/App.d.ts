@@ -8,6 +8,8 @@ export function ClearItemsOlderThanDays(arg1:number):Promise<void>;
 
 export function CopyImageToClipboard(arg1:string):Promise<void>;
 
+export function CopyTextToClipboard(arg1:string):Promise<void>;
+
 export function CopyToClipboard(arg1:string):Promise<void>;
 
 export function DeleteClipboardItem(arg1:string):Promise<void>;

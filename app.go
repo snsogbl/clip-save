@@ -102,6 +102,13 @@ func (a *App) DeleteClipboardItem(id string) error {
 	return nil
 }
 
+// CopyTextToClipboard 复制文本到剪贴板（供前端调用）
+func (a *App) CopyTextToClipboard(text string) error {
+	clipboard.Write(clipboard.FmtText, []byte(text))
+	log.Printf("已复制文本到剪贴板: %s", text)
+	return nil
+}
+
 // CopyToClipboard 复制项目到剪贴板（供前端调用）
 func (a *App) CopyToClipboard(id string) error {
 	item, err := common.GetClipboardItemByID(id)

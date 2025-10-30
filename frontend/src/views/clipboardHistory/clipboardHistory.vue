@@ -133,6 +133,7 @@
               />
               <!-- JSON 内容展示/编辑 -->
               <ClipboardJsonView
+                ref="jsonEditorRef"
                 v-else-if="currentItem.ContentType === 'JSON'"
                 :text="currentItem?.Content || '{}'"
               />
@@ -178,7 +179,7 @@
           </div>
 
           <div v-if="currentItem" class="actions-bar">
-            <button v-if="currentItem.ContentType !== 'JSON'" class="action-btn" @click="copyItem(currentItem.ID)">
+            <button class="action-btn" @click="copyItem(currentItem.ID)">
               <el-icon :size="16" style="margin-right: 6px">
                 <DocumentCopy />
               </el-icon>
@@ -214,7 +215,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   SearchClipboardItems,
@@ -226,6 +227,7 @@ import {
   GetAppSettings,
   HideWindow,
   ToggleFavorite,
+  CopyTextToClipboard
 } from "../../../wailsjs/go/main/App";
 
 const { t } = useI18n();
@@ -279,7 +281,7 @@ const filterType = ref("");
 const loading = ref(false);
 const showSetting = ref(false);
 const leftTab = ref<"all" | "fav">("all");
-
+const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
 // 从数据库获取设置
 async function getSettings() {
   try {
@@ -364,13 +366,17 @@ function selectItem(item: ClipboardItem) {
 
 // 复制项目
 async function copyItem(id: string) {
-  try {
-    await CopyToClipboard(id);
-    ElMessage.success(t("message.copySuccess"));
-    console.log("已复制到剪贴板");
-  } catch (error) {
-    console.error("复制失败:", error);
-    ElMessage.error(t("message.copyError", [error]));
+  if (currentItem.value?.ContentType === "JSON") {
+    jsonEditorRef.value?.copyEdited();
+  } else {
+    try {
+      await CopyToClipboard(id);
+      ElMessage.success(t("message.copySuccess"));
+      console.log("已复制到剪贴板");
+    } catch (error) {
+      console.error("复制失败:", error);
+      ElMessage.error(t("message.copyError", [error]));
+    }
   }
 }
 

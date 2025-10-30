@@ -14,6 +14,10 @@ export function CopyImageToClipboard(arg1) {
   return window['go']['main']['App']['CopyImageToClipboard'](arg1);
 }
 
+export function CopyTextToClipboard(arg1) {
+  return window['go']['main']['App']['CopyTextToClipboard'](arg1);
+}
+
 export function CopyToClipboard(arg1) {
   return window['go']['main']['App']['CopyToClipboard'](arg1);
 }
