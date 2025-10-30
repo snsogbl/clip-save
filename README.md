@@ -241,3 +241,5 @@ MIT License
 - [Wails](https://wails.io) - 构建桌面应用的框架
 - [Vue 3](https://vuejs.org) - 渐进式 JavaScript 框架
 - [golang.design/x/clipboard](https://github.com/golang-design/clipboard) - 跨平台剪贴板库
+- [json-editor-vue](https://github.com/cloydlau/json-editor-vue)
+- [highlight.js](https://github.com/highlightjs/highlight.js)

@@ -320,6 +320,15 @@ func detectContentType(content string) string {
 	// 去除首尾空白
 	content = strings.TrimSpace(content)
 
+	// 检测是否为 JSON（对象或数组）
+	if (strings.HasPrefix(content, "{") && strings.HasSuffix(content, "}")) ||
+		(strings.HasPrefix(content, "[") && strings.HasSuffix(content, "]")) {
+		var js interface{}
+		if json.Unmarshal([]byte(content), &js) == nil {
+			return "JSON"
+		}
+	}
+
 	// 检测是否为URL
 	if len(content) > 4 && (content[:4] == "http" || content[:3] == "www") {
 		return "URL"

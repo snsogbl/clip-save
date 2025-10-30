@@ -12,7 +12,9 @@
     "@element-plus/icons-vue": "^2.3.1",
     "element-plus": "^2.11.4",
     "highlight.js": "^11.11.1",
+    "json-editor-vue": "^0.18.1",
     "lodash": "^4.17.21",
+    "vanilla-jsoneditor": "^2.4.0",
     "vue": "^3.2.37",
     "vue-i18n": "^9.14.5"
   },

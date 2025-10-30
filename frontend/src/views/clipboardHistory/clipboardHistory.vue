@@ -28,6 +28,7 @@
           <el-option :label="$t('main.filterFile')" value="File" />
           <el-option :label="$t('main.filterUrl')" value="URL" />
           <el-option :label="$t('main.filterColor')" value="Color" />
+          <el-option :label="$t('main.filterJSON')" value="JSON" />
         </el-select>
         <el-button class="setting-btn" circle @click="showSetting = true">
           <el-icon :size="20">
@@ -69,9 +70,15 @@
                   <Folder v-else-if="item.ContentType === 'File'" />
                   <Brush v-else-if="item.ContentType === 'Color'" />
                   <Picture v-else-if="item.ContentType === 'Image'" />
+                  <Document v-else-if="item.ContentType === 'JSON'" />
                   <Document v-else />
                 </el-icon>
                 <span class="item-content">{{ getPreview(item) }}</span>
+                <div
+                  v-if="item.ContentType === 'Color'"
+                  class="color-circle-small"
+                  :style="{ backgroundColor: item.Content }"
+                ></div>
                 <el-icon
                   v-if="item.IsFavorite === 1"
                   :size="16"
@@ -79,11 +86,6 @@
                 >
                   <Star />
                 </el-icon>
-                <div
-                  v-if="item.ContentType === 'Color'"
-                  class="color-circle-small"
-                  :style="{ backgroundColor: item.Content }"
-                ></div>
               </div>
               <div class="item-footer">
                 <span class="item-type" style="width: 40px">{{
@@ -129,6 +131,11 @@
                 v-else-if="currentItem.ContentType === 'Color'"
                 :color="currentItem.Content"
               />
+              <!-- JSON 内容展示/编辑 -->
+              <ClipboardJsonView
+                v-else-if="currentItem.ContentType === 'JSON'"
+                :text="currentItem?.Content || '{}'"
+              />
               <!-- 文本内容展示 -->
               <ClipboardTextView
                 v-else
@@ -171,7 +178,7 @@
           </div>
 
           <div v-if="currentItem" class="actions-bar">
-            <button class="action-btn" @click="copyItem(currentItem.ID)">
+            <button v-if="currentItem.ContentType !== 'JSON'" class="action-btn" @click="copyItem(currentItem.ID)">
               <el-icon :size="16" style="margin-right: 6px">
                 <DocumentCopy />
               </el-icon>
@@ -238,6 +245,7 @@ import ClipboardColorView from "./components/clipboardColorView.vue";
 import ClipboardFileView from "./components/clipboardFileView.vue";
 import ClipboardTextView from "./components/clipboardTextView.vue";
 import ClipboardImageView from "./components/clipboardImageView.vue";
+import ClipboardJsonView from "./components/clipboardJsonView.vue";
 import SettingView from "../setting/setting.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
 
