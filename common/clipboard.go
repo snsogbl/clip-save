@@ -123,7 +123,6 @@ func run() {
 			// 剪贴板没有变化，继续下一次循环
 			continue
 		}
-		lastPasteboardChangeCount = currentChangeCount
 
 		// 剪贴板发生了变化，决定使用哪个应用名称
 		// 如果刚刚切换应用（400ms内），很可能复制是在前一个应用中进行的
@@ -145,6 +144,8 @@ func run() {
 				lastTextContent = ""
 				lastImageHash = ""
 				handleFileClipboard(fileJSON, fileCount, sourceAppName)
+				// 成功处理后再更新变化计数，避免丢事件
+				lastPasteboardChangeCount = currentChangeCount
 			}
 			continue
 		}
@@ -159,6 +160,8 @@ func run() {
 				lastTextContent = ""
 				lastFileHash = ""
 				handleImageClipboard(imgData, sourceAppName)
+				// 成功处理后再更新变化计数
+				lastPasteboardChangeCount = currentChangeCount
 			}
 		} else {
 			// 优先级3: 没有图片，检查文本
@@ -170,6 +173,8 @@ func run() {
 					lastImageHash = ""
 					lastFileHash = ""
 					handleTextClipboard(content, sourceAppName)
+					// 成功处理后再更新变化计数
+					lastPasteboardChangeCount = currentChangeCount
 				}
 			}
 		}
