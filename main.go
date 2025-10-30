@@ -10,6 +10,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
 )
 
 //go:embed all:frontend/dist
@@ -62,6 +63,25 @@ func main() {
 			About: &mac.AboutInfo{
 				Title:   common.T("app.name"),
 				Message: common.T("app.description") + "\n版本 " + common.T("app.version"),
+			},
+		},
+		Windows: &windows.Options{
+			WebviewIsTransparent:              false,
+			WindowIsTranslucent:               false,
+			BackdropType:                      windows.Mica,
+			DisablePinchZoom:                  false,
+			DisableWindowIcon:                 false,
+			DisableFramelessWindowDecorations: false,
+			WebviewUserDataPath:               "",
+			WebviewBrowserPath:                "",
+			Theme:                             windows.SystemDefault,
+			CustomTheme: &windows.ThemeSettings{
+				DarkModeTitleBar:   windows.RGB(20, 20, 20),
+				DarkModeTitleText:  windows.RGB(200, 200, 200),
+				DarkModeBorder:     windows.RGB(20, 0, 20),
+				LightModeTitleBar:  windows.RGB(200, 200, 200),
+				LightModeTitleText: windows.RGB(20, 20, 20),
+				LightModeBorder:    windows.RGB(200, 200, 200),
 			},
 		},
 		Bind: []interface{}{
