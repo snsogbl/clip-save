@@ -362,25 +362,10 @@ func SearchClipboardItems(isFavorite bool, keyword string, filterType string, li
 		query += ` AND is_favorite = 1`
 	}
 
-	// 类型过滤（支持中文）
-	if filterType != "" && filterType != "所有类型" {
-		var dbContentType string
-		switch filterType {
-		case "文本":
-			dbContentType = "Text"
-		case "图片":
-			dbContentType = "Image"
-		case "文件":
-			dbContentType = "File"
-		case "URL":
-			dbContentType = "URL"
-		case "颜色":
-			dbContentType = "Color"
-		default:
-			dbContentType = filterType // 如果是英文直接使用
-		}
+	// 类型过滤
+	if filterType != "" {
 		query += ` AND content_type = ?`
-		args = append(args, dbContentType)
+		args = append(args, filterType)
 	}
 
 	query += ` ORDER BY timestamp DESC LIMIT ?`

@@ -22,12 +22,12 @@
           @change="onSearchChange"
           :placeholder="$t('main.filterAll')"
         >
-          <el-option :label="$t('main.filterAll')" value="所有类型" />
-          <el-option :label="$t('main.filterText')" value="文本" />
-          <el-option :label="$t('main.filterImage')" value="图片" />
-          <el-option :label="$t('main.filterFile')" value="文件" />
+          <el-option :label="$t('main.filterAll')" value="" />
+          <el-option :label="$t('main.filterText')" value="Text" />
+          <el-option :label="$t('main.filterImage')" value="Image" />
+          <el-option :label="$t('main.filterFile')" value="File" />
           <el-option :label="$t('main.filterUrl')" value="URL" />
-          <el-option :label="$t('main.filterColor')" value="颜色" />
+          <el-option :label="$t('main.filterColor')" value="Color" />
         </el-select>
         <el-button class="setting-btn" circle @click="showSetting = true">
           <el-icon :size="20">
@@ -41,7 +41,7 @@
         <!-- 左侧列表 -->
         <div class="left-panel">
           <div class="panel-header">
-            <el-tabs v-model="leftTab" @tab-click="switchLeftTab">
+            <el-tabs v-model="leftTab" class="tabs" @tab-click="switchLeftTab">
               <el-tab-pane :label="$t('main.listTitle')" name="all">
               </el-tab-pane>
               <el-tab-pane :label="$t('main.favorite')" name="fav">
@@ -193,7 +193,11 @@
               <el-icon :size="16" style="margin-right: 6px">
                 <Star />
               </el-icon>
-              {{ currentItem.IsFavorite === 1 ? $t('main.unfavorite') : $t('main.favorite') }}
+              {{
+                currentItem.IsFavorite === 1
+                  ? $t("main.unfavorite")
+                  : $t("main.favorite")
+              }}
             </button>
           </div>
         </div>
@@ -263,7 +267,7 @@ interface FileInfo {
 const items = ref<ClipboardItem[]>([]);
 const currentItem = ref<ClipboardItem | null>(null);
 const searchKeyword = ref("");
-const filterType = ref("所有类型");
+const filterType = ref("");
 const loading = ref(false);
 const showSetting = ref(false);
 const leftTab = ref<"all" | "fav">("all");
@@ -398,7 +402,8 @@ async function collectItem(id: string) {
       // 在收藏页签下，取消收藏需要从列表移除
       if (leftTab.value === "fav" && newVal === 0) {
         const isCurrent = currentItem.value?.ID === id;
-        const nextItem = items.value[index + 1] || items.value[index - 1] || null;
+        const nextItem =
+          items.value[index + 1] || items.value[index - 1] || null;
         items.value.splice(index, 1);
         if (isCurrent) {
           if (nextItem) {
@@ -412,10 +417,12 @@ async function collectItem(id: string) {
         items.value[index].IsFavorite = newVal;
       }
     }
-    ElMessage.success(newVal === 1 ? t('message.favoriteAdded') : t('message.favoriteRemoved'));
+    ElMessage.success(
+      newVal === 1 ? t("message.favoriteAdded") : t("message.favoriteRemoved")
+    );
   } catch (error) {
     console.error("收藏失败:", error);
-    ElMessage.error(t('message.favoriteError'));
+    ElMessage.error(t("message.favoriteError"));
   }
 }
 
@@ -595,7 +602,7 @@ function hideApp() {
 }
 
 .panel-header {
-  padding: 0 20px;
+  padding: 10px 20px 0px 20px;
   /* border-bottom: 1px solid #f0f0f0; */
 }
 
@@ -813,5 +820,10 @@ function hideApp() {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
   margin-left: auto;
+}
+
+:deep(.el-tabs__item) {
+  font-size: 18px;
+  font-weight: 600;
 }
 </style>
