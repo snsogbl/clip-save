@@ -139,7 +139,6 @@ wails build -platform linux/amd64
 - `CopyToClipboard(id)` - 复制项目到剪贴板
 - `DeleteClipboardItem(id)` - 删除项目
 - `GetStatistics()` - 获取统计信息
-- `ClearOldItems(keepCount)` - 清除旧项目
 
 ### 前端调用示例
 

@@ -30,10 +30,10 @@
           <el-option :label="$t('main.filterColor')" value="颜色" />
         </el-select>
         <el-button class="setting-btn" circle @click="showSetting = true">
-            <el-icon :size="20">
-              <Setting />
-            </el-icon>
-          </el-button>
+          <el-icon :size="20">
+            <Setting />
+          </el-icon>
+        </el-button>
       </div>
 
       <!-- 主内容区域 -->
@@ -41,13 +41,18 @@
         <!-- 左侧列表 -->
         <div class="left-panel">
           <div class="panel-header">
-            <h3>{{ $t('main.listTitle') }}</h3>
+            <el-tabs v-model="leftTab" @tab-click="switchLeftTab">
+              <el-tab-pane :label="$t('main.listTitle')" name="all">
+              </el-tab-pane>
+              <el-tab-pane :label="$t('main.favorite')" name="fav">
+              </el-tab-pane>
+            </el-tabs>
           </div>
           <div class="item-list">
-            <div v-if="loading" class="loading">{{ $t('main.loading') }}</div>
+            <div v-if="loading" class="loading">{{ $t("main.loading") }}</div>
             <div v-else-if="items.length === 0" class="empty-state">
               <div class="empty-icon">📋</div>
-              <div class="empty-text">{{ $t('main.emptyState') }}</div>
+              <div class="empty-text">{{ $t("main.emptyState") }}</div>
             </div>
             <div
               v-else
@@ -67,6 +72,13 @@
                   <Document v-else />
                 </el-icon>
                 <span class="item-content">{{ getPreview(item) }}</span>
+                <el-icon
+                  v-if="item.IsFavorite === 1"
+                  :size="16"
+                  style="color: #f5a623"
+                >
+                  <Star />
+                </el-icon>
                 <div
                   v-if="item.ContentType === 'Color'"
                   class="color-circle-small"
@@ -82,7 +94,7 @@
             </div>
           </div>
           <div class="panel-footer">
-            <strong>{{ $t('main.clipboardHistory') }}</strong>
+            <strong>{{ $t("main.clipboardHistory") }}</strong>
           </div>
         </div>
 
@@ -91,7 +103,7 @@
           <div class="content-area">
             <div class="content-display">
               <div v-if="!currentItem" class="welcome-text">
-                {{ $t('main.welcome') }}
+                {{ $t("main.welcome") }}
               </div>
               <!-- 图片内容展示 -->
               <ClipboardImageView
@@ -126,32 +138,34 @@
 
             <div v-if="currentItem" class="info-panel">
               <div class="info-row">
-                <span class="info-label">{{ $t('main.source') }}</span>
+                <span class="info-label">{{ $t("main.source") }}</span>
                 <span class="info-value">{{ currentItem.Source }}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">{{ $t('main.contentType') }}</span>
+                <span class="info-label">{{ $t("main.contentType") }}</span>
                 <span class="info-value">{{ currentItem.ContentType }}</span>
               </div>
               <template v-if="currentItem.ContentType !== 'File'">
                 <div class="info-row">
-                  <span class="info-label">{{ $t('main.charCount') }}</span>
+                  <span class="info-label">{{ $t("main.charCount") }}</span>
                   <span class="info-value">{{ currentItem.CharCount }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-label">{{ $t('main.wordCount') }}</span>
+                  <span class="info-label">{{ $t("main.wordCount") }}</span>
                   <span class="info-value">{{ currentItem.WordCount }}</span>
                 </div>
               </template>
               <template v-if="currentItem.ContentType === 'File'">
                 <div class="info-row">
-                  <span class="info-label">{{ $t('main.fileCount') }}</span>
+                  <span class="info-label">{{ $t("main.fileCount") }}</span>
                   <span class="info-value">{{ currentItem.WordCount }}</span>
                 </div>
               </template>
               <div class="info-row">
-                <span class="info-label">{{ $t('main.createTime') }}</span>
-                <span class="info-value">{{new Date(currentItem.Timestamp).toLocaleString("zh-CN")}}</span>
+                <span class="info-label">{{ $t("main.createTime") }}</span>
+                <span class="info-value">{{
+                  new Date(currentItem.Timestamp).toLocaleString("zh-CN")
+                }}</span>
               </div>
             </div>
           </div>
@@ -161,7 +175,7 @@
               <el-icon :size="16" style="margin-right: 6px">
                 <DocumentCopy />
               </el-icon>
-              {{ $t('main.copy') }}
+              {{ $t("main.copy") }}
             </button>
             <button
               class="action-btn delete"
@@ -170,7 +184,16 @@
               <el-icon :size="16" style="margin-right: 6px">
                 <Delete />
               </el-icon>
-              {{ $t('main.delete') }}
+              {{ $t("main.delete") }}
+            </button>
+            <button
+              class="action-btn delete"
+              @click="collectItem(currentItem.ID)"
+            >
+              <el-icon :size="16" style="margin-right: 6px">
+                <Star />
+              </el-icon>
+              {{ currentItem.IsFavorite === 1 ? $t('main.unfavorite') : $t('main.favorite') }}
             </button>
           </div>
         </div>
@@ -180,8 +203,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
-import { useI18n } from 'vue-i18n';
+import { ref, onMounted, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   SearchClipboardItems,
   CopyToClipboard,
@@ -190,7 +213,8 @@ import {
   OpenURL,
   ClearItemsOlderThanDays,
   GetAppSettings,
-  HideWindow
+  HideWindow,
+  ToggleFavorite,
 } from "../../../wailsjs/go/main/App";
 
 const { t } = useI18n();
@@ -203,6 +227,7 @@ import {
   DocumentCopy,
   Delete,
   Setting,
+  Star,
 } from "@element-plus/icons-vue";
 import ClipboardUrlView from "./components/clipboardUrlView.vue";
 import ClipboardColorView from "./components/clipboardColorView.vue";
@@ -223,6 +248,7 @@ interface ClipboardItem {
   Source: string;
   CharCount: number;
   WordCount: number;
+  IsFavorite: number;
 }
 
 interface FileInfo {
@@ -240,6 +266,7 @@ const searchKeyword = ref("");
 const filterType = ref("所有类型");
 const loading = ref(false);
 const showSetting = ref(false);
+const leftTab = ref<"all" | "fav">("all");
 
 // 从数据库获取设置
 async function getSettings() {
@@ -264,6 +291,7 @@ async function loadItems() {
     console.log("📊 使用页面大小:", pageSize);
 
     const result = await SearchClipboardItems(
+      leftTab.value === "fav",
       searchKeyword.value,
       filterType.value,
       pageSize
@@ -289,6 +317,7 @@ async function checkForUpdates() {
     const pageSize = settings.pageSize || 100;
 
     const result = await SearchClipboardItems(
+      leftTab.value === "fav",
       searchKeyword.value,
       filterType.value,
       pageSize
@@ -325,33 +354,75 @@ function selectItem(item: ClipboardItem) {
 async function copyItem(id: string) {
   try {
     await CopyToClipboard(id);
-    ElMessage.success(t('message.copySuccess'));
+    ElMessage.success(t("message.copySuccess"));
     console.log("已复制到剪贴板");
   } catch (error) {
     console.error("复制失败:", error);
-    ElMessage.error(t('message.copyError', [error]));
+    ElMessage.error(t("message.copyError", [error]));
   }
 }
 
 // 删除项目
 async function deleteItem(id: string) {
-  ElMessageBox.confirm(t('message.deleteConfirm'), t('message.deleteConfirmTitle'), {
-    confirmButtonText: t('message.deleteConfirmBtn'),
-    cancelButtonText: t('message.deleteCancelBtn'),
-    type: "warning",
-  }).then(async () => {
+  ElMessageBox.confirm(
+    t("message.deleteConfirm"),
+    t("message.deleteConfirmTitle"),
+    {
+      confirmButtonText: t("message.deleteConfirmBtn"),
+      cancelButtonText: t("message.deleteCancelBtn"),
+      type: "warning",
+    }
+  ).then(async () => {
     try {
       await DeleteClipboardItem(id);
       currentItem.value = null;
       await loadItems();
-      ElMessage.success(t('message.deleteSuccess'));
+      ElMessage.success(t("message.deleteSuccess"));
     } catch (error) {
       console.error("删除失败:", error);
-      ElMessage.error(t('message.deleteError', [error]));
+      ElMessage.error(t("message.deleteError", [error]));
     }
   });
 }
 
+// 收藏
+async function collectItem(id: string) {
+  try {
+    const newVal = await ToggleFavorite(id);
+    if (currentItem.value && currentItem.value.ID === id) {
+      currentItem.value.IsFavorite = newVal;
+    }
+    // 就地更新左侧 items
+    const index = items.value.findIndex((i) => i.ID === id);
+    if (index !== -1) {
+      // 在收藏页签下，取消收藏需要从列表移除
+      if (leftTab.value === "fav" && newVal === 0) {
+        const isCurrent = currentItem.value?.ID === id;
+        const nextItem = items.value[index + 1] || items.value[index - 1] || null;
+        items.value.splice(index, 1);
+        if (isCurrent) {
+          if (nextItem) {
+            selectItem(nextItem);
+          } else {
+            currentItem.value = null;
+          }
+        }
+      } else {
+        // 其他情况仅更新该项的收藏状态
+        items.value[index].IsFavorite = newVal;
+      }
+    }
+    ElMessage.success(newVal === 1 ? t('message.favoriteAdded') : t('message.favoriteRemoved'));
+  } catch (error) {
+    console.error("收藏失败:", error);
+    ElMessage.error(t('message.favoriteError'));
+  }
+}
+
+function switchLeftTab(tab: "all" | "fav") {
+  leftTab.value = tab;
+  loadItems();
+}
 // 格式化时间
 function formatTime(timestamp: string): string {
   const date = new Date(timestamp);
@@ -406,11 +477,11 @@ function parseFileInfo(item: ClipboardItem): FileInfo[] {
 async function openInFinder(filePath: string) {
   try {
     await OpenFileInFinder(filePath);
-    ElMessage.success(t('message.openFinderSuccess'));
+    ElMessage.success(t("message.openFinderSuccess"));
     console.log("已在 Finder 中打开文件");
   } catch (error) {
     console.error("在 Finder 中打开文件失败:", error);
-    ElMessage.error(t('message.openFinderError', [error]));
+    ElMessage.error(t("message.openFinderError", [error]));
   }
 }
 
@@ -418,11 +489,11 @@ async function openInFinder(filePath: string) {
 async function openURL(url: string) {
   try {
     await OpenURL(url);
-    ElMessage.success(t('message.openUrlSuccess'));
+    ElMessage.success(t("message.openUrlSuccess"));
     console.log("已在浏览器中打开 URL");
   } catch (error) {
     console.error("在浏览器中打开 URL 失败:", error);
-    ElMessage.error(t('message.openUrlError', [error]));
+    ElMessage.error(t("message.openUrlError", [error]));
   }
 }
 
@@ -465,7 +536,7 @@ onMounted(() => {
 
 function hideApp() {
   setTimeout(() => {
-    HideWindow()
+    HideWindow();
   }, 100);
 }
 </script>
@@ -524,8 +595,8 @@ function hideApp() {
 }
 
 .panel-header {
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 0 20px;
+  /* border-bottom: 1px solid #f0f0f0; */
 }
 
 .panel-header h3 {

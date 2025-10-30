@@ -6,8 +6,6 @@ export function ClearAllItems():Promise<void>;
 
 export function ClearItemsOlderThanDays(arg1:number):Promise<void>;
 
-export function ClearOldItems(arg1:number):Promise<void>;
-
 export function CopyImageToClipboard(arg1:string):Promise<void>;
 
 export function CopyToClipboard(arg1:string):Promise<void>;
@@ -46,10 +44,12 @@ export function SaveAppSettings(arg1:string):Promise<void>;
 
 export function SaveImagePNG(arg1:string,arg2:string):Promise<string>;
 
-export function SearchClipboardItems(arg1:string,arg2:string,arg3:number):Promise<Array<common.ClipboardItem>>;
+export function SearchClipboardItems(arg1:boolean,arg2:string,arg3:string,arg4:number):Promise<Array<common.ClipboardItem>>;
 
 export function SetLanguage(arg1:string):Promise<void>;
 
 export function ShowWindow():Promise<void>;
+
+export function ToggleFavorite(arg1:string):Promise<number>;
 
 export function VerifyPassword(arg1:string):Promise<boolean>;

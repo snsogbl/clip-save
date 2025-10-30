@@ -10,10 +10,6 @@ export function ClearItemsOlderThanDays(arg1) {
   return window['go']['main']['App']['ClearItemsOlderThanDays'](arg1);
 }
 
-export function ClearOldItems(arg1) {
-  return window['go']['main']['App']['ClearOldItems'](arg1);
-}
-
 export function CopyImageToClipboard(arg1) {
   return window['go']['main']['App']['CopyImageToClipboard'](arg1);
 }
@@ -90,8 +86,8 @@ export function SaveImagePNG(arg1, arg2) {
   return window['go']['main']['App']['SaveImagePNG'](arg1, arg2);
 }
 
-export function SearchClipboardItems(arg1, arg2, arg3) {
-  return window['go']['main']['App']['SearchClipboardItems'](arg1, arg2, arg3);
+export function SearchClipboardItems(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SearchClipboardItems'](arg1, arg2, arg3, arg4);
 }
 
 export function SetLanguage(arg1) {
@@ -100,6 +96,10 @@ export function SetLanguage(arg1) {
 
 export function ShowWindow() {
   return window['go']['main']['App']['ShowWindow']();
+}
+
+export function ToggleFavorite(arg1) {
+  return window['go']['main']['App']['ToggleFavorite'](arg1);
 }
 
 export function VerifyPassword(arg1) {

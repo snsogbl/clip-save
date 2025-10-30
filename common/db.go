@@ -85,7 +85,9 @@ func createTables() error {
 		timestamp DATETIME NOT NULL,
 		source TEXT,
 		char_count INTEGER,
-		word_count INTEGER,
+        word_count INTEGER,
+		content_hash TEXT,
+        is_favorite INTEGER DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 
@@ -116,14 +118,17 @@ func SaveClipboardItem(item *ClipboardItem) error {
 		err := DB.QueryRow(checkSQL, item.ContentHash, item.ContentType).Scan(&existingID)
 
 		if err == nil {
-			// 找到重复项，先删除旧记录
-			deleteSQL := `DELETE FROM clipboard_items WHERE id = ?`
-			_, deleteErr := DB.Exec(deleteSQL, existingID)
-			if deleteErr != nil {
-				log.Printf("⚠️ 删除重复项目失败: %v", deleteErr)
+			// 找到重复项：不删除，更新其时间戳与来源
+			updateSQL := `UPDATE clipboard_items SET timestamp = ?, source = ? WHERE id = ?`
+			_, updErr := DB.Exec(updateSQL, item.Timestamp, item.Source, existingID)
+			if updErr != nil {
+				log.Printf("⚠️ 更新重复项目时间失败: %v", updErr)
 			} else {
-				log.Printf("🔄 删除重复项目: ID=%s", existingID)
+				log.Printf("🔄 更新重复项目时间: ID=%s", existingID)
 			}
+			// 将当前 item 的 ID 对齐为已存在记录，便于上层通知使用
+			item.ID = existingID
+			return nil
 		}
 	}
 
@@ -168,7 +173,7 @@ func GetClipboardItems(limit int) ([]ClipboardItem, error) {
 	}
 
 	query := `
-	SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
 	FROM clipboard_items
 	ORDER BY timestamp DESC
 	LIMIT ?
@@ -195,6 +200,7 @@ func GetClipboardItems(limit int) ([]ClipboardItem, error) {
 			&item.Source,
 			&item.CharCount,
 			&item.WordCount,
+			&item.IsFavorite,
 		)
 		if err != nil {
 			log.Printf("扫描行失败: %v", err)
@@ -213,7 +219,7 @@ func GetClipboardItemByID(id string) (*ClipboardItem, error) {
 	}
 
 	query := `
-	SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
 	FROM clipboard_items
 	WHERE id = ?
 	`
@@ -231,6 +237,7 @@ func GetClipboardItemByID(id string) (*ClipboardItem, error) {
 		&item.Source,
 		&item.CharCount,
 		&item.WordCount,
+		&item.IsFavorite,
 	)
 
 	if err == sql.ErrNoRows {
@@ -264,31 +271,6 @@ func DeleteClipboardItem(id string) error {
 	return nil
 }
 
-// ClearOldItems 清除旧的剪贴板项目（保留最近N条）
-func ClearOldItems(keepCount int) error {
-	if DB == nil {
-		return fmt.Errorf("数据库未初始化")
-	}
-
-	deleteSQL := `
-	DELETE FROM clipboard_items
-	WHERE id NOT IN (
-		SELECT id FROM clipboard_items
-		ORDER BY timestamp DESC
-		LIMIT ?
-	)
-	`
-
-	result, err := DB.Exec(deleteSQL, keepCount)
-	if err != nil {
-		return fmt.Errorf("清除旧项目失败: %v", err)
-	}
-
-	rowsAffected, _ := result.RowsAffected()
-	log.Printf("已清除 %d 条旧的剪贴板项目", rowsAffected)
-	return nil
-}
-
 // ClearItemsOlderThanDays 清除超过指定天数的剪贴板项目
 func ClearItemsOlderThanDays(days int) error {
 	if DB == nil {
@@ -299,9 +281,9 @@ func ClearItemsOlderThanDays(days int) error {
 	cutoffDate := time.Now().AddDate(0, 0, -days)
 
 	deleteSQL := `
-	DELETE FROM clipboard_items
-	WHERE timestamp < ?
-	`
+    DELETE FROM clipboard_items
+    WHERE is_favorite != 1 AND timestamp < ?
+    `
 
 	result, err := DB.Exec(deleteSQL, cutoffDate.Format("2006-01-02 15:04:05"))
 	if err != nil {
@@ -321,7 +303,7 @@ func ClearAllItems() error {
 		return fmt.Errorf("数据库未初始化")
 	}
 
-	deleteSQL := `DELETE FROM clipboard_items`
+	deleteSQL := `DELETE FROM clipboard_items WHERE is_favorite != 1`
 
 	result, err := DB.Exec(deleteSQL)
 	if err != nil {
@@ -333,14 +315,38 @@ func ClearAllItems() error {
 	return nil
 }
 
+// ToggleFavorite 切换收藏状态
+func ToggleFavorite(id string) (int, error) {
+	if DB == nil {
+		return 0, fmt.Errorf("数据库未初始化")
+	}
+	// 读取当前状态
+	var current int
+	err := DB.QueryRow(`SELECT COALESCE(is_favorite,0) FROM clipboard_items WHERE id = ?`, id).Scan(&current)
+	if err == sql.ErrNoRows {
+		return 0, fmt.Errorf("未找到剪贴板项目")
+	}
+	if err != nil {
+		return 0, fmt.Errorf("查询收藏状态失败: %v", err)
+	}
+	newVal := 1
+	if current == 1 {
+		newVal = 0
+	}
+	if _, err := DB.Exec(`UPDATE clipboard_items SET is_favorite = ? WHERE id = ?`, newVal, id); err != nil {
+		return current, fmt.Errorf("更新收藏状态失败: %v", err)
+	}
+	return newVal, nil
+}
+
 // SearchClipboardItems 搜索剪贴板项目
-func SearchClipboardItems(keyword string, filterType string, limit int) ([]ClipboardItem, error) {
+func SearchClipboardItems(isFavorite bool, keyword string, filterType string, limit int) ([]ClipboardItem, error) {
 	if DB == nil {
 		return nil, fmt.Errorf("数据库未初始化")
 	}
 
 	query := `
-	SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
 	FROM clipboard_items
 	WHERE 1=1
 	`
@@ -350,6 +356,10 @@ func SearchClipboardItems(keyword string, filterType string, limit int) ([]Clipb
 	if keyword != "" {
 		query += ` AND (content LIKE ? COLLATE NOCASE)`
 		args = append(args, "%"+keyword+"%")
+	}
+
+	if isFavorite {
+		query += ` AND is_favorite = 1`
 	}
 
 	// 类型过滤（支持中文）
@@ -397,6 +407,7 @@ func SearchClipboardItems(keyword string, filterType string, limit int) ([]Clipb
 			&item.Source,
 			&item.CharCount,
 			&item.WordCount,
+			&item.IsFavorite,
 		)
 		if err != nil {
 			log.Printf("扫描行失败: %v", err)
@@ -697,6 +708,25 @@ func checkAndAddNewFields() error {
 		// 	log.Printf("⚠️ 警告: 检查并更新哈希值失败: %v", err)
 		// 	// 不返回错误，允许应用继续运行
 		// }
+	}
+
+	// 检查 is_favorite 字段是否存在
+	checkFavSQL := `SELECT COUNT(*) FROM pragma_table_info('clipboard_items') WHERE name = 'is_favorite'`
+	var favCount int
+	if err := DB.QueryRow(checkFavSQL).Scan(&favCount); err != nil {
+		return fmt.Errorf("检查is_favorite字段是否存在失败: %v", err)
+	}
+	if favCount == 0 {
+		log.Printf("🔧 检测到老版本数据库，正在添加is_favorite字段...")
+		alterFavSQL := `ALTER TABLE clipboard_items ADD COLUMN is_favorite INTEGER DEFAULT 0`
+		if _, err := DB.Exec(alterFavSQL); err != nil {
+			return fmt.Errorf("添加is_favorite字段失败: %v", err)
+		}
+		log.Printf("✅ 已添加is_favorite字段")
+		// 索引可选：按收藏筛选时提升性能
+		_, _ = DB.Exec(`CREATE INDEX IF NOT EXISTS idx_is_favorite ON clipboard_items(is_favorite)`)
+	} else {
+		log.Printf("✅ is_favorite字段已存在")
 	}
 
 	return nil

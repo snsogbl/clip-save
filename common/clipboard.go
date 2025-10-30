@@ -39,6 +39,7 @@ type ClipboardItem struct {
 	Source      string
 	CharCount   int
 	WordCount   int
+	IsFavorite  int // 0/1
 }
 
 // 剪贴板更新通知 channel

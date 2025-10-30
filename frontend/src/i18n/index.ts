@@ -90,6 +90,8 @@ const zhCN = {
     filterUrl: 'URL',
     filterColor: '颜色',
     listTitle: '列表',
+    favorite: '收藏',
+    unfavorite: '取消收藏',
     loading: '加载中...',
     emptyState: '暂无剪贴板历史',
     welcome: '欢迎使用 剪存！复制任何内容后，它将自动出现在这里。',
@@ -189,7 +191,10 @@ const zhCN = {
     clearError: '清除失败: {0}',
     removePasswordConfirm: '移除密码后，将不再需要密码即可打开应用。确定要移除密码吗？',
     removePasswordTitle: '确认移除',
-    removePasswordSuccess: '密码已移除'
+    removePasswordSuccess: '密码已移除',
+    favoriteAdded: '已收藏',
+    favoriteRemoved: '已取消收藏',
+    favoriteError: '收藏操作失败'
   }
 }
 
@@ -280,6 +285,8 @@ const enUS = {
     filterUrl: 'URL',
     filterColor: 'Color',
     listTitle: 'List',
+    favorite: 'Favorites',
+    unfavorite: 'Unfavorite',
     loading: 'Loading...',
     emptyState: 'No clipboard history',
     welcome: 'Welcome to ClipSave! After copying any content, it will automatically appear here.',
@@ -379,7 +386,10 @@ const enUS = {
     clearError: 'Clear failed: {0}',
     removePasswordConfirm: 'After removing password, you won\'t need password to open the app. Are you sure you want to remove password?',
     removePasswordTitle: 'Confirm Remove',
-    removePasswordSuccess: 'Password removed'
+    removePasswordSuccess: 'Password removed',
+    favoriteAdded: 'Added to favorites',
+    favoriteRemoved: 'Removed from favorites',
+    favoriteError: 'Favorite action failed'
   }
 }
 
@@ -470,6 +480,8 @@ const frFR = {
     filterUrl: 'URL',
     filterColor: 'Couleur',
     listTitle: 'Liste',
+    favorite: 'Favoris',
+    unfavorite: 'Retirer des favoris',
     loading: 'Chargement...',
     emptyState: 'Aucun historique du presse-papiers',
     welcome: 'Bienvenue dans ClipSave ! Après avoir copié du contenu, il apparaîtra automatiquement ici.',
@@ -569,7 +581,10 @@ const frFR = {
     clearError: 'Échec de l\'effacement : {0}',
     removePasswordConfirm: 'Après avoir supprimé le mot de passe, vous n\'aurez plus besoin de mot de passe pour ouvrir l\'application. Êtes-vous sûr de vouloir supprimer le mot de passe ?',
     removePasswordTitle: 'Confirmer la Suppression',
-    removePasswordSuccess: 'Mot de passe supprimé'
+    removePasswordSuccess: 'Mot de passe supprimé',
+    favoriteAdded: 'Ajouté aux favoris',
+    favoriteRemoved: 'Retiré des favoris',
+    favoriteError: 'Échec de l’action des favoris'
   }
 }
 
@@ -660,6 +675,8 @@ const arSA = {
     filterUrl: 'رابط',
     filterColor: 'لون',
     listTitle: 'قائمة',
+    favorite: 'المفضلة',
+    unfavorite: 'إزالة من المفضلة',
     loading: 'جاري التحميل...',
     emptyState: 'لا يوجد سجل حافظة',
     welcome: 'مرحباً بك في ClipSave! بعد نسخ أي محتوى، سيظهر تلقائياً هنا.',
@@ -759,7 +776,10 @@ const arSA = {
     clearError: 'فشل في المسح: {0}',
     removePasswordConfirm: 'بعد إزالة كلمة المرور، لن تحتاج إلى كلمة مرور لفتح التطبيق. هل أنت متأكد من إزالة كلمة المرور؟',
     removePasswordTitle: 'تأكيد الإزالة',
-    removePasswordSuccess: 'تم إزالة كلمة المرور'
+    removePasswordSuccess: 'تم إزالة كلمة المرور',
+    favoriteAdded: 'تمت الإضافة إلى المفضلة',
+    favoriteRemoved: 'تمت الإزالة من المفضلة',
+    favoriteError: 'فشل إجراء المفضلة'
   }
 }
 

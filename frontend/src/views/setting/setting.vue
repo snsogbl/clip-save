@@ -520,11 +520,6 @@ async function clearAllItems() {
 
     ElMessage.success(t('message.clearSuccess'));
     console.log("✅ 清除所有记录完成");
-
-    // 刷新页面以更新显示
-    setTimeout(() => {
-      emit("back");
-    }, 1000);
   } catch (error) {
     if (error === "cancel") {
       // 用户取消操作

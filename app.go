@@ -53,13 +53,23 @@ func (a *App) shutdown(ctx context.Context) {
 }
 
 // SearchClipboardItems 搜索剪贴板项目（供前端调用）
-func (a *App) SearchClipboardItems(keyword string, filterType string, limit int) ([]common.ClipboardItem, error) {
-	items, err := common.SearchClipboardItems(keyword, filterType, limit)
+func (a *App) SearchClipboardItems(isFavorite bool, keyword string, filterType string, limit int) ([]common.ClipboardItem, error) {
+	items, err := common.SearchClipboardItems(isFavorite, keyword, filterType, limit)
 	if err != nil {
 		log.Printf("搜索剪贴板项目失败: %v", err)
 		return []common.ClipboardItem{}, err
 	}
 	return items, nil
+}
+
+// ToggleFavorite 切换收藏状态（供前端调用）
+func (a *App) ToggleFavorite(id string) (int, error) {
+	newVal, err := common.ToggleFavorite(id)
+	if err != nil {
+		log.Printf("切换收藏失败: %v", err)
+		return 0, err
+	}
+	return newVal, nil
 }
 
 // GetClipboardItems 获取剪贴板项目列表（供前端调用）
@@ -129,16 +139,6 @@ func (a *App) GetStatistics() (map[string]interface{}, error) {
 		return nil, err
 	}
 	return stats, nil
-}
-
-// ClearOldItems 清除旧项目（供前端调用）
-func (a *App) ClearOldItems(keepCount int) error {
-	err := common.ClearOldItems(keepCount)
-	if err != nil {
-		log.Printf("清除旧项目失败: %v", err)
-		return err
-	}
-	return nil
 }
 
 // ClearItemsOlderThanDays 清除超过指定天数的项目（供前端调用）
