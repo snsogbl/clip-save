@@ -144,7 +144,7 @@ func run() {
 				lastFileHash = fileHash
 				lastTextContent = ""
 				lastImageHash = ""
-				handleFileClipboard(fileJSON, fileCount, sourceAppName)
+				handleFileClipboard(fileJSON, fileCount, sourceAppName, fileHash)
 			}
 			continue
 		}
@@ -159,7 +159,7 @@ func run() {
 				lastImageHash = imageHash
 				lastTextContent = ""
 				lastFileHash = ""
-				handleImageClipboard(imgData, sourceAppName)
+				handleImageClipboard(imgData, sourceAppName, imageHash)
 			}
 		} else {
 			// 优先级3: 没有图片，检查文本
@@ -239,7 +239,7 @@ func handleTextClipboard(content string, appName string) {
 }
 
 // handleImageClipboard 处理图片剪贴板
-func handleImageClipboard(imgData []byte, appName string) {
+func handleImageClipboard(imgData []byte, appName string, precomputedHash string) {
 	// 解码图片
 	img, format, err := image.Decode(bytes.NewReader(imgData))
 	if err != nil {
@@ -273,8 +273,12 @@ func handleImageClipboard(imgData []byte, appName string) {
 		WordCount:   0,
 	}
 
-	// 计算内容哈希
-	item.ContentHash = calculateContentHash(&item)
+	// 计算内容哈希（优先使用外部预计算避免重复开销）
+	if precomputedHash != "" {
+		item.ContentHash = precomputedHash
+	} else {
+		item.ContentHash = calculateContentHash(&item)
+	}
 
 	// 保存到数据库
 	if err := SaveClipboardItem(&item); err != nil {
@@ -432,7 +436,7 @@ type FileInfo struct {
 }
 
 // handleFileClipboard 处理文件剪贴板
-func handleFileClipboard(fileJSON string, fileCount int, appName string) {
+func handleFileClipboard(fileJSON string, fileCount int, appName string, precomputedHash string) {
 	// 解析文件路径列表
 	var filePaths []string
 	if err := json.Unmarshal([]byte(fileJSON), &filePaths); err != nil {
@@ -487,8 +491,12 @@ func handleFileClipboard(fileJSON string, fileCount int, appName string) {
 		WordCount:   len(filePaths),
 	}
 
-	// 计算内容哈希
-	item.ContentHash = calculateContentHash(&item)
+	// 计算内容哈希（优先使用外部预计算避免重复开销）
+	if precomputedHash != "" {
+		item.ContentHash = precomputedHash
+	} else {
+		item.ContentHash = calculateContentHash(&item)
+	}
 
 	log.Printf("📁 新文件剪贴板: %s", content)
 
