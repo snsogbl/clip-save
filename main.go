@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"log"
+	"runtime"
 
 	"goWeb3/common"
 
@@ -45,13 +46,16 @@ func main() {
 	// 注册全局快捷键
 	go app.RestartRegisterHotkey()
 
+	// 仅在 macOS 上隐藏关闭窗口
+	hideOnClose := runtime.GOOS == "darwin"
+
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:             common.T("app.title"),
 		Width:             1280,
 		Height:            800,
 		Frameless:         false,
-		HideWindowOnClose: true,
+		HideWindowOnClose: hideOnClose,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

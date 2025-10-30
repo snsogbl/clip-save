@@ -132,8 +132,9 @@ func ReadFileURLs() (string, int) {
 		if nameLen == 0 {
 			continue
 		}
-		buf := make([]uint16, nameLen)
-		procDragQueryFile.Call(hDrop, i, uintptr(unsafe.Pointer(&buf[0])), nameLen)
+		// 为终止符多分配 1，并将该大小传入 cch，避免最后一个字符被截断
+		buf := make([]uint16, int(nameLen)+1)
+		procDragQueryFile.Call(hDrop, i, uintptr(unsafe.Pointer(&buf[0])), nameLen+1)
 		paths = append(paths, syscall.UTF16ToString(buf))
 	}
 
