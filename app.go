@@ -268,7 +268,7 @@ func (a *App) OpenFileInFinder(filePath string) error {
 		// 如果是目录，则直接打开目录
 		if fi, err := os.Stat(filePath); err == nil && fi.IsDir() {
 			cmd := exec.Command("explorer", filePath)
-			if err := cmd.Run(); err != nil {
+			if err := cmd.Start(); err != nil {
 				log.Printf("在资源管理器中打开目录失败: %v", err)
 				return fmt.Errorf("打开目录失败: %v", err)
 			}
@@ -276,7 +276,8 @@ func (a *App) OpenFileInFinder(filePath string) error {
 			return nil
 		}
 		cmd := exec.Command("explorer", "/select,", filePath)
-		if err := cmd.Run(); err != nil {
+		// 使用 Start 避免捕获 explorer 的非零退出码导致误报
+		if err := cmd.Start(); err != nil {
 			log.Printf("在资源管理器中显示文件失败: %v", err)
 			return fmt.Errorf("打开文件失败: %v", err)
 		}
@@ -333,9 +334,9 @@ func (a *App) OpenURL(urlStr string) error {
 		log.Printf("已在浏览器中打开 URL: %s (原始: %s)", decodedURL, urlStr)
 		return nil
 	case "windows":
-		// 使用 rundll32 调起默认浏览器，避免 cmd/start 的转义问题
+		// 使用 rundll32 调起默认浏览器；用 Start 避免非零退出码误报
 		cmd := exec.Command("rundll32", "url.dll,FileProtocolHandler", decodedURL)
-		if err := cmd.Run(); err != nil {
+		if err := cmd.Start(); err != nil {
 			log.Printf("在 Windows 打开 URL 失败: %v (原始: %s, 解码后: %s)", err, urlStr, decodedURL)
 			return fmt.Errorf("打开 URL 失败: %v", err)
 		}
