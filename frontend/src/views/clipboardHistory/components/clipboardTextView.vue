@@ -13,7 +13,7 @@
         <el-icon :size="14" style="margin-right: 4px">
           <Link />
         </el-icon>
-        {{ $t('components.text.decodeUri') }}
+        {{ $t("components.text.decodeUri") }}
       </button>
       <button
         v-if="needsUnicodeDecoding"
@@ -23,13 +23,13 @@
         <el-icon :size="14" style="margin-right: 4px">
           <Document />
         </el-icon>
-        {{ $t('components.text.decodeUnicode') }}
+        {{ $t("components.text.decodeUnicode") }}
       </button>
     </div>
 
     <!-- 解码后的文本显示区域 -->
     <div v-if="hasDecodedText" class="decoded-section">
-      <div class="section-title">{{ $t('components.text.decodedText') }}</div>
+      <div class="section-title">{{ $t("components.text.decodedText") }}</div>
       <pre class="content-text decoded">{{ decodedText }}</pre>
     </div>
   </div>
@@ -37,7 +37,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, watch, nextTick, onMounted } from "vue";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import { Link, Document } from "@element-plus/icons-vue";
 import hljs from "highlight.js";
 
@@ -85,10 +85,9 @@ function decodeUnicode(str: string): string {
 function toggleURIDecode() {
   try {
     decodedText.value = decodeURIComponent(props.text);
-    highlightCode(); // 解码后重新高亮
   } catch (e) {
     console.error("URI解码失败:", e);
-    decodedText.value = t('components.text.decodeFailed', [e]);
+    decodedText.value = t("components.text.decodeFailed", [e]);
   }
 }
 
@@ -98,22 +97,75 @@ function toggleUnicodeDecode() {
     decodedText.value = decodeUnicode(props.text);
   } catch (e) {
     console.error("Unicode解码失败:", e);
-    decodedText.value = t('components.text.decodeFailed', [e]);
+    decodedText.value = t("components.text.decodeFailed", [e]);
   }
 }
+
+const checkIsCode = () => {
+  const text = props.text || "";
+  if (!text) return false;
+
+  // 大文本或超长行数直接跳过高亮，避免卡顿
+  if (text.length > 50000) return false; // ~50KB 阈值
+  const lines = text.split(/\r?\n/);
+  if (lines.length > 2000) return false;
+
+  // 代码特征正则（多语言通用 + 常见场景）
+  const indicators: RegExp[] = [
+    /function\s+\w+/m, // JS/TS
+    /\b(class|interface|enum|struct)\b/m, // 多语言
+    /\b(import|export)\b/m, // JS/TS/ESM
+    /\b(let|const|var)\b/m, // JS/TS
+    /\b(if|else|for|while|switch|case|return)\b[^{;]*[({;]/m, // 控制流
+    /=>/m, // 箭头函数
+    /#include\b|using\s+namespace\b|template\s*</m, // C/C++
+    /SELECT\s+.+\s+FROM\b|INSERT\s+INTO\b|UPDATE\b|DELETE\s+FROM\b/i, // SQL
+    /\/\/|\/\*|\*\//m, // 注释
+    /^\s*#!/m, // shebang
+    /^\s*<\w+[^>]*>.*<\/\w+>\s*$/m, // HTML/XML 单行标签
+  ];
+
+  let score = 0;
+  for (const re of indicators) {
+    if (re.test(text)) {
+      score++;
+      if (score >= 2) break;
+    }
+  }
+
+  // JSON 判定（常见复制粘贴）
+  const isJsonLike =
+    /^\s*[\[{][\s\S]*[\]}]\s*$/.test(text) && /"\s*[\w$-]+\s*"\s*:/m.test(text);
+  if (isJsonLike) score += 2;
+
+  // 符号密度和缩进行比例（代码一般符号更多、缩进更多）
+  const codeSymbolCount = (text.match(/[{}();=<>[\]]/g) || []).length;
+  const symbolDensity = codeSymbolCount / Math.max(text.length, 1);
+  const indentedLines = lines.filter((l) => /^\s{2,}|\t/.test(l)).length;
+  if (symbolDensity > 0.02) score++;
+  if (indentedLines / Math.max(lines.length, 1) > 0.2) score++;
+
+  return score >= 2;
+};
 
 // 高亮代码块
 const highlightCode = () => {
   nextTick(() => {
-    document.querySelectorAll("pre code").forEach((el) => {
-      const result = hljs.highlightAuto(el.textContent || "");
-      languageType.value = result.language || "";
-      console.log("languageType", languageType.value);
-      if (result.language) {
-        el.innerHTML = result.value;
-        el.className = `hljs ${result.language || ""}`;
-      }
-    });
+    if (checkIsCode()) {
+      document.querySelectorAll("pre code").forEach((el) => {
+        const testResult = hljs.highlightAuto(
+          el.textContent.slice(0, 100) || ""
+        );
+        if (testResult.language) {
+          const result = hljs.highlightAuto(el.textContent || "");
+          languageType.value = result.language || "";
+          if (result.language) {
+            el.innerHTML = result.value;
+            el.className = `hljs ${result.language || ""}`;
+          }
+        }
+      });
+    }
   });
 };
 

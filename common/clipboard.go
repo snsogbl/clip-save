@@ -160,6 +160,7 @@ func run() {
 				lastImageHash = imageHash
 				lastTextContent = ""
 				lastFileHash = ""
+
 				handleImageClipboard(imgData, sourceAppName, imageHash)
 			}
 		} else {
