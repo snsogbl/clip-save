@@ -154,7 +154,7 @@ const highlightCode = () => {
     if (checkIsCode()) {
       document.querySelectorAll("pre code").forEach((el) => {
         const testResult = hljs.highlightAuto(
-          el.textContent.slice(0, 100) || ""
+          props.text?.slice(0, 100) || ""
         );
         if (testResult.language) {
           const result = hljs.highlightAuto(el.textContent || "");
