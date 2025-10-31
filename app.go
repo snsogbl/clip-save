@@ -42,6 +42,11 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	log.Println("Wails 应用启动成功")
+
+	// 注册 Dock 点击激活时的自动恢复（仅 macOS 生效，其他平台为 no-op）
+	initDockReopen(func() {
+		a.ShowWindow()
+	})
 }
 
 // shutdown is called when the app is closing
@@ -376,6 +381,27 @@ func (a *App) ShowWindow() {
 	}
 }
 
+// PrevItem 菜单：上一条
+func (a *App) PrevItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "nav.prev")
+	}
+}
+
+// NextItem 菜单：下一条
+func (a *App) NextItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "nav.next")
+	}
+}
+
+// SwitchLeftTab 菜单：切换列表
+func (a *App) SwitchLeftTab(tab string) {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "nav.switch", tab)
+	}
+}
+
 // HideWindow 隐藏窗口
 func (a *App) HideWindow() {
 	if a.ctx != nil {
@@ -384,7 +410,7 @@ func (a *App) HideWindow() {
 			// runtime.WindowMinimise(a.ctx)
 		} else {
 			// 其他平台：保持原有隐藏行为
-			runtime.Hide(a.ctx)
+			runtime.WindowHide(a.ctx)
 		}
 	}
 }

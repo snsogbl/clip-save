@@ -42,14 +42,20 @@
         <!-- 左侧列表 -->
         <div class="left-panel">
           <div class="panel-header">
-            <el-tabs v-model="leftTab" class="tabs" @tab-click="switchLeftTab">
+            <el-tabs
+              v-model="leftTab"
+              class="tabs"
+              @tab-click="switchLeftTab"
+              @keydown.native.up.capture.stop.prevent
+              @keydown.native.down.capture.stop.prevent
+            >
               <el-tab-pane :label="$t('main.listTitle')" name="all">
               </el-tab-pane>
               <el-tab-pane :label="$t('main.favorite')" name="fav">
               </el-tab-pane>
             </el-tabs>
           </div>
-          <div class="item-list">
+          <div class="item-list" ref="itemListRef" tabindex="-1">
             <div v-if="loading" class="loading">{{ $t("main.loading") }}</div>
             <div v-else-if="items.length === 0" class="empty-state">
               <div class="empty-icon">📋</div>
@@ -215,7 +221,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
+import { EventsOn } from "../../../wailsjs/runtime/runtime";
 import { useI18n } from "vue-i18n";
 import {
   SearchClipboardItems,
@@ -227,7 +234,7 @@ import {
   GetAppSettings,
   HideWindow,
   ToggleFavorite,
-  CopyTextToClipboard
+  CopyTextToClipboard,
 } from "../../../wailsjs/go/main/App";
 
 const { t } = useI18n();
@@ -276,6 +283,7 @@ interface FileInfo {
 
 const items = ref<ClipboardItem[]>([]);
 const currentItem = ref<ClipboardItem | null>(null);
+const itemListRef = ref<HTMLElement | null>(null);
 const searchKeyword = ref("");
 const filterType = ref("");
 const loading = ref(false);
@@ -360,8 +368,16 @@ async function checkForUpdates() {
 }
 
 // 选择项目
-function selectItem(item: ClipboardItem) {
+async function selectItem(item: ClipboardItem) {
   currentItem.value = item;
+  await nextTick();
+  // 确保当前选中项进入可视区域
+  const container = itemListRef.value;
+  if (!container) return;
+  const activeEl = container.querySelector('.list-item.active') as HTMLElement | null;
+  if (activeEl) {
+    activeEl.scrollIntoView({ block: 'nearest' });
+  }
 }
 
 // 复制项目
@@ -440,9 +456,11 @@ async function collectItem(id: string) {
   }
 }
 
-function switchLeftTab(tab: "all" | "fav") {
+async function switchLeftTab(tab: "all" | "fav") {
   leftTab.value = tab;
-  loadItems();
+  await loadItems();
+  await nextTick();
+  itemListRef.value?.focus();
 }
 // 格式化时间
 function formatTime(timestamp: string): string {
@@ -553,12 +571,44 @@ onMounted(() => {
   setInterval(() => {
     autoCleanOldItems();
   }, 60 * 60 * 1000); // 1小时 = 60分钟 * 60秒 * 1000毫秒
+
+  // 监听菜单事件：上一条/下一条
+  EventsOn("nav.prev", () => {
+    if (items.value.length === 0) return;
+    if (!currentItem.value) {
+      selectItem(items.value[0]);
+      return;
+    }
+    const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
+    const nextIdx = Math.max(0, idx - 1);
+    selectItem(items.value[nextIdx]);
+  });
+  EventsOn("nav.next", () => {
+    if (items.value.length === 0) return;
+    if (!currentItem.value) {
+      selectItem(items.value[0]);
+      return;
+    }
+    const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
+    const nextIdx = Math.min(items.value.length - 1, idx + 1);
+    selectItem(items.value[nextIdx]);
+  });
+
+  EventsOn("nav.switch", (tab: "all" | "fav") => {
+    switchLeftTab(tab);
+  });
 });
 
 function hideApp() {
   setTimeout(() => {
     HideWindow();
   }, 100);
+}
+
+function handleTabKeydown(event: KeyboardEvent) {
+  console.log("handleTabKeydown", event);
+  event.preventDefault();
+  event.stopPropagation();
 }
 </script>
 
@@ -632,6 +682,12 @@ function hideApp() {
   flex: 1;
   overflow-y: auto;
   padding: 8px;
+}
+
+/* 去除程序化聚焦后的蓝色边框 */
+.item-list:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .loading,

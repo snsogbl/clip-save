@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
+import { EventsEmit } from "../wailsjs/runtime/runtime";
 import ClipboardHistory from "./views/clipboardHistory/clipboardHistory.vue";
 import Login from "./views/login/login.vue";
 import {
@@ -72,14 +73,24 @@ const addKeyListener = () => {
       event.preventDefault();
       HideWindow();
     }
+
+    // 拦截 ⌘+↑ / ⌘+↓，避免列表滚动，并触发上一条/下一条
+    if ((event.metaKey || event.ctrlKey) && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+      event.preventDefault();
+      if (event.key === "ArrowUp") {
+        EventsEmit("nav.prev");
+      } else {
+        EventsEmit("nav.next");
+      }
+    }
   });
-  window.addEventListener("blur", (event) => {
-    // 当有系统对话框（如保存文件）弹出时，不要自动隐藏
-    // 使用全局标记进行抑制
-    const shouldSuppress = (window as any).__suppressHideWindow;
-    if (shouldSuppress) return;
-    HideWindow();
-  });
+  // window.addEventListener("blur", (event) => {
+  //   // 当有系统对话框（如保存文件）弹出时，不要自动隐藏
+  //   // 使用全局标记进行抑制
+  //   const shouldSuppress = (window as any).__suppressHideWindow;
+  //   if (shouldSuppress) return;
+  //   HideWindow();
+  // });
 };
 
 onMounted(() => {

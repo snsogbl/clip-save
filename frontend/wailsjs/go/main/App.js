@@ -66,12 +66,20 @@ export function HideWindow() {
   return window['go']['main']['App']['HideWindow']();
 }
 
+export function NextItem() {
+  return window['go']['main']['App']['NextItem']();
+}
+
 export function OpenFileInFinder(arg1) {
   return window['go']['main']['App']['OpenFileInFinder'](arg1);
 }
 
 export function OpenURL(arg1) {
   return window['go']['main']['App']['OpenURL'](arg1);
+}
+
+export function PrevItem() {
+  return window['go']['main']['App']['PrevItem']();
 }
 
 export function RecognizeQRCode(arg1) {
@@ -100,6 +108,10 @@ export function SetLanguage(arg1) {
 
 export function ShowWindow() {
   return window['go']['main']['App']['ShowWindow']();
+}
+
+export function SwitchLeftTab(arg1) {
+  return window['go']['main']['App']['SwitchLeftTab'](arg1);
 }
 
 export function ToggleFavorite(arg1) {

@@ -42,6 +42,13 @@ func InitI18n() error {
 			"app.name":        "剪存",
 			"app.description": "剪贴板历史管理工具",
 			"app.version":     AppVersion,
+			// 菜单
+			"menu.display":    "显示",
+			"menu.showWindow": "显示窗口",
+			"menu.list":       "列表",
+			"menu.favorite":   "收藏",
+			"menu.prev":       "上一条",
+			"menu.next":       "下一条",
 		},
 	}
 
@@ -54,6 +61,13 @@ func InitI18n() error {
 			"app.name":        "ClipSave",
 			"app.description": "Clipboard History Management Tool",
 			"app.version":     AppVersion,
+			// 菜单
+			"menu.display":    "View",
+			"menu.showWindow": "Show Window",
+			"menu.list":       "List",
+			"menu.favorite":   "Favorites",
+			"menu.prev":       "Previous",
+			"menu.next":       "Next",
 		},
 	}
 
@@ -66,6 +80,13 @@ func InitI18n() error {
 			"app.name":        "ClipSave",
 			"app.description": "Outil de Gestion de l'Historique du Presse-papiers",
 			"app.version":     AppVersion,
+			// 菜单
+			"menu.display":    "Affichage",
+			"menu.showWindow": "Afficher la fenêtre",
+			"menu.list":       "Liste",
+			"menu.favorite":   "Favoris",
+			"menu.prev":       "Précédent",
+			"menu.next":       "Suivant",
 		},
 	}
 
@@ -78,6 +99,13 @@ func InitI18n() error {
 			"app.name":        "ClipSave",
 			"app.description": "أداة إدارة سجل الحافظة",
 			"app.version":     AppVersion,
+			// 菜单
+			"menu.display":    "عرض",
+			"menu.showWindow": "إظهار النافذة",
+			"menu.list":       "القائمة",
+			"menu.favorite":   "المفضلة",
+			"menu.prev":       "السابق",
+			"menu.next":       "التالي",
 		},
 	}
 

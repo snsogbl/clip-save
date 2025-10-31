@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"log"
 	"runtime"
@@ -37,11 +38,27 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
-	// 创建应用菜单，添加“Window/重新打开主窗口”
-	appMenu := menu.NewMenu()
-	windowSubMenu := appMenu.AddSubmenu("Window")
-	windowSubMenu.AddText("重新打开主窗口", keys.CmdOrCtrl("0"), func(_ *menu.CallbackData) {
+	appMenu := menu.NewMenuFromItems(
+		menu.AppMenu(),
+	)
+
+	displaySubMenu := appMenu.AddSubmenu(common.T("menu.display"))
+	displaySubMenu.AddText(common.T("menu.showWindow"), keys.CmdOrCtrl("0"), func(_ *menu.CallbackData) {
 		app.ShowWindow()
+	})
+	displaySubMenu.AddSeparator()
+	displaySubMenu.AddText(common.T("menu.list"), keys.CmdOrCtrl("left"), func(_ *menu.CallbackData) {
+		app.SwitchLeftTab("all")
+	})
+	displaySubMenu.AddText(common.T("menu.favorite"), keys.CmdOrCtrl("right"), func(_ *menu.CallbackData) {
+		app.SwitchLeftTab("fav")
+	})
+	displaySubMenu.AddSeparator()
+	displaySubMenu.AddText(common.T("menu.prev"), keys.CmdOrCtrl("up"), func(_ *menu.CallbackData) {
+		app.PrevItem()
+	})
+	displaySubMenu.AddText(common.T("menu.next"), keys.CmdOrCtrl("down"), func(_ *menu.CallbackData) {
+		app.NextItem()
 	})
 
 	// 注册剪贴板（后台持续运行）
@@ -60,18 +77,25 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:             common.T("app.title"),
-		Width:             1280,
-		Height:            800,
-		Frameless:         false,
-		HideWindowOnClose: hideOnClose,
+		Title:     common.T("app.title"),
+		Width:     1280,
+		Height:    800,
+		Frameless: false,
+		OnBeforeClose: func(ctx context.Context) bool {
+			if hideOnClose {
+				app.HideWindow()
+				return true
+			} else {
+				return false
+			}
+		},
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 0},
+		Menu:             appMenu,
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
-		Menu:             appMenu,
 		Mac: &mac.Options{
 			WebviewIsTransparent: false,
 			About: &mac.AboutInfo{

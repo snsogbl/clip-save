@@ -34,9 +34,13 @@ export function GetSupportedLanguages():Promise<Array<string>>;
 
 export function HideWindow():Promise<void>;
 
+export function NextItem():Promise<void>;
+
 export function OpenFileInFinder(arg1:string):Promise<void>;
 
 export function OpenURL(arg1:string):Promise<void>;
+
+export function PrevItem():Promise<void>;
 
 export function RecognizeQRCode(arg1:string):Promise<string>;
 
@@ -51,6 +55,8 @@ export function SearchClipboardItems(arg1:boolean,arg2:string,arg3:string,arg4:n
 export function SetLanguage(arg1:string):Promise<void>;
 
 export function ShowWindow():Promise<void>;
+
+export function SwitchLeftTab(arg1:string):Promise<void>;
 
 export function ToggleFavorite(arg1:string):Promise<number>;
 
