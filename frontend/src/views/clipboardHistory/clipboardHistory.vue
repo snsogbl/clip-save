@@ -597,6 +597,9 @@ onMounted(() => {
   EventsOn("nav.switch", (tab: "all" | "fav") => {
     switchLeftTab(tab);
   });
+  EventsOn("nav.setting", () => {
+    showSetting.value = true;
+  });
 });
 
 function hideApp() {

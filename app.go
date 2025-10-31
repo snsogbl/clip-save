@@ -32,6 +32,25 @@ type App struct {
 	ctx context.Context
 }
 
+// ShowAbout 显示关于对话框
+func (a *App) ShowAbout() {
+	if a.ctx == nil {
+		return
+	}
+	runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+		Type:    runtime.InfoDialog,
+		Title:   common.T("app.name"),
+		Message: common.T("app.description") + "\n" + common.T("app.version"),
+	})
+}
+
+// ShowSetting 显示设置对话框
+func (a *App) ShowSetting() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "nav.setting")
+	}
+}
+
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
@@ -393,6 +412,15 @@ func (a *App) NextItem() {
 	if a.ctx != nil {
 		runtime.EventsEmit(a.ctx, "nav.next")
 	}
+}
+
+// ForceQuit 标记强制退出并真正退出应用
+func (a *App) ForceQuit() {
+	if a.ctx == nil {
+		return
+	}
+	setForceQuit()
+	runtime.Quit(a.ctx)
 }
 
 // SwitchLeftTab 菜单：切换列表

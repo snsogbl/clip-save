@@ -9,6 +9,7 @@ package main
 void RegisterReopenObserver(void);
 // Forward declaration to Go callback
 extern void goOnAppReopen(void);
+extern void goSetForceQuit(void);
 */
 import "C"
 
@@ -25,3 +26,10 @@ func initDockReopen(callback func()) {
 	dockReopenCallback = callback
 	C.RegisterReopenObserver()
 }
+
+//export goSetForceQuit
+func goSetForceQuit() {
+	setForceQuit()
+}
+
+// quit hook is installed inside RegisterReopenObserver via ObjC swizzle

@@ -38,9 +38,26 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
-	appMenu := menu.NewMenuFromItems(
-		menu.AppMenu(),
-	)
+	appMenu := menu.NewMenu()
+
+	appSubMenu := appMenu.AddSubmenu(common.T("app.name"))
+	appSubMenu.AddText("About "+common.T("app.name"), keys.CmdOrCtrl("b"), func(_ *menu.CallbackData) {
+		app.ShowAbout()
+	})
+	appSubMenu.AddText("Hide "+common.T("app.name"), keys.CmdOrCtrl("h"), func(_ *menu.CallbackData) {
+		app.HideWindow()
+	})
+	appSubMenu.AddText("Show "+common.T("app.name"), keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
+		app.ShowWindow()
+	})
+	appSubMenu.AddSeparator()
+	appSubMenu.AddText("Setting "+common.T("app.name"), keys.CmdOrCtrl(","), func(_ *menu.CallbackData) {
+		app.ShowSetting()
+	})
+	appSubMenu.AddSeparator()
+	appSubMenu.AddText("Quit "+common.T("app.name"), keys.CmdOrCtrl("q"), func(_ *menu.CallbackData) {
+		app.ForceQuit()
+	})
 
 	displaySubMenu := appMenu.AddSubmenu(common.T("menu.display"))
 	displaySubMenu.AddText(common.T("menu.showWindow"), keys.CmdOrCtrl("0"), func(_ *menu.CallbackData) {
@@ -82,12 +99,11 @@ func main() {
 		Height:    800,
 		Frameless: false,
 		OnBeforeClose: func(ctx context.Context) bool {
-			if hideOnClose {
+			if hideOnClose && !isForceQuit() {
 				app.HideWindow()
 				return true
-			} else {
-				return false
 			}
+			return false
 		},
 		AssetServer: &assetserver.Options{
 			Assets: assets,

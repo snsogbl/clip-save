@@ -16,6 +16,8 @@ export function DeleteClipboardItem(arg1:string):Promise<void>;
 
 export function DetectQRCode(arg1:string):Promise<boolean>;
 
+export function ForceQuit():Promise<void>;
+
 export function GenerateQRCode(arg1:string,arg2:number):Promise<string>;
 
 export function GetAppSettings():Promise<string>;
@@ -53,6 +55,10 @@ export function SaveImagePNG(arg1:string,arg2:string):Promise<string>;
 export function SearchClipboardItems(arg1:boolean,arg2:string,arg3:string,arg4:number):Promise<Array<common.ClipboardItem>>;
 
 export function SetLanguage(arg1:string):Promise<void>;
+
+export function ShowAbout():Promise<void>;
+
+export function ShowSetting():Promise<void>;
 
 export function ShowWindow():Promise<void>;
 

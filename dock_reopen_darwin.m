@@ -2,6 +2,7 @@
 #import <objc/runtime.h>
 
 extern void goOnAppReopen(void);
+extern void goSetForceQuit(void);
 
 @interface DockReopenObserver : NSObject
 @end
@@ -49,6 +50,19 @@ void RegisterReopenObserver(void) {
                 method_setImplementation(m, replacement);
             }
         }
+    }
+
+    // Also hook applicationShouldTerminate to mark force quit
+    SEL quitSel = @selector(applicationShouldTerminate:);
+    Method quitM = class_getInstanceMethod(delegateClass, quitSel);
+    if (quitM) {
+        IMP originalQuit = method_getImplementation(quitM);
+        IMP replacementQuit = imp_implementationWithBlock(^NSInteger(id _self, NSApplication *sender){
+            goSetForceQuit();
+            typedef NSInteger (*Fn)(id, SEL, NSApplication*);
+            return ((Fn)originalQuit)(_self, quitSel, sender);
+        });
+        method_setImplementation(quitM, replacementQuit);
     }
 }
 

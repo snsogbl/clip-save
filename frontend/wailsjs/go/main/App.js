@@ -30,6 +30,10 @@ export function DetectQRCode(arg1) {
   return window['go']['main']['App']['DetectQRCode'](arg1);
 }
 
+export function ForceQuit() {
+  return window['go']['main']['App']['ForceQuit']();
+}
+
 export function GenerateQRCode(arg1, arg2) {
   return window['go']['main']['App']['GenerateQRCode'](arg1, arg2);
 }
@@ -104,6 +108,14 @@ export function SearchClipboardItems(arg1, arg2, arg3, arg4) {
 
 export function SetLanguage(arg1) {
   return window['go']['main']['App']['SetLanguage'](arg1);
+}
+
+export function ShowAbout() {
+  return window['go']['main']['App']['ShowAbout']();
+}
+
+export function ShowSetting() {
+  return window['go']['main']['App']['ShowSetting']();
 }
 
 export function ShowWindow() {
