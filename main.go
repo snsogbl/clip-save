@@ -8,6 +8,8 @@ import (
 	"goWeb3/common"
 
 	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
@@ -34,6 +36,13 @@ func main() {
 
 	// Create an instance of the app structure
 	app := NewApp()
+
+	// 创建应用菜单，添加“Window/重新打开主窗口”
+	appMenu := menu.NewMenu()
+	windowSubMenu := appMenu.AddSubmenu("Window")
+	windowSubMenu.AddText("重新打开主窗口", keys.CmdOrCtrl("0"), func(_ *menu.CallbackData) {
+		app.ShowWindow()
+	})
 
 	// 注册剪贴板（后台持续运行）
 	clipboardListener := common.RegisterClipboardListener()
@@ -62,6 +71,7 @@ func main() {
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 0},
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
+		Menu:             appMenu,
 		Mac: &mac.Options{
 			WebviewIsTransparent: false,
 			About: &mac.AboutInfo{
