@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"log"
+	"runtime"
 
 	"goWeb3/common"
 
@@ -89,7 +90,7 @@ func main() {
 	go app.RestartRegisterHotkey()
 
 	// 仅在 macOS 上隐藏关闭窗口
-	// hideOnClose := runtime.GOOS == "darwin"
+	hideOnClose := runtime.GOOS == "darwin"
 
 	// Create application with options
 	err := wails.Run(&options.App{
@@ -98,7 +99,7 @@ func main() {
 		Height:    800,
 		Frameless: false,
 		OnBeforeClose: func(ctx context.Context) bool {
-			if !isForceQuit() {
+			if hideOnClose && !isForceQuit() {
 				app.HideWindow()
 				return true
 			}

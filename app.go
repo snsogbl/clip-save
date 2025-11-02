@@ -66,6 +66,9 @@ func (a *App) startup(ctx context.Context) {
 	initDockReopen(func() {
 		a.ShowWindow()
 	})
+
+	// 初始化系统托盘（Windows 平台）
+	initTray(a, ctx)
 }
 
 // shutdown is called when the app is closing
