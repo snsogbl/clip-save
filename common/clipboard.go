@@ -98,25 +98,15 @@ func run() {
 	var lastPasteboardChangeCount int
 
 	// 用于追踪应用切换历史
-	var currentAppName string
-	var previousAppName string
-	var appSwitchTime time.Time
+	// var currentAppName string
+	// var previousAppName string
+	// var appSwitchTime time.Time
 
-	// 缩短轮询间隔到 400ms，以便更及时地捕获剪贴板变化
-	ticker := time.NewTicker(400 * time.Millisecond)
+	// 缩短轮询间隔到 50ms，以便更及时地捕获剪贴板变化
+	ticker := time.NewTicker(50 * time.Millisecond)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		// 获取当前活动应用
-		newAppName := GetFrontmostAppName()
-
-		// 检测应用切换
-		if newAppName != currentAppName && currentAppName != "" {
-			previousAppName = currentAppName
-			appSwitchTime = time.Now()
-		}
-		currentAppName = newAppName
-
 		// 使用 changeCount 精确检测剪贴板是否变化
 		currentChangeCount := GetPasteboardChangeCount()
 		// log.Printf("🔄 剪贴板变化计数: %d", currentChangeCount)
@@ -124,17 +114,11 @@ func run() {
 			// 剪贴板没有变化，继续下一次循环
 			continue
 		}
+		// 获取当前活动应用
 		lastPasteboardChangeCount = currentChangeCount
 
-		// 剪贴板发生了变化，决定使用哪个应用名称
-		// 如果刚刚切换应用（400ms内），很可能复制是在前一个应用中进行的
-		var sourceAppName string
-		if previousAppName != "" && time.Since(appSwitchTime) < 400*time.Millisecond {
-			sourceAppName = previousAppName
-			log.Printf("🔄 检测到应用切换，使用上一个应用: %s (当前: %s)", previousAppName, currentAppName)
-		} else {
-			sourceAppName = currentAppName
-		}
+		// 获取当前活动应用
+		sourceAppName := GetFrontmostAppName()
 
 		// 优先级1: 先检查是否有文件
 		fileJSON, fileCount := ReadFileURLs()

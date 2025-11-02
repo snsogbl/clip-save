@@ -64,6 +64,9 @@ func main() {
 		app.ForceQuit()
 	})
 
+	// 添加默认编辑菜单以支持标准复制粘贴快捷键
+	appMenu.Append(menu.EditMenu())
+
 	displaySubMenu := appMenu.AddSubmenu(common.T("menu.display"))
 	if isMac {
 		displaySubMenu.AddText(common.T("menu.showWindow"), keys.CmdOrCtrl("0"), func(_ *menu.CallbackData) {
