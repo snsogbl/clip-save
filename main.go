@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"log"
+	"runtime"
 
 	"goWeb3/common"
 
@@ -20,6 +21,9 @@ import (
 var assets embed.FS
 
 func main() {
+	// 判断是否是 macOS
+	isMac := runtime.GOOS == "darwin"
+
 	// 初始化国际化
 	if err := common.InitI18n(); err != nil {
 		log.Fatal("初始化国际化失败:", err)
@@ -43,12 +47,14 @@ func main() {
 	appSubMenu.AddText("About "+common.T("app.name"), keys.CmdOrCtrl("b"), func(_ *menu.CallbackData) {
 		app.ShowAbout()
 	})
-	appSubMenu.AddText("Hide "+common.T("app.name"), keys.CmdOrCtrl("h"), func(_ *menu.CallbackData) {
-		app.HideWindow()
-	})
-	appSubMenu.AddText("Show "+common.T("app.name"), keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
-		app.ShowWindow()
-	})
+	if isMac {
+		appSubMenu.AddText("Hide "+common.T("app.name"), keys.CmdOrCtrl("h"), func(_ *menu.CallbackData) {
+			app.HideWindow()
+		})
+		appSubMenu.AddText("Show "+common.T("app.name"), keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
+			app.ShowWindow()
+		})
+	}
 	appSubMenu.AddSeparator()
 	appSubMenu.AddText("Setting "+common.T("app.name"), keys.CmdOrCtrl(","), func(_ *menu.CallbackData) {
 		app.ShowSetting()
@@ -59,10 +65,12 @@ func main() {
 	})
 
 	displaySubMenu := appMenu.AddSubmenu(common.T("menu.display"))
-	displaySubMenu.AddText(common.T("menu.showWindow"), keys.CmdOrCtrl("0"), func(_ *menu.CallbackData) {
-		app.ShowWindow()
-	})
-	displaySubMenu.AddSeparator()
+	if isMac {
+		displaySubMenu.AddText(common.T("menu.showWindow"), keys.CmdOrCtrl("0"), func(_ *menu.CallbackData) {
+			app.ShowWindow()
+		})
+		displaySubMenu.AddSeparator()
+	}
 	displaySubMenu.AddText(common.T("menu.list"), keys.CmdOrCtrl("left"), func(_ *menu.CallbackData) {
 		app.SwitchLeftTab("all")
 	})
@@ -88,9 +96,6 @@ func main() {
 	// 注册全局快捷键
 	go app.RestartRegisterHotkey()
 
-	// 仅在 macOS 上隐藏关闭窗口
-	// hideOnClose := runtime.GOOS == "darwin"
-
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:     common.T("app.title"),
@@ -98,7 +103,7 @@ func main() {
 		Height:    800,
 		Frameless: false,
 		OnBeforeClose: func(ctx context.Context) bool {
-			if !isForceQuit() {
+			if isMac && !isForceQuit() {
 				app.HideWindow()
 				return true
 			}
