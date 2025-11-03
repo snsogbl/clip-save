@@ -87,6 +87,22 @@ func main() {
 	displaySubMenu.AddText(common.T("menu.next"), keys.CmdOrCtrl("down"), func(_ *menu.CallbackData) {
 		app.NextItem()
 	})
+	displaySubMenu.AddSeparator()
+	displaySubMenu.AddText(common.T("menu.search"), keys.CmdOrCtrl("f"), func(_ *menu.CallbackData) {
+		app.SearchItem()
+	})
+	displaySubMenu.AddSeparator()
+	displaySubMenu.AddText(common.T("menu.copyCurrent"), keys.CmdOrCtrl("enter"), func(_ *menu.CallbackData) {
+		app.CopyCurrentItem()
+		app.HideWindowAndQuit()
+		go common.PasteCmdV()
+	})
+	displaySubMenu.AddText(common.T("menu.deleteCurrent"), keys.CmdOrCtrl("backspace"), func(_ *menu.CallbackData) {
+		app.DeleteCurrentItem()
+	})
+	displaySubMenu.AddText(common.T("menu.favoriteCurrent"), keys.CmdOrCtrl("d"), func(_ *menu.CallbackData) {
+		app.CollectCurrentItem()
+	})
 
 	// 注册剪贴板（后台持续运行）
 	clipboardListener := common.RegisterClipboardListener()

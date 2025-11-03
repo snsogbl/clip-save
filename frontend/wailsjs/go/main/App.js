@@ -10,6 +10,14 @@ export function ClearItemsOlderThanDays(arg1) {
   return window['go']['main']['App']['ClearItemsOlderThanDays'](arg1);
 }
 
+export function CollectCurrentItem() {
+  return window['go']['main']['App']['CollectCurrentItem']();
+}
+
+export function CopyCurrentItem() {
+  return window['go']['main']['App']['CopyCurrentItem']();
+}
+
 export function CopyImageToClipboard(arg1) {
   return window['go']['main']['App']['CopyImageToClipboard'](arg1);
 }
@@ -24,6 +32,10 @@ export function CopyToClipboard(arg1) {
 
 export function DeleteClipboardItem(arg1) {
   return window['go']['main']['App']['DeleteClipboardItem'](arg1);
+}
+
+export function DeleteCurrentItem() {
+  return window['go']['main']['App']['DeleteCurrentItem']();
 }
 
 export function DetectQRCode(arg1) {
@@ -70,6 +82,10 @@ export function HideWindow() {
   return window['go']['main']['App']['HideWindow']();
 }
 
+export function HideWindowAndQuit() {
+  return window['go']['main']['App']['HideWindowAndQuit']();
+}
+
 export function NextItem() {
   return window['go']['main']['App']['NextItem']();
 }
@@ -104,6 +120,10 @@ export function SaveImagePNG(arg1, arg2) {
 
 export function SearchClipboardItems(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['SearchClipboardItems'](arg1, arg2, arg3, arg4);
+}
+
+export function SearchItem() {
+  return window['go']['main']['App']['SearchItem']();
 }
 
 export function SetLanguage(arg1) {

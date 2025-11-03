@@ -430,6 +430,34 @@ func (a *App) SwitchLeftTab(tab string) {
 	}
 }
 
+// CopyCurrentItem 菜单：复制当前项
+func (a *App) CopyCurrentItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "copy.current")
+	}
+}
+
+// DeleteCurrentItem 菜单：删除当前项
+func (a *App) DeleteCurrentItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "delete.current")
+	}
+}
+
+// CollectCurrentItem 菜单：收藏当前项
+func (a *App) CollectCurrentItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "collect.current")
+	}
+}
+
+// SearchItem 菜单：查找
+func (a *App) SearchItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "search.item")
+	}
+}
+
 // HideWindow 隐藏窗口
 func (a *App) HideWindow() {
 	if a.ctx != nil {
@@ -439,6 +467,18 @@ func (a *App) HideWindow() {
 		} else {
 			// 其他平台：保持原有隐藏行为
 			runtime.WindowHide(a.ctx)
+		}
+	}
+}
+
+func (a *App) HideWindowAndQuit() {
+	if a.ctx != nil {
+		// Windows: 最小化而不是隐藏，确保任务栏图标可见
+		if gRuntime.GOOS == "windows" {
+			// runtime.WindowMinimise(a.ctx)
+		} else {
+			// 其他平台：保持原有隐藏行为
+			runtime.Hide(a.ctx)
 		}
 	}
 }

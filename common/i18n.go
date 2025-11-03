@@ -49,6 +49,11 @@ func InitI18n() error {
 			"menu.favorite":   "收藏",
 			"menu.prev":       "上一条",
 			"menu.next":       "下一条",
+			// 扩展：功能菜单
+			"menu.search":          "查找",
+			"menu.copyCurrent":     "复制当前项",
+			"menu.deleteCurrent":   "删除当前项",
+			"menu.favoriteCurrent": "收藏当前项",
 		},
 	}
 
@@ -68,6 +73,11 @@ func InitI18n() error {
 			"menu.favorite":   "Favorites",
 			"menu.prev":       "Previous",
 			"menu.next":       "Next",
+			// Extensions
+			"menu.search":          "Search",
+			"menu.copyCurrent":     "Copy Current Item",
+			"menu.deleteCurrent":   "Delete Current Item",
+			"menu.favoriteCurrent": "Favorite Current Item",
 		},
 	}
 
@@ -87,6 +97,11 @@ func InitI18n() error {
 			"menu.favorite":   "Favoris",
 			"menu.prev":       "Précédent",
 			"menu.next":       "Suivant",
+			// Extensions
+			"menu.search":          "Rechercher",
+			"menu.copyCurrent":     "Copier l'élément courant",
+			"menu.deleteCurrent":   "Supprimer l'élément courant",
+			"menu.favoriteCurrent": "Ajouter l'élément courant aux favoris",
 		},
 	}
 
@@ -106,6 +121,11 @@ func InitI18n() error {
 			"menu.favorite":   "المفضلة",
 			"menu.prev":       "السابق",
 			"menu.next":       "التالي",
+			// Extensions
+			"menu.search":          "بحث",
+			"menu.copyCurrent":     "نسخ العنصر الحالي",
+			"menu.deleteCurrent":   "حذف العنصر الحالي",
+			"menu.favoriteCurrent": "إضافة العنصر الحالي للمفضلة",
 		},
 	}
 

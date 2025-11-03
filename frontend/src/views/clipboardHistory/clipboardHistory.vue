@@ -8,10 +8,12 @@
       <!-- 顶部工具栏 -->
       <div class="toolbar">
         <el-input
+          ref="searchInputRef"
           v-model="searchKeyword"
           type="text"
           class="search-input"
           :placeholder="$t('main.searchPlaceholder')"
+          @keyup.enter="searchInputRef?.blur()"
           @input="onSearchChange"
           clearable
           style="--wails-draggable: no-drag"
@@ -202,6 +204,7 @@
             </button>
             <button
               class="action-btn delete"
+              :class="{ active: currentItem.IsFavorite === 1 }"
               @click="collectItem(currentItem.ID)"
             >
               <el-icon :size="16" style="margin-right: 6px">
@@ -284,6 +287,7 @@ interface FileInfo {
 const items = ref<ClipboardItem[]>([]);
 const currentItem = ref<ClipboardItem | null>(null);
 const itemListRef = ref<HTMLElement | null>(null);
+const searchInputRef = ref<HTMLInputElement | null>(null);
 const searchKeyword = ref("");
 const filterType = ref("");
 const loading = ref(false);
@@ -374,9 +378,11 @@ async function selectItem(item: ClipboardItem) {
   // 确保当前选中项进入可视区域
   const container = itemListRef.value;
   if (!container) return;
-  const activeEl = container.querySelector('.list-item.active') as HTMLElement | null;
+  const activeEl = container.querySelector(
+    ".list-item.active"
+  ) as HTMLElement | null;
   if (activeEl) {
-    activeEl.scrollIntoView({ block: 'nearest' });
+    activeEl.scrollIntoView({ block: "nearest" });
   }
 }
 
@@ -409,8 +415,9 @@ async function deleteItem(id: string) {
   ).then(async () => {
     try {
       await DeleteClipboardItem(id);
-      currentItem.value = null;
-      await loadItems();
+      const index = items.value.findIndex((item) => item.ID === id);
+      items.value.splice(index, 1);
+      currentItem.value = items.value[index] || items.value[index - 1] || null;
       ElMessage.success(t("message.deleteSuccess"));
     } catch (error) {
       console.error("删除失败:", error);
@@ -582,6 +589,7 @@ onMounted(() => {
     const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
     const nextIdx = Math.max(0, idx - 1);
     selectItem(items.value[nextIdx]);
+    searchInputRef.value?.blur();
   });
   EventsOn("nav.next", () => {
     if (items.value.length === 0) return;
@@ -592,6 +600,7 @@ onMounted(() => {
     const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
     const nextIdx = Math.min(items.value.length - 1, idx + 1);
     selectItem(items.value[nextIdx]);
+    searchInputRef.value?.blur();
   });
 
   EventsOn("nav.switch", (tab: "all" | "fav") => {
@@ -599,6 +608,18 @@ onMounted(() => {
   });
   EventsOn("nav.setting", () => {
     showSetting.value = true;
+  });
+  EventsOn("copy.current", () => {
+    copyItem(currentItem.value!.ID);
+  });
+  EventsOn("delete.current", () => {
+    deleteItem(currentItem.value!.ID);
+  });
+  EventsOn("collect.current", () => {
+    collectItem(currentItem.value!.ID);
+  });
+  EventsOn("search.item", () => {
+    searchInputRef.value?.focus();
   });
 });
 
@@ -707,19 +728,15 @@ function handleTabKeydown(event: KeyboardEvent) {
 
 .list-item {
   padding: 14px 20px;
-  margin: 0 12px 2px;
-  /* border-radius: 10px; */
+  margin: 0 12px 10px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid #bebebe;
-}
-
-.list-item:hover {
-  background-color: #f8f8f8;
+  border: 1px solid #e8e8e8;
 }
 
 .list-item.active {
-  background-color: #f8f8f8;
+  border: 1px solid #007aff;
 }
 
 .item-header {
@@ -871,6 +888,11 @@ function handleTabKeydown(event: KeyboardEvent) {
   border-color: #007aff;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn.active {
+  color: #007aff;
+  border-color: #007aff;
 }
 
 .action-btn.delete:hover {

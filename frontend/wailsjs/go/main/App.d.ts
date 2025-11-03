@@ -6,6 +6,10 @@ export function ClearAllItems():Promise<void>;
 
 export function ClearItemsOlderThanDays(arg1:number):Promise<void>;
 
+export function CollectCurrentItem():Promise<void>;
+
+export function CopyCurrentItem():Promise<void>;
+
 export function CopyImageToClipboard(arg1:string):Promise<void>;
 
 export function CopyTextToClipboard(arg1:string):Promise<void>;
@@ -13,6 +17,8 @@ export function CopyTextToClipboard(arg1:string):Promise<void>;
 export function CopyToClipboard(arg1:string):Promise<void>;
 
 export function DeleteClipboardItem(arg1:string):Promise<void>;
+
+export function DeleteCurrentItem():Promise<void>;
 
 export function DetectQRCode(arg1:string):Promise<boolean>;
 
@@ -36,6 +42,8 @@ export function GetSupportedLanguages():Promise<Array<string>>;
 
 export function HideWindow():Promise<void>;
 
+export function HideWindowAndQuit():Promise<void>;
+
 export function NextItem():Promise<void>;
 
 export function OpenFileInFinder(arg1:string):Promise<void>;
@@ -53,6 +61,8 @@ export function SaveAppSettings(arg1:string):Promise<void>;
 export function SaveImagePNG(arg1:string,arg2:string):Promise<string>;
 
 export function SearchClipboardItems(arg1:boolean,arg2:string,arg3:string,arg4:number):Promise<Array<common.ClipboardItem>>;
+
+export function SearchItem():Promise<void>;
 
 export function SetLanguage(arg1:string):Promise<void>;
 
