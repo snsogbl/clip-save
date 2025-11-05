@@ -4,7 +4,7 @@
     <pre class="content-text"><code>{{ text }}</code></pre>
 
     <!-- 解码按钮 -->
-    <div class="decode-buttons">
+    <div class="decode-buttons" v-if="needsURIDecoding || needsUnicodeDecoding">
       <!-- <el-button class="decode-btn" @click="translateText" :loading="loading">
         <el-icon :size="14" style="margin-right: 4px">
           <Document />

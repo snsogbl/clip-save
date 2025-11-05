@@ -16,12 +16,14 @@
           @keyup.enter="searchInputRef?.blur()"
           @input="onSearchChange"
           clearable
+          size="large"
           style="--wails-draggable: no-drag"
         />
         <el-select
           v-model="filterType"
           class="filter-select"
           @change="onSearchChange"
+          size="large"
           :placeholder="$t('main.filterAll')"
         >
           <el-option :label="$t('main.filterAll')" value="" />
@@ -204,7 +206,7 @@
               {{ $t("main.delete") }}
             </button>
             <button
-              class="action-btn delete"
+              class="action-btn"
               :class="{ active: currentItem.IsFavorite === 1 }"
               @click="collectItem(currentItem.ID)"
             >
@@ -651,8 +653,9 @@ function handleTabKeydown(event: KeyboardEvent) {
 .toolbar {
   display: flex;
   gap: 12px;
-  padding: 20px;
+  padding: 14px 14px;
   border-bottom: 1px solid #e0e0e0;
+  align-items: center;
 }
 
 .filter-select {
@@ -663,6 +666,8 @@ function handleTabKeydown(event: KeyboardEvent) {
   border: 1px solid #e0e0e0;
   color: #666;
   transition: all 0.2s ease;
+  width: 36px !important;
+  height: 36px !important;
 }
 
 .setting-btn:hover {
@@ -742,6 +747,10 @@ function handleTabKeydown(event: KeyboardEvent) {
 
 .list-item.active {
   border: 1px solid #007aff;
+}
+
+.list-item:hover {
+  background-color: #f8f8f8;
 }
 
 .item-header {
@@ -889,7 +898,6 @@ function handleTabKeydown(event: KeyboardEvent) {
 }
 
 .action-btn:hover {
-  background-color: #f2f2f7;
   border-color: #007aff;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
