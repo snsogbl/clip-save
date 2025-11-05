@@ -72,6 +72,7 @@
               class="list-item"
               :class="{ active: currentItem?.ID === item.ID }"
               @click="selectItem(item)"
+              @dblclick="handleDoubleClick(item)"
             >
               <div class="item-header">
                 <el-icon class="item-icon" :size="18">
@@ -240,7 +241,7 @@ import {
   GetAppSettings,
   HideWindow,
   ToggleFavorite,
-  CopyTextToClipboard,
+  HideWindowAndQuit
 } from "../../../wailsjs/go/main/App";
 
 const { t } = useI18n();
@@ -388,6 +389,19 @@ async function selectItem(item: ClipboardItem) {
   if (activeEl) {
     activeEl.scrollIntoView({ block: "nearest" });
   }
+}
+
+// 处理双击事件
+async function handleDoubleClick(item: ClipboardItem) {
+  // 如果双击的项目不是当前选中的，先选中它
+  if (currentItem.value?.ID !== item.ID) {
+    await selectItem(item);
+    // 等待 DOM 更新，特别是 JSON 编辑器
+    await nextTick();
+  }
+  // 复制当前项
+  await copyItem(item.ID);
+  HideWindowAndQuit()
 }
 
 // 复制项目
