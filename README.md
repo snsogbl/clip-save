@@ -23,9 +23,6 @@ https://apps.apple.com/us/app/剪存/id6754015301
 
 <img src="https://raw.githubusercontent.com/snsogbl/clip-save/master/screenshots/clipboard-1.png" alt="Capture" width="960">
 
-<img src="https://raw.githubusercontent.com/snsogbl/clip-save/master/screenshots/clipboard-2.png" alt="Capture" width="960">
-
-<img src="https://raw.githubusercontent.com/snsogbl/clip-save/master/screenshots/clipboard-3.png" alt="Capture" width="960">
 
 ## 技术栈
 
