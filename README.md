@@ -16,7 +16,16 @@ https://apps.apple.com/us/app/剪存/id6754015301
 - 图片功能：自动捕获剪贴板中的图片内容，支持识别二维码、预览、放大查看和保存到本地文件。
 - URL功能：解析和展示剪贴板中的链接地址，自动提取URL参数并以表格形式展示，支持在浏览器中快速打开。
 - 颜色功能：智能识别剪贴板中的颜色值，提供可视化颜色预览、格式转换和一键复制功能
+- JSON功能：智能识别剪贴板中的JSON格式内容（对象或数组），提供可视化JSON编辑器，支持格式化、编辑、导航和复制功能，方便查看和修改JSON数据结构。
 - 设置功能：提供密码保护、自动清理、快捷键配置、界面设置等个性化选项，确保应用安全性和使用便利性。
+
+## 项目截图
+
+<img src="https://raw.githubusercontent.com/snsogbl/clip-save/master/screenshots/clipboard-1.png" alt="Capture" width="960">
+
+<img src="https://raw.githubusercontent.com/snsogbl/clip-save/master/screenshots/clipboard-2.png" alt="Capture" width="960">
+
+<img src="https://raw.githubusercontent.com/snsogbl/clip-save/master/screenshots/clipboard-3.png" alt="Capture" width="960">
 
 ## 技术栈
 

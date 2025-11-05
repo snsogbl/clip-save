@@ -76,4 +76,6 @@ export function SwitchLeftTab(arg1:string):Promise<void>;
 
 export function ToggleFavorite(arg1:string):Promise<number>;
 
+export function TranslateCurrentItem():Promise<void>;
+
 export function VerifyPassword(arg1:string):Promise<boolean>;

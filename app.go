@@ -650,6 +650,13 @@ func (a *App) CopyImageToClipboard(base64Data string) error {
 	return nil
 }
 
+// TranslateCurrentItem 翻译当前项（供前端调用）
+func (a *App) TranslateCurrentItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "translate.current")
+	}
+}
+
 // 添加互斥锁防止重复调用
 var hotkeyRestartMutex sync.Mutex
 

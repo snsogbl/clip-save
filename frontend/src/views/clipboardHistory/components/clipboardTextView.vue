@@ -4,7 +4,13 @@
     <pre class="content-text"><code>{{ text }}</code></pre>
 
     <!-- 解码按钮 -->
-    <div v-if="showDecodeButtons" class="decode-buttons">
+    <div class="decode-buttons">
+      <!-- <el-button class="decode-btn" @click="translateText" :loading="loading">
+        <el-icon :size="14" style="margin-right: 4px">
+          <Document />
+        </el-icon>
+        {{ $t("components.text.translate") }}
+      </el-button> -->
       <button
         v-if="needsURIDecoding"
         class="decode-btn"
@@ -32,14 +38,53 @@
       <div class="section-title">{{ $t("components.text.decodedText") }}</div>
       <pre class="content-text decoded">{{ decodedText }}</pre>
     </div>
+    <div v-if="translatedText" class="decoded-section">
+      <div
+        class="section-title"
+        style="display: flex; align-items: center; gap: 10px"
+      >
+        <div>{{ $t("components.text.translatedText") }}</div>
+        <el-select
+          v-model="translateFromLanguage"
+          style="width: 100px"
+          @change="translateTextAssign"
+        >
+          <el-option
+            v-for="item in languages"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+        <el-icon :size="14">
+          <Switch />
+        </el-icon>
+        <el-select
+          v-model="translateToLanguage"
+          style="width: 100px"
+          @change="translateTextAssign"
+        >
+          <el-option
+            v-for="item in languages"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </div>
+      <pre class="content-text decoded">{{ translatedText }}</pre>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { Link, Document } from "@element-plus/icons-vue";
+import { Link, Document, Switch } from "@element-plus/icons-vue";
 import hljs from "highlight.js";
+import { translateAPI } from "../../../components/translate";
+import type { TranslateOptions } from "../../../components/translate";
+import type { Language } from "../../../components/translate";
 
 const { t } = useI18n();
 
@@ -49,7 +94,23 @@ const props = defineProps<{
 
 const decodedText = ref("");
 const languageType = ref("");
-
+const translatedText = ref("");
+const translateFromLanguage = ref<Language>("zh");
+const translateToLanguage = ref<Language>("en");
+const loading = ref(false);
+const languages = computed(() => [
+  { label: t("components.language.zh"), value: "zh" as Language },
+  { label: t("components.language.en"), value: "en" as Language },
+  { label: t("components.language.fr"), value: "fr" as Language },
+  { label: t("components.language.de"), value: "de" as Language },
+  { label: t("components.language.es"), value: "es" as Language },
+  { label: t("components.language.it"), value: "it" as Language },
+  { label: t("components.language.ru"), value: "ru" as Language },
+  { label: t("components.language.pt"), value: "pt" as Language },
+  { label: t("components.language.vi"), value: "vi" as Language },
+  { label: t("components.language.th"), value: "th" as Language },
+  { label: t("components.language.ms"), value: "ms" as Language },
+]);
 // 检测是否需要URI解码
 const needsURIDecoding = computed(() => {
   // 检测是否包含URL编码字符（%XX格式）
@@ -62,11 +123,6 @@ const needsUnicodeDecoding = computed(() => {
   // 检测是否包含Unicode转义序列（\uXXXX格式）
   const unicodePattern = /\\u[0-9A-Fa-f]{4}/;
   return unicodePattern.test(props.text);
-});
-
-// 是否显示解码按钮
-const showDecodeButtons = computed(() => {
-  return needsURIDecoding.value || needsUnicodeDecoding.value;
 });
 
 // 是否有解码后的文本
@@ -100,6 +156,44 @@ function toggleUnicodeDecode() {
     decodedText.value = t("components.text.decodeFailed", [e]);
   }
 }
+
+// 翻译文本
+const translateText = () => {
+  //检测文本是中文还是英文
+  const text = props.text || "";
+  if (!text) return;
+  const translateOptions: TranslateOptions = {
+    from: "en",
+    to: "zh",
+  };
+  const isChinese = /[\u4e00-\u9fa5]/.test(text);
+  if (isChinese) {
+    translateOptions.from = "zh";
+    translateOptions.to = "en";
+  } else {
+    translateOptions.from = "en";
+    translateOptions.to = "zh";
+  }
+  translateFromLanguage.value = translateOptions.from;
+  translateToLanguage.value = translateOptions.to;
+  loading.value = true;
+  translateAPI(props.text, translateOptions).then((res: any) => {
+    translatedText.value = res;
+  }).finally(() => {
+    loading.value = false;
+  });
+};
+
+const translateTextAssign = () => {
+  const translateOptions: TranslateOptions = {
+    from: translateFromLanguage.value,
+    to: translateToLanguage.value,
+  };
+  translateAPI(props.text, translateOptions).then((res: any) => {
+    console.log(res);
+    translatedText.value = res;
+  });
+};
 
 const checkIsCode = () => {
   const text = props.text || "";
@@ -153,9 +247,7 @@ const highlightCode = () => {
   nextTick(() => {
     if (checkIsCode()) {
       document.querySelectorAll("pre code").forEach((el) => {
-        const testResult = hljs.highlightAuto(
-          props.text?.slice(0, 100) || ""
-        );
+        const testResult = hljs.highlightAuto(props.text?.slice(0, 100) || "");
         if (testResult.language) {
           const result = hljs.highlightAuto(el.textContent || "");
           languageType.value = result.language || "";
@@ -174,6 +266,7 @@ watch(
   () => props.text,
   () => {
     decodedText.value = "";
+    translatedText.value = "";
     highlightCode();
   }
 );
@@ -181,6 +274,10 @@ watch(
 // 组件挂载时进行高亮
 onMounted(() => {
   highlightCode();
+});
+
+defineExpose({
+  translateText,
 });
 </script>
 

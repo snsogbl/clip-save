@@ -103,6 +103,9 @@ func main() {
 	displaySubMenu.AddText(common.T("menu.favoriteCurrent"), keys.CmdOrCtrl("d"), func(_ *menu.CallbackData) {
 		app.CollectCurrentItem()
 	})
+	displaySubMenu.AddText(common.T("menu.translateCurrent"), keys.CmdOrCtrl("t"), func(_ *menu.CallbackData) {
+		app.TranslateCurrentItem()
+	})
 
 	// 注册剪贴板（后台持续运行）
 	clipboardListener := common.RegisterClipboardListener()

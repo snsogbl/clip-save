@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { GetCurrentLanguage } from '../../wailsjs/go/main/App'
 
-const AppVersion = '1.1.7'
+const AppVersion = '1.1.8'
 
 // 中文语言包
 const zhCN = {
@@ -114,7 +114,23 @@ const zhCN = {
       decodeUri: '解码 URI',
       decodeUnicode: '解码 Unicode',
       decodedText: '解码后文本',
-      decodeFailed: '解码失败：{0}'
+      decodeFailed: '解码失败：{0}',
+      translate: '翻译',
+      translatedText: '翻译'
+    },
+    // 语言列表
+    language: {
+      zh: '中文',
+      en: '英文',
+      fr: '法语',
+      de: '德语',
+      es: '西班牙语',
+      it: '意大利语',
+      ru: '俄语',
+      pt: '葡萄牙语',
+      vi: '越南语',
+      th: '泰语',
+      ms: '马来语'
     },
     // 文件组件
     file: {
@@ -310,7 +326,23 @@ const enUS = {
       decodeUri: 'Decode URI',
       decodeUnicode: 'Decode Unicode',
       decodedText: 'Decoded Text',
-      decodeFailed: 'Decode failed: {0}'
+      decodeFailed: 'Decode failed: {0}',
+      translate: 'Translate',
+      translatedText: 'Translation'
+    },
+    // 语言列表
+    language: {
+      zh: 'Chinese',
+      en: 'English',
+      fr: 'French',
+      de: 'German',
+      es: 'Spanish',
+      it: 'Italian',
+      ru: 'Russian',
+      pt: 'Portuguese',
+      vi: 'Vietnamese',
+      th: 'Thai',
+      ms: 'Malay'
     },
     // 文件组件
     file: {
@@ -506,7 +538,23 @@ const frFR = {
       decodeUri: 'Décoder URI',
       decodeUnicode: 'Décoder Unicode',
       decodedText: 'Texte Décodé',
-      decodeFailed: 'Échec du décodage : {0}'
+      decodeFailed: 'Échec du décodage : {0}',
+      translate: 'Traduire',
+      translatedText: 'Traduction'
+    },
+    // 语言列表
+    language: {
+      zh: 'Chinois',
+      en: 'Anglais',
+      fr: 'Français',
+      de: 'Allemand',
+      es: 'Espagnol',
+      it: 'Italien',
+      ru: 'Russe',
+      pt: 'Portugais',
+      vi: 'Vietnamien',
+      th: 'Thaï',
+      ms: 'Malais'
     },
     // 文件组件
     file: {
@@ -702,7 +750,23 @@ const arSA = {
       decodeUri: 'فك تشفير URI',
       decodeUnicode: 'فك تشفير Unicode',
       decodedText: 'النص المفكوك',
-      decodeFailed: 'فشل فك التشفير: {0}'
+      decodeFailed: 'فشل فك التشفير: {0}',
+      translate: 'ترجمة',
+      translatedText: 'الترجمة'
+    },
+    // 语言列表
+    language: {
+      zh: 'الصينية',
+      en: 'الإنجليزية',
+      fr: 'الفرنسية',
+      de: 'الألمانية',
+      es: 'الإسبانية',
+      it: 'الإيطالية',
+      ru: 'الروسية',
+      pt: 'البرتغالية',
+      vi: 'الفيتنامية',
+      th: 'التايلاندية',
+      ms: 'الماليزية'
     },
     // 文件组件
     file: {

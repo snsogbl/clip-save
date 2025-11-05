@@ -150,6 +150,10 @@ export function ToggleFavorite(arg1) {
   return window['go']['main']['App']['ToggleFavorite'](arg1);
 }
 
+export function TranslateCurrentItem() {
+  return window['go']['main']['App']['TranslateCurrentItem']();
+}
+
 export function VerifyPassword(arg1) {
   return window['go']['main']['App']['VerifyPassword'](arg1);
 }

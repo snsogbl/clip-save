@@ -148,6 +148,7 @@
               <!-- 文本内容展示 -->
               <ClipboardTextView
                 v-else
+                ref="textEditorRef"
                 :text="currentItem?.Content || '空内容'"
               />
             </div>
@@ -288,6 +289,7 @@ const items = ref<ClipboardItem[]>([]);
 const currentItem = ref<ClipboardItem | null>(null);
 const itemListRef = ref<HTMLElement | null>(null);
 const searchInputRef = ref<HTMLInputElement | null>(null);
+const textEditorRef = ref<InstanceType<typeof ClipboardTextView> | null>(null);
 const searchKeyword = ref("");
 const filterType = ref("");
 const loading = ref(false);
@@ -620,6 +622,9 @@ onMounted(() => {
   });
   EventsOn("search.item", () => {
     searchInputRef.value?.focus();
+  });
+  EventsOn("translate.current", () => {
+    textEditorRef.value?.translateText();
   });
 });
 
