@@ -68,6 +68,25 @@ func (a *App) startup(ctx context.Context) {
 	})
 	common.SetForceQuitCallback(func() { setForceQuit() })
 
+	// 根据设置调整 Dock 图标可见性（仅 macOS 生效）
+	if gRuntime.GOOS == "darwin" {
+		go func() {
+			// 延迟执行，确保应用已完全启动
+			time.Sleep(300 * time.Millisecond)
+			settingsJSON, err := common.GetSetting("app_settings")
+			if err == nil && settingsJSON != "" {
+				var settings map[string]interface{}
+				if err := json.Unmarshal([]byte(settingsJSON), &settings); err == nil {
+					if backgroundMode, ok := settings["backgroundMode"].(bool); ok && backgroundMode {
+						// 开启后台模式：隐藏 Dock 图标
+						SetDockIconVisibility(2)
+						log.Println("已根据设置启用后台模式（隐藏 Dock 图标）")
+					}
+				}
+			}
+		}()
+	}
+
 	// 延迟调整窗口控制按钮位置，确保窗口已创建（仅 macOS 生效）
 	go func() {
 		time.Sleep(200 * time.Millisecond)
@@ -236,6 +255,13 @@ func (a *App) SetLanguage(lang string) error {
 		return err
 	}
 	log.Printf("语言已设置为: %s", lang)
+	return nil
+}
+
+// SetDockIconVisibility 设置 Dock 图标可见性（供前端调用，仅 macOS 生效）
+func (a *App) SetDockIconVisibility(visible int) error {
+	SetDockIconVisibility(visible)
+	log.Printf("Dock 图标可见性已设置为: %d", visible)
 	return nil
 }
 

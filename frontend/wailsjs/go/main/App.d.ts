@@ -64,6 +64,8 @@ export function SearchClipboardItems(arg1:boolean,arg2:string,arg3:string,arg4:n
 
 export function SearchItem():Promise<void>;
 
+export function SetDockIconVisibility(arg1:number):Promise<void>;
+
 export function SetLanguage(arg1:string):Promise<void>;
 
 export function ShowAbout():Promise<void>;

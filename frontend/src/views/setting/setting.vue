@@ -180,6 +180,20 @@
             <el-option label="العربية" value="ar-SA" />
           </el-select>
         </div>
+
+        <!-- 后台运行设置 -->
+        <div class="setting-item" v-if="isMacOS">
+          <div class="setting-item-left">
+            <el-icon :size="20" class="setting-icon">
+              <Operation />
+            </el-icon>
+            <div class="setting-item-info">
+              <div class="setting-item-title">{{ $t('settings.backgroundMode') }}</div>
+              <div class="setting-item-desc">{{ $t('settings.backgroundModeDesc') }}</div>
+            </div>
+          </div>
+          <el-switch v-model="settings.backgroundMode" @change="handleBackgroundModeChange" />
+        </div>
       </div>
 
       <div class="setting-section">
@@ -259,6 +273,7 @@ import {
   RestartRegisterHotkey,
   GetCurrentLanguage,
   SetLanguage,
+  SetDockIconVisibility,
 } from "../../../wailsjs/go/main/App";
 
 const { t, locale } = useI18n();
@@ -273,10 +288,14 @@ const settings = ref({
   pageSize: 100,
   password: "", // 加密后的密码
   hotkey: "Command+Option+c", // 全局快捷键
+  backgroundMode: false, // 后台运行模式（仅 macOS）
 });
 
 // 当前语言
 const currentLanguage = ref('zh-CN');
+
+// 检测是否为 macOS
+const isMacOS = ref(navigator.platform.toUpperCase().indexOf('MAC') >= 0);
 
 // 原始快捷键值，用于比较是否有修改
 const originalHotkey = ref("");
@@ -353,6 +372,15 @@ async function loadSettings() {
       originalHotkey.value = settings.value.hotkey;
       // 初始化快捷键启用状态
       hotkeyEnabled.value = !!settings.value.hotkey;
+      // 同步后台模式状态（仅 macOS）
+      if (isMacOS.value && settings.value.backgroundMode !== undefined) {
+        const visibility = settings.value.backgroundMode ? 2 : 1;
+        try {
+          await SetDockIconVisibility(visibility);
+        } catch (error) {
+          console.error("同步后台模式状态失败:", error);
+        }
+      }
       console.log("✅ 已从数据库加载设置:", settings.value);
     } else {
       // 数据库应该已经有默认设置，如果没有则使用代码中的默认值
@@ -385,6 +413,21 @@ async function changeLanguage(lang: string) {
   } catch (error) {
     console.error("切换语言失败:", error);
     ElMessage.error(t('message.settingsError'));
+  }
+}
+
+// 处理后台模式切换
+async function handleBackgroundModeChange(value: boolean) {
+  try {
+    // value 为 true 时调用 SetDockIconVisibility(3)，false 时调用 SetDockIconVisibility(1)
+    const visibility = value ? 2 : 1;
+    await SetDockIconVisibility(visibility);
+    console.log(`后台模式已${value ? '开启' : '关闭'}`);
+  } catch (error) {
+    console.error("设置后台模式失败:", error);
+    ElMessage.error("设置后台模式失败");
+    // 恢复开关状态
+    settings.value.backgroundMode = !value;
   }
 }
 

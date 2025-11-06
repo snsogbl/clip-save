@@ -61,7 +61,9 @@ const zhCN = {
     version: '版本号：',
     description: '描述：',
     language: '语言设置',
-    languageDesc: '选择应用界面语言'
+    languageDesc: '选择应用界面语言',
+    backgroundMode: '后台运行',
+    backgroundModeDesc: '开启后应用将在后台运行，不显示 Dock 图标'
   },
 
   // 密码设置对话框
@@ -273,7 +275,9 @@ const enUS = {
     version: 'Version:',
     description: 'Description:',
     language: 'Language Settings',
-    languageDesc: 'Select application interface language'
+    languageDesc: 'Select application interface language',
+    backgroundMode: 'Background Mode',
+    backgroundModeDesc: 'When enabled, the app will run in the background without showing Dock icon'
   },
 
   // 密码设置对话框
@@ -485,7 +489,9 @@ const frFR = {
     version: 'Version :',
     description: 'Description :',
     language: 'Paramètres de Langue',
-    languageDesc: 'Sélectionner la langue de l\'interface de l\'application'
+    languageDesc: 'Sélectionner la langue de l\'interface de l\'application',
+    backgroundMode: 'Mode Arrière-plan',
+    backgroundModeDesc: 'Lorsqu\'il est activé, l\'application fonctionnera en arrière-plan sans afficher l\'icône du Dock'
   },
 
   // 密码设置对话框
@@ -697,7 +703,9 @@ const arSA = {
     version: 'الإصدار:',
     description: 'الوصف:',
     language: 'إعدادات اللغة',
-    languageDesc: 'اختر لغة واجهة التطبيق'
+    languageDesc: 'اختر لغة واجهة التطبيق',
+    backgroundMode: 'وضع الخلفية',
+    backgroundModeDesc: 'عند التمكين، سيعمل التطبيق في الخلفية دون عرض أيقونة Dock'
   },
 
   // 密码设置对话框

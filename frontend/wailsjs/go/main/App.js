@@ -126,6 +126,10 @@ export function SearchItem() {
   return window['go']['main']['App']['SearchItem']();
 }
 
+export function SetDockIconVisibility(arg1) {
+  return window['go']['main']['App']['SetDockIconVisibility'](arg1);
+}
+
 export function SetLanguage(arg1) {
   return window['go']['main']['App']['SetLanguage'](arg1);
 }
