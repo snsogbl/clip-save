@@ -1,7 +1,7 @@
 <template>
-  <div class="setting-container" style="--wails-draggable: no-drag">
+  <div class="setting-container">
     <!-- 顶部导航栏 -->
-    <div class="setting-header">
+    <div class="setting-header" style="--wails-draggable: drag">
       <el-button @click="$emit('back')" text>
         <el-icon :size="20" style="margin-right: 8px">
           <ArrowLeft />

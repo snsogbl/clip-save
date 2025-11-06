@@ -424,12 +424,24 @@ func (a *App) OpenURL(urlStr string) error {
 // ShowWindow 显示并聚焦窗口（供快捷键调用）
 func (a *App) ShowWindow() {
 	if a.ctx != nil {
+		// 在多屏环境下，先移动到当前聚焦的屏幕，然后再显示窗口（避免闪烁）
+		if gRuntime.GOOS == "darwin" {
+			// macOS 平台：先移动到目标屏幕
+			common.MoveWindowToCurrentScreen(a.ctx)
+		}
+
 		runtime.WindowShow(a.ctx)
 		runtime.WindowUnminimise(a.ctx)
+
+		// 非 macOS 平台：使用 WindowCenter
+		if gRuntime.GOOS != "darwin" {
+			runtime.WindowCenter(a.ctx)
+		}
+
 		runtime.WindowSetAlwaysOnTop(a.ctx, true)
 		// 延迟取消置顶，确保窗口获得焦点
 		go func() {
-			// 短暂延迟后取消置顶
+			time.Sleep(100 * time.Millisecond)
 			runtime.WindowSetAlwaysOnTop(a.ctx, false)
 		}()
 		log.Println("🪟 窗口已显示并聚焦")
