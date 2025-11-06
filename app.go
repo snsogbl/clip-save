@@ -62,15 +62,16 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	log.Println("Wails 应用启动成功")
 
-	// 注册 Dock 点击激活时的自动恢复（仅 macOS 生效，其他平台为 no-op）
-	initDockReopen(func() {
+	// 注册 Dock 点击激活时的自动恢复与强退标记（仅 macOS 生效，其他平台为 no-op）
+	common.InitDockReopen(func() {
 		a.ShowWindow()
 	})
+	common.SetForceQuitCallback(func() { setForceQuit() })
 
 	// 延迟调整窗口控制按钮位置，确保窗口已创建（仅 macOS 生效）
 	go func() {
 		time.Sleep(200 * time.Millisecond)
-		AdjustWindowButtons()
+		common.AdjustWindowButtons()
 		log.Println("已调整窗口控制按钮位置")
 	}()
 }
@@ -82,7 +83,7 @@ func (a *App) shutdown(ctx context.Context) {
 		log.Printf("关闭数据库失败: %v", err)
 	}
 	// 清理窗口按钮观察者（仅 macOS 生效）
-	CleanupWindowButtonsObserver()
+	common.CleanupWindowButtonsObserver()
 }
 
 // SearchClipboardItems 搜索剪贴板项目（供前端调用）

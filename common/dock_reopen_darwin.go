@@ -1,6 +1,6 @@
 //go:build darwin
 
-package main
+package common
 
 /*
 #cgo CFLAGS: -x objective-c
@@ -13,6 +13,9 @@ extern void goSetForceQuit(void);
 */
 import "C"
 
+var dockReopenCallback func()
+var forceQuitCallback func()
+
 //export goOnAppReopen
 func goOnAppReopen() {
 	if dockReopenCallback != nil {
@@ -20,16 +23,20 @@ func goOnAppReopen() {
 	}
 }
 
-var dockReopenCallback func()
+//export goSetForceQuit
+func goSetForceQuit() {
+	if forceQuitCallback != nil {
+		forceQuitCallback()
+	}
+}
 
-func initDockReopen(callback func()) {
+// InitDockReopen 初始化 Dock 重新打开监听
+func InitDockReopen(callback func()) {
 	dockReopenCallback = callback
 	C.RegisterReopenObserver()
 }
 
-//export goSetForceQuit
-func goSetForceQuit() {
-	setForceQuit()
+// SetForceQuitCallback 设置强制退出回调
+func SetForceQuitCallback(callback func()) {
+	forceQuitCallback = callback
 }
-
-// quit hook is installed inside RegisterReopenObserver via ObjC swizzle
