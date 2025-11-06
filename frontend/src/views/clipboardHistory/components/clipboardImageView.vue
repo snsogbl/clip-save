@@ -11,28 +11,39 @@
     <!-- 二维码识别结果 -->
     <div v-if="qrCodeResult" class="qr-result">
       <div class="qr-result-header">
-        <span class="qr-result-title">{{ $t('components.image.qrContent') }}</span>
-        <button class="copy-btn" @click="copyQRResult">{{ $t('components.image.copy') }}</button>
+        <span class="qr-result-title">{{
+          $t("components.image.qrContent")
+        }}</span>
+        <el-button class="me-button" round @click="copyQRResult">{{
+          $t("components.image.copy")
+        }}</el-button>
       </div>
       <div class="qr-result-content">{{ qrCodeResult }}</div>
     </div>
     <div class="button-group">
-      <button class="save-btn" @click="handleSave">{{ $t('components.image.saveToLocal') }}</button>
-      <button
+      <el-button class="me-button" round @click="handleSave">
+        {{ $t("components.image.saveToLocal") }}
+      </el-button>
+      <el-button
         v-if="isQRCode"
-        class="save-btn qr-btn"
+        class="me-button"
+        round
         @click="handleQRCode"
         :disabled="isRecognizing"
       >
-        {{ isRecognizing ? $t('components.image.recognizing') : $t('components.image.recognizeQR') }}
-      </button>
+        {{
+          isRecognizing
+            ? $t("components.image.recognizing")
+            : $t("components.image.recognizeQR")
+        }}
+      </el-button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, watch, onMounted, onUnmounted } from "vue";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import {
   SaveImagePNG,
   DetectQRCode,
@@ -85,10 +96,10 @@ async function handleQRCode() {
   try {
     const result = await RecognizeQRCode(props.imageData);
     qrCodeResult.value = result;
-    ElMessage.success(t('components.image.qrGenerated'));
+    ElMessage.success(t("components.image.qrGenerated"));
   } catch (error) {
     console.error("识别二维码失败:", error);
-    ElMessage.error(t('components.image.qrGenerateFailed'));
+    ElMessage.error(t("components.image.qrGenerateFailed"));
   } finally {
     isRecognizing.value = false;
   }
@@ -100,10 +111,10 @@ function copyQRResult() {
     navigator.clipboard
       .writeText(qrCodeResult.value)
       .then(() => {
-        ElMessage.success(t('components.image.qrCopied'));
+        ElMessage.success(t("components.image.qrCopied"));
       })
       .catch(() => {
-        ElMessage.error(t('components.image.qrCopyFailed'));
+        ElMessage.error(t("components.image.qrCopyFailed"));
       });
   }
 }
@@ -122,12 +133,12 @@ function handleSave() {
     SaveImagePNG(props.imageData, suggested)
       .then((savePath) => {
         if (savePath) {
-          ElMessage.success(t('components.image.qrSaved'));
+          ElMessage.success(t("components.image.qrSaved"));
         }
       })
       .catch((e) => {
         console.error("保存图片失败", e);
-        ElMessage.error(t('components.image.qrSaveFailed'));
+        ElMessage.error(t("components.image.qrSaveFailed"));
       })
       .finally(() => {
         // 恢复隐藏行为
@@ -135,7 +146,7 @@ function handleSave() {
       });
   } catch (e) {
     console.error("保存图片失败", e);
-    ElMessage.error(t('components.image.qrSaveFailed'));
+    ElMessage.error(t("components.image.qrSaveFailed"));
   }
 }
 
@@ -237,27 +248,6 @@ onUnmounted(() => {
   transform-origin: center center;
 }
 
-.close-btn {
-  position: absolute;
-  top: -40px;
-  right: -10px;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.close-btn:hover {
-  background: rgba(255, 255, 255, 1);
-}
-
 /* 缩放控制样式 */
 .zoom-controls {
   position: absolute;
@@ -271,94 +261,6 @@ onUnmounted(() => {
   padding: 8px 16px;
   border-radius: 20px;
   backdrop-filter: blur(4px);
-}
-
-.zoom-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-size: 12px;
-}
-
-.zoom-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.zoom-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.zoom-btn:last-child {
-  width: auto;
-  padding: 0 12px;
-  border-radius: 16px;
-  font-size: 12px;
-}
-
-.zoom-percentage {
-  color: white;
-  font-size: 12px;
-  min-width: 40px;
-  text-align: center;
-  font-weight: 500;
-}
-
-.save-btn {
-  width: fit-content;
-  padding: 6px 12px;
-  border: 1px solid #2196f3;
-  border-radius: 6px;
-  background-color: #e3f2fd;
-  color: #2196f3;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.save-btn:hover {
-  background-color: #2196f3;
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
-}
-
-.save-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.save-btn:disabled:hover {
-  background-color: #e3f2fd;
-  color: #2196f3;
-  transform: none;
-  box-shadow: none;
-}
-
-.qr-btn {
-  background-color: #4caf50;
-  border-color: #4caf50;
-  color: #ffffff;
-}
-
-.qr-btn:hover:not(:disabled) {
-  background-color: #45a049;
-  border-color: #45a049;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
 }
 
 /* 二维码识别结果样式 */
@@ -381,22 +283,6 @@ onUnmounted(() => {
   font-weight: 600;
   color: #333;
   font-size: 14px;
-}
-
-.copy-btn {
-  padding: 4px 8px;
-  border: 1px solid #2196f3;
-  border-radius: 4px;
-  background-color: #ffffff;
-  color: #2196f3;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.copy-btn:hover {
-  background-color: #2196f3;
-  color: #ffffff;
 }
 
 .qr-result-content {

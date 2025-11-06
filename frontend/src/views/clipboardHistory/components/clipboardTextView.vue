@@ -11,26 +11,28 @@
         </el-icon>
         {{ $t("components.text.translate") }}
       </el-button> -->
-      <button
+      <el-button
         v-if="needsURIDecoding"
-        class="decode-btn"
+        class="me-button"
+        round
         @click="toggleURIDecode"
       >
         <el-icon :size="14" style="margin-right: 4px">
           <Link />
         </el-icon>
         {{ $t("components.text.decodeUri") }}
-      </button>
-      <button
+      </el-button>
+      <el-button
         v-if="needsUnicodeDecoding"
-        class="decode-btn"
+        class="me-button"
+        round
         @click="toggleUnicodeDecode"
       >
         <el-icon :size="14" style="margin-right: 4px">
           <Document />
         </el-icon>
         {{ $t("components.text.decodeUnicode") }}
-      </button>
+      </el-button>
     </div>
 
     <!-- 解码后的文本显示区域 -->
@@ -177,11 +179,13 @@ const translateText = () => {
   translateFromLanguage.value = translateOptions.from;
   translateToLanguage.value = translateOptions.to;
   loading.value = true;
-  translateAPI(props.text, translateOptions).then((res: any) => {
-    translatedText.value = res;
-  }).finally(() => {
-    loading.value = false;
-  });
+  translateAPI(props.text, translateOptions)
+    .then((res: any) => {
+      translatedText.value = res;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 
 const translateTextAssign = () => {
@@ -304,35 +308,7 @@ defineExpose({
   flex-wrap: wrap;
 }
 
-.decode-btn {
-  padding: 8px 16px;
-  border: 1px solid #2196f3;
-  border-radius: 8px;
-  background-color: #e3f2fd;
-  color: #2196f3;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.decode-btn:hover {
-  background-color: #2196f3;
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
-}
-
-.decode-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(33, 150, 243, 0.2);
-}
-
 .decoded-section {
-  margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #e0e0e0;
 }
@@ -341,14 +317,14 @@ defineExpose({
   font-size: 14px;
   font-weight: 600;
   color: #1a1a1a;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .content-text.decoded {
-  background-color: #e8f5e9;
-  border: 1px solid #4caf50;
+  border: 1px solid #999;
+  background-color: #fafafa;
   padding: 12px 16px;
-  border-radius: 6px;
+  border-radius: 12px;
 }
 
 /* highlight.js 字体大小配置 */

@@ -120,7 +120,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     common.T("app.title"),
+		Title:     common.T("app.name"),
 		Width:     1280,
 		Height:    800,
 		Frameless: false,
@@ -139,6 +139,7 @@ func main() {
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
 		Mac: &mac.Options{
+			// TitleBar:             mac.TitleBarHiddenInset(),
 			WebviewIsTransparent: false,
 			About: &mac.AboutInfo{
 				Title:   common.T("app.name"),

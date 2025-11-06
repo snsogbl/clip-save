@@ -6,58 +6,94 @@
     <!-- 剪贴板历史主页面 -->
     <template v-else>
       <!-- 顶部工具栏 -->
-      <div class="toolbar">
-        <el-input
-          ref="searchInputRef"
-          v-model="searchKeyword"
-          type="text"
-          class="search-input"
-          :placeholder="$t('main.searchPlaceholder')"
-          @keyup.enter="searchInputRef?.blur()"
-          @input="onSearchChange"
-          clearable
-          size="large"
-          style="--wails-draggable: no-drag"
-        />
-        <el-select
-          v-model="filterType"
-          class="filter-select"
-          @change="onSearchChange"
-          size="large"
-          :placeholder="$t('main.filterAll')"
-        >
-          <el-option :label="$t('main.filterAll')" value="" />
-          <el-option :label="$t('main.filterText')" value="Text" />
-          <el-option :label="$t('main.filterImage')" value="Image" />
-          <el-option :label="$t('main.filterFile')" value="File" />
-          <el-option :label="$t('main.filterUrl')" value="URL" />
-          <el-option :label="$t('main.filterColor')" value="Color" />
-          <el-option :label="$t('main.filterJSON')" value="JSON" />
-        </el-select>
-        <el-button class="setting-btn" circle @click="showSetting = true">
-          <el-icon :size="20">
-            <Setting />
-          </el-icon>
-        </el-button>
+      <div class="toolbar" style="--wails-draggable: drag">
+        <div class="toolbar-left">
+          <div class="title-bg">
+            <el-icon :size="20" class="iconfont icon-shandian"> </el-icon>
+            <span class="toolbar-left-text">
+              {{ $t("app.title") }}
+            </span>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <el-dropdown placement="bottom">
+            <el-icon :size="20" class="iconfont icon-duoyuyan"> </el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="changeLanguage('zh-CN')"
+                  >中文</el-dropdown-item
+                >
+                <el-dropdown-item @click="changeLanguage('en-US')"
+                  >English</el-dropdown-item
+                >
+                <el-dropdown-item @click="changeLanguage('fr-FR')"
+                  >Français</el-dropdown-item
+                >
+                <el-dropdown-item @click="changeLanguage('ar-SA')"
+                  >العربية</el-dropdown-item
+                >
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <el-select
+            v-model="filterType"
+            class="filter-select"
+            @change="onSearchChange"
+            size="large"
+            :placeholder="$t('main.filterAll')"
+          >
+            <el-option :label="$t('main.filterAll')" value="" />
+            <el-option :label="$t('main.filterText')" value="Text" />
+            <el-option :label="$t('main.filterImage')" value="Image" />
+            <el-option :label="$t('main.filterFile')" value="File" />
+            <el-option :label="$t('main.filterUrl')" value="URL" />
+            <el-option :label="$t('main.filterColor')" value="Color" />
+            <el-option :label="$t('main.filterJSON')" value="JSON" />
+          </el-select>
+          <el-input
+            ref="searchInputRef"
+            v-model="searchKeyword"
+            type="text"
+            class="search-input"
+            :prefix-icon="Search"
+            :placeholder="$t('main.searchPlaceholder')"
+            @keyup.enter="searchInputRef?.blur()"
+            @input="onSearchChange"
+            clearable
+            size="large"
+            style="--wails-draggable: no-drag"
+          />
+          <el-button class="setting-btn" circle @click="showSetting = true">
+            <el-icon :size="20">
+              <Setting />
+            </el-icon>
+          </el-button>
+        </div>
       </div>
 
       <!-- 主内容区域 -->
       <div class="main-content">
         <!-- 左侧列表 -->
         <div class="left-panel">
-          <div class="panel-header">
-            <el-tabs
-              v-model="leftTab"
-              class="tabs"
-              @tab-click="switchLeftTab"
-              @keydown.native.up.capture.stop.prevent
-              @keydown.native.down.capture.stop.prevent
+          <div class="tab-buttons">
+            <el-button
+              round
+              class="me-button"
+              :class="{ active: leftTab === 'all' }"
+              @click="switchLeftTab('all')"
             >
-              <el-tab-pane :label="$t('main.listTitle')" name="all">
-              </el-tab-pane>
-              <el-tab-pane :label="$t('main.favorite')" name="fav">
-              </el-tab-pane>
-            </el-tabs>
+              <el-icon><List /></el-icon>
+              <span>{{ $t("main.listTitle") }}</span>
+            </el-button>
+            <el-button
+              round
+              class="me-button"
+              :class="{ active: leftTab === 'fav' }"
+              @click="switchLeftTab('fav')"
+            >
+              <el-icon><Star /></el-icon>
+              <span>{{ $t("main.favorite") }}</span>
+            </el-button>
           </div>
           <div class="item-list" ref="itemListRef" tabindex="-1">
             <div v-if="loading" class="loading">{{ $t("main.loading") }}</div>
@@ -106,14 +142,18 @@
               </div>
             </div>
           </div>
-          <div class="panel-footer">
-            <strong>{{ $t("main.clipboardHistory") }}</strong>
-          </div>
         </div>
 
         <!-- 右侧详情 -->
         <div class="right-panel" style="--wails-draggable: no-drag">
           <div class="content-area">
+            <ClipboardTitleView
+              v-if="currentItem"
+              :item="currentItem"
+              @copy="copyItem"
+              @delete="deleteItem"
+              @collect="collectItem"
+            />
             <div class="content-display">
               <div v-if="!currentItem" class="welcome-text">
                 {{ $t("main.welcome") }}
@@ -155,71 +195,32 @@
                 :text="currentItem?.Content || '空内容'"
               />
             </div>
-
-            <div v-if="currentItem" class="info-panel">
-              <div class="info-row">
-                <span class="info-label">{{ $t("main.source") }}</span>
-                <span class="info-value">{{ currentItem.Source }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">{{ $t("main.contentType") }}</span>
-                <span class="info-value">{{ currentItem.ContentType }}</span>
-              </div>
-              <template v-if="currentItem.ContentType !== 'File'">
-                <div class="info-row">
-                  <span class="info-label">{{ $t("main.charCount") }}</span>
-                  <span class="info-value">{{ currentItem.CharCount }}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">{{ $t("main.wordCount") }}</span>
-                  <span class="info-value">{{ currentItem.WordCount }}</span>
-                </div>
-              </template>
-              <template v-if="currentItem.ContentType === 'File'">
-                <div class="info-row">
-                  <span class="info-label">{{ $t("main.fileCount") }}</span>
-                  <span class="info-value">{{ currentItem.WordCount }}</span>
-                </div>
-              </template>
-              <div class="info-row">
-                <span class="info-label">{{ $t("main.createTime") }}</span>
-                <span class="info-value">{{
-                  new Date(currentItem.Timestamp).toLocaleString("zh-CN")
-                }}</span>
-              </div>
-            </div>
           </div>
-
-          <div v-if="currentItem" class="actions-bar">
-            <button class="action-btn" @click="copyItem(currentItem.ID)">
-              <el-icon :size="16" style="margin-right: 6px">
-                <DocumentCopy />
-              </el-icon>
-              {{ $t("main.copy") }}
-            </button>
-            <button
-              class="action-btn delete"
-              @click="deleteItem(currentItem.ID)"
-            >
-              <el-icon :size="16" style="margin-right: 6px">
-                <Delete />
-              </el-icon>
-              {{ $t("main.delete") }}
-            </button>
-            <button
-              class="action-btn"
-              :class="{ active: currentItem.IsFavorite === 1 }"
-              @click="collectItem(currentItem.ID)"
-            >
-              <el-icon :size="16" style="margin-right: 6px">
-                <Star />
-              </el-icon>
-              {{
-                currentItem.IsFavorite === 1
-                  ? $t("main.unfavorite")
-                  : $t("main.favorite")
-              }}
-            </button>
+          <div v-if="currentItem" class="info-panel">
+            <el-descriptions title="">
+              <el-descriptions-item :label="$t('main.source')">
+                {{ currentItem.Source }}
+              </el-descriptions-item>
+              <el-descriptions-item :label="$t('main.contentType')">
+                {{ currentItem.ContentType }}
+              </el-descriptions-item>
+              <template v-if="currentItem.ContentType === 'File'">
+                <el-descriptions-item :label="$t('main.fileCount')">
+                  {{ currentItem.WordCount }}
+                </el-descriptions-item>
+              </template>
+              <template v-else>
+                <el-descriptions-item :label="$t('main.charCount')">
+                  {{ currentItem.CharCount }}
+                </el-descriptions-item>
+                <el-descriptions-item :label="$t('main.wordCount')">
+                  {{ currentItem.WordCount }}
+                </el-descriptions-item>
+              </template>
+              <el-descriptions-item :label="$t('main.createTime')">
+                {{ new Date(currentItem.Timestamp).toLocaleString("zh-CN") }}
+              </el-descriptions-item>
+            </el-descriptions>
           </div>
         </div>
       </div>
@@ -241,10 +242,11 @@ import {
   GetAppSettings,
   HideWindow,
   ToggleFavorite,
-  HideWindowAndQuit
+  HideWindowAndQuit,
+  SetLanguage,
 } from "../../../wailsjs/go/main/App";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 import {
   Document,
   Link,
@@ -255,6 +257,8 @@ import {
   Delete,
   Setting,
   Star,
+  Search,
+  List,
 } from "@element-plus/icons-vue";
 import ClipboardUrlView from "./components/clipboardUrlView.vue";
 import ClipboardColorView from "./components/clipboardColorView.vue";
@@ -262,6 +266,7 @@ import ClipboardFileView from "./components/clipboardFileView.vue";
 import ClipboardTextView from "./components/clipboardTextView.vue";
 import ClipboardImageView from "./components/clipboardImageView.vue";
 import ClipboardJsonView from "./components/clipboardJsonView.vue";
+import ClipboardTitleView from "./components/clipboardTitleView.vue";
 import SettingView from "../setting/setting.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
 
@@ -401,7 +406,7 @@ async function handleDoubleClick(item: ClipboardItem) {
   }
   // 复制当前项
   await copyItem(item.ID);
-  HideWindowAndQuit()
+  HideWindowAndQuit();
 }
 
 // 复制项目
@@ -482,6 +487,7 @@ async function collectItem(id: string) {
 }
 
 async function switchLeftTab(tab: "all" | "fav") {
+  if (leftTab.value === tab) return;
   leftTab.value = tab;
   await loadItems();
   await nextTick();
@@ -655,6 +661,11 @@ function handleTabKeydown(event: KeyboardEvent) {
   event.preventDefault();
   event.stopPropagation();
 }
+
+function changeLanguage(lang: string) {
+  SetLanguage(lang);
+  locale.value = lang as any;
+}
 </script>
 
 <style scoped>
@@ -669,19 +680,67 @@ function handleTabKeydown(event: KeyboardEvent) {
   gap: 12px;
   padding: 14px 14px;
   border-bottom: 1px solid #e0e0e0;
-  align-items: center;
+  /* align-items: center; */
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .title-bg {
+      margin-left: 80px;
+      .toolbar-left-text {
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
+  }
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    .search-input {
+      width: 300px;
+    }
+  }
+}
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 20px;
 }
 
 .filter-select {
-  width: 140px;
+  width: 80px;
+  color: #000;
+}
+
+.filter-select :deep(.el-select__wrapper) {
+  border: none;
+  box-shadow: none;
+  color: #000;
+  padding: 0 !important;
+}
+.filter-select :deep(.el-select__wrapper):hover {
+  border: none;
+  box-shadow: none;
+}
+.filter-select :deep(.el-select__placeholder.is-transparent) {
+  color: #000;
+}
+.filter-select :deep(.el-select__placeholder) {
+  color: #000;
+  text-align: right;
+}
+.filter-select :deep(.el-select__caret) {
+  color: #000;
 }
 
 .setting-btn {
   border: 1px solid #e0e0e0;
   color: #666;
   transition: all 0.2s ease;
-  width: 36px !important;
-  height: 36px !important;
+  width: 38px !important;
+  height: 38px !important;
 }
 
 .setting-btn:hover {
@@ -703,27 +762,17 @@ function handleTabKeydown(event: KeyboardEvent) {
   display: flex;
   flex: 1;
   overflow: hidden;
+  background-color: #fafafa;
 }
 
 .left-panel {
   width: 380px;
-  border-right: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
-}
-
-.panel-header {
-  padding: 10px 20px 0px 20px;
-  /* border-bottom: 1px solid #f0f0f0; */
-}
-
-.panel-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a1a;
-  letter-spacing: -0.02em;
+  background-color: #fff;
+  margin: 12px;
+  border-radius: 12px;
 }
 
 .item-list {
@@ -760,11 +809,12 @@ function handleTabKeydown(event: KeyboardEvent) {
 }
 
 .list-item.active {
-  border: 1px solid #007aff;
+  border: 1px solid #999;
+  background-color: #fafafa;
 }
 
 .list-item:hover {
-  background-color: #f8f8f8;
+  background-color: #fafafa;
 }
 
 .item-header {
@@ -828,21 +878,19 @@ function handleTabKeydown(event: KeyboardEvent) {
   display: flex;
   flex-direction: column;
   background-color: transparent;
-  overflow: auto;
+  overflow-y: auto;
 }
 
 .content-area {
-  flex: 1;
+  margin: 12px 20px 0px 8px;
+  border-radius: 16px;
   overflow-y: auto;
-  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .content-display {
-  margin-bottom: 24px;
   padding: 14px;
   background-color: #fff;
-  border-radius: 16px;
-  border: 1px solid #e8e8e8;
 }
 
 .welcome-text {
@@ -859,10 +907,11 @@ function handleTabKeydown(event: KeyboardEvent) {
 }
 
 .info-panel {
-  padding: 20px;
-  background-color: rgba(255, 255, 255, 0.5);
+  margin: 12px 20px 12px 8px;
+  padding: 8px 12px 0px 12px;
+  background-color: #fff;
   border-radius: 12px;
-  border: 1px solid #e8e8e8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .info-row {
@@ -877,60 +926,14 @@ function handleTabKeydown(event: KeyboardEvent) {
 
 .info-label {
   font-weight: 600;
-  color: #1a1a1a;
+  color: #333;
   min-width: 90px;
   font-size: 14px;
 }
 
 .info-value {
-  color: #333;
-  font-size: 14px;
-}
-
-.actions-bar {
-  display: flex;
-  gap: 16px;
-  padding: 10px;
-  border-top: 1px solid #e0e0e0;
-  background-color: transparent;
-}
-
-.action-btn {
-  padding: 12px 24px;
-  border: 1px solid #d1d1d6;
-  border-radius: 10px;
-  background-color: transparent;
   color: #1a1a1a;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.action-btn:hover {
-  border-color: #007aff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.action-btn.active {
-  color: #007aff;
-  border-color: #007aff;
-}
-
-.action-btn.delete:hover {
-  background-color: #fff5f5;
-  border-color: #ff3b30;
-  color: #ff3b30;
-}
-
-.action-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
 }
 
 /* 颜色显示样式 - 仅保留小圆圈样式（列表中使用） */
@@ -944,8 +947,9 @@ function handleTabKeydown(event: KeyboardEvent) {
   margin-left: auto;
 }
 
-:deep(.el-tabs__item) {
-  font-size: 18px;
-  font-weight: 600;
+.tab-buttons {
+  padding: 16px 16px 12px 20px;
+  display: inline-flex;
+  gap: 4px;
 }
 </style>

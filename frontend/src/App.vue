@@ -112,6 +112,9 @@ onMounted(() => {
 </template>
 
 <style>
+@import "/src/assets/sass/iconfont.css";
+@import "/src/assets/sass/theme.css";
+
 * {
   margin: 0;
   padding: 0;

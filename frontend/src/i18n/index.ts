@@ -7,7 +7,7 @@ const AppVersion = '1.1.9'
 const zhCN = {
   // 应用信息
   app: {
-    title: '剪存 - 剪贴板历史',
+    title: '剪存 • 剪贴板历史',
     name: '剪存',
     description: '剪贴板历史管理工具',
     version: AppVersion
@@ -219,7 +219,7 @@ const zhCN = {
 const enUS = {
   // 应用信息
   app: {
-    title: 'ClipSave - Clipboard History',
+    title: 'ClipSave • Clipboard History',
     name: 'ClipSave',
     description: 'Clipboard History Management Tool',
     version: AppVersion
@@ -431,7 +431,7 @@ const enUS = {
 const frFR = {
   // 应用信息
   app: {
-    title: 'ClipSave - Historique du Presse-papiers',
+    title: 'ClipSave • Historique du Presse-papiers',
     name: 'ClipSave',
     description: 'Outil de Gestion de l\'Historique du Presse-papiers',
     version: AppVersion
@@ -643,7 +643,7 @@ const frFR = {
 const arSA = {
   // 应用信息
   app: {
-    title: 'ClipSave - سجل الحافظة',
+    title: 'ClipSave • سجل الحافظة',
     name: 'ClipSave',
     description: 'أداة إدارة سجل الحافظة',
     version: AppVersion

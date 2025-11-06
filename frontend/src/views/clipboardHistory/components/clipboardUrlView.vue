@@ -2,23 +2,28 @@
   <div class="url-content">
     <div class="url-display">{{ url }}</div>
     <div class="button-group">
-      <button class="url-open-btn" @click="handleOpenUrl">
+      <el-button class="me-button" round @click="handleOpenUrl">
         <el-icon :size="14" style="margin-right: 4px">
           <Link />
         </el-icon>
-        {{ $t('components.url.openInBrowser') }}
-      </button>
-      <button
-        class="url-open-btn"
+        {{ $t("components.url.openInBrowser") }}
+      </el-button>
+      <el-button
+        class="me-button"
+        round
         @click="handleGenerateQR"
         :disabled="isGenerating"
       >
-        {{ isGenerating ? $t('components.url.generating') : $t('components.url.generateQR') }}
-      </button>
+        {{
+          isGenerating
+            ? $t("components.url.generating")
+            : $t("components.url.generateQR")
+        }}
+      </el-button>
     </div>
     <!-- 二维码显示区域 -->
     <div v-if="qrCodeData" class="qr-code-section">
-      <div class="qr-title">{{ $t('components.url.generatedQR') }}</div>
+      <div class="qr-title">{{ $t("components.url.generatedQR") }}</div>
       <div class="qr-container">
         <el-image
           :src="`data:image/png;base64,${qrCodeData}`"
@@ -29,21 +34,23 @@
           :preview-src-list="[`data:image/png;base64,${qrCodeData}`]"
         />
         <div class="qr-actions">
-          <button class="qr-action-btn" @click="saveQRCode">{{ $t('components.url.saveQR') }}</button>
-          <button class="qr-action-btn secondary" @click="copyQRCode">
-            {{ $t('components.url.copyQR') }}
-          </button>
+          <el-button class="me-button" round @click="saveQRCode">
+            {{$t("components.url.saveQR")}}
+          </el-button>
+          <el-button class="me-button" round @click="copyQRCode">
+            {{ $t("components.url.copyQR") }}
+          </el-button>
         </div>
       </div>
     </div>
     <!-- URL 参数表格 -->
     <div v-if="urlParams.length > 0" class="url-params-section">
-      <div class="params-title">{{ $t('components.url.urlParams') }}</div>
+      <div class="params-title">{{ $t("components.url.urlParams") }}</div>
       <table class="params-table">
         <thead>
           <tr>
-            <th class="param-key-header">{{ $t('components.url.key') }}</th>
-            <th class="param-value-header">{{ $t('components.url.value') }}</th>
+            <th class="param-key-header">{{ $t("components.url.key") }}</th>
+            <th class="param-value-header">{{ $t("components.url.value") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -63,9 +70,13 @@
 
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import { Link } from "@element-plus/icons-vue";
-import { GenerateQRCode, SaveImagePNG, CopyImageToClipboard } from "../../../../wailsjs/go/main/App";
+import {
+  GenerateQRCode,
+  SaveImagePNG,
+  CopyImageToClipboard,
+} from "../../../../wailsjs/go/main/App";
 import { ElMessage } from "element-plus";
 
 const { t } = useI18n();
@@ -157,10 +168,10 @@ async function handleGenerateQR() {
   try {
     const qrData = await GenerateQRCode(props.url, 256);
     qrCodeData.value = qrData;
-    ElMessage.success(t('components.url.qrGenerated'));
+    ElMessage.success(t("components.url.qrGenerated"));
   } catch (error) {
     console.error("生成二维码失败:", error);
-    ElMessage.error(t('components.url.qrGenerateFailed'));
+    ElMessage.error(t("components.url.qrGenerateFailed"));
   } finally {
     isGenerating.value = false;
   }
@@ -182,11 +193,11 @@ async function saveQRCode() {
 
     const savePath = await SaveImagePNG(qrCodeData.value, suggested);
     if (savePath) {
-      ElMessage.success(t('components.url.qrSaved'));
+      ElMessage.success(t("components.url.qrSaved"));
     }
   } catch (error) {
     console.error("保存二维码失败:", error);
-    ElMessage.error(t('components.url.qrSaveFailed'));
+    ElMessage.error(t("components.url.qrSaveFailed"));
   } finally {
     // 恢复隐藏行为
     (window as any).__suppressHideWindow = false;
@@ -200,10 +211,10 @@ async function copyQRCode() {
   try {
     // 使用后端API复制图片到剪贴板
     await CopyImageToClipboard(qrCodeData.value);
-    ElMessage.success(t('components.url.qrCopied'));
+    ElMessage.success(t("components.url.qrCopied"));
   } catch (error) {
     console.error("复制二维码失败:", error);
-    ElMessage.error(t('components.url.qrCopyFailed'));
+    ElMessage.error(t("components.url.qrCopyFailed"));
   }
 }
 </script>
@@ -394,38 +405,5 @@ async function copyQRCode() {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
-}
-
-.qr-action-btn {
-  padding: 6px 12px;
-  border: 1px solid #4caf50;
-  border-radius: 6px;
-  background-color: #4caf50;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.qr-action-btn:hover {
-  background-color: #45a049;
-  border-color: #45a049;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
-}
-
-.qr-action-btn.secondary {
-  background-color: #ffffff;
-  color: #4caf50;
-  border-color: #4caf50;
-}
-
-.qr-action-btn.secondary:hover {
-  background-color: #4caf50;
-  color: #ffffff;
 }
 </style>

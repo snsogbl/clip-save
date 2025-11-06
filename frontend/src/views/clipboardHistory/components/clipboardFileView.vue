@@ -23,16 +23,17 @@
         </div>
       </div>
       <div class="file-path">{{ fileInfo.path }}</div>
-      <button
+      <el-button
+        round
         v-if="fileInfo.exists"
-        class="file-open-btn"
+        class="me-button"
         @click="handleOpenFile(fileInfo.path)"
       >
         <el-icon :size="14" style="margin-right: 4px">
           <FolderOpened />
         </el-icon>
         {{ $t('components.file.openInFinder') }}
-      </button>
+      </el-button>
     </div>
   </div>
 </template>
@@ -152,33 +153,6 @@ function handleOpenFile(path: string) {
   border-radius: 6px;
   word-break: break-all;
   margin-bottom: 12px;
-}
-
-.file-open-btn {
-  padding: 8px 16px;
-  border: 1px solid #2196f3;
-  border-radius: 8px;
-  background-color: #e3f2fd;
-  color: #2196f3;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.file-open-btn:hover {
-  background-color: #2196f3;
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
-}
-
-.file-open-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(33, 150, 243, 0.2);
 }
 </style>
 
