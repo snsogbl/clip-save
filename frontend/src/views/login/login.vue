@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container" style="--wails-draggable: no-drag">
+  <div class="login-container" style="--wails-draggable: drag">
     <!-- <button class="close-btn" @click="hideApp" :aria-label="$t('login.unlockButton')">×</button> -->
     <div class="login-box">
       <div class="logo-section">
@@ -8,7 +8,7 @@
         <p class="app-subtitle">{{ $t('login.title') }}</p>
       </div>
 
-      <el-form @submit.prevent="handleLogin" class="login-form">
+      <el-form @submit.prevent="handleLogin" class="login-form" style="--wails-draggable: no-drag">
         <el-form-item>
           <el-input
             v-model="password"
