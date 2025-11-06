@@ -2,12 +2,12 @@
   <div v-if="item" class="clipboard-title-view">
     <div class="title-content">
       <div class="title-main">{{ displayContent.length > 30 ? displayContent.substring(0, 27) + "..." : displayContent }}</div>
-      <div class="title-source">来源: {{ item.Source || "未知" }}</div>
+      <div class="title-source">{{ $t('main.source') }} {{ item.Source || $t('main.unknown') }}</div>
     </div>
     <div class="title-actions">
       <el-button class="me-button" @click="handleCopy" round>
         <el-icon><DocumentCopy /></el-icon>
-        <span>复制</span>
+        <span>{{ $t('main.copy') }}</span>
       </el-button>
       <el-button
         class="me-button"
@@ -16,11 +16,11 @@
         round
       >
         <el-icon><Star /></el-icon>
-        <span>{{ item?.IsFavorite === 1 ? "已收藏" : "收藏" }}</span>
+      <span>{{ item?.IsFavorite === 1 ? $t('main.unfavorite') : $t('main.favorite') }}</span>
       </el-button>
       <el-button type="danger" @click="handleDelete" round>
         <el-icon><Delete /></el-icon>
-        <span>删除</span>
+        <span>{{ $t('main.delete') }}</span>
       </el-button>
     </div>
   </div>

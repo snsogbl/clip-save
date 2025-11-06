@@ -81,7 +81,7 @@
               :class="{ active: leftTab === 'all' }"
               @click="switchLeftTab('all')"
             >
-              <el-icon><List /></el-icon>
+            <el-icon :size="20" class="iconfont icon-liebiao"> </el-icon>
               <span>{{ $t("main.listTitle") }}</span>
             </el-button>
             <el-button
