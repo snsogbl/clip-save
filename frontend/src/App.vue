@@ -113,7 +113,6 @@ onMounted(() => {
 
 <style>
 @import "/src/assets/sass/iconfont.css";
-@import "/src/assets/sass/theme.css";
 
 * {
   margin: 0;

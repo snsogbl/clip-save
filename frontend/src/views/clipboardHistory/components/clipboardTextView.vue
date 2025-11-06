@@ -84,9 +84,9 @@ import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { Link, Document, Switch } from "@element-plus/icons-vue";
 import hljs from "highlight.js";
-import { translateAPI } from "../../../components/translate";
-import type { TranslateOptions } from "../../../components/translate";
-import type { Language } from "../../../components/translate";
+import { translateAPI } from "../../../composables/translate";
+import type { TranslateOptions } from "../../../composables/translate";
+import type { Language } from "../../../composables/translate";
 
 const { t } = useI18n();
 

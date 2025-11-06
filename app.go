@@ -66,6 +66,13 @@ func (a *App) startup(ctx context.Context) {
 	initDockReopen(func() {
 		a.ShowWindow()
 	})
+
+	// 延迟调整窗口控制按钮位置，确保窗口已创建（仅 macOS 生效）
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		AdjustWindowButtons()
+		log.Println("已调整窗口控制按钮位置")
+	}()
 }
 
 // shutdown is called when the app is closing
@@ -74,6 +81,8 @@ func (a *App) shutdown(ctx context.Context) {
 	if err := common.CloseDB(); err != nil {
 		log.Printf("关闭数据库失败: %v", err)
 	}
+	// 清理窗口按钮观察者（仅 macOS 生效）
+	CleanupWindowButtonsObserver()
 }
 
 // SearchClipboardItems 搜索剪贴板项目（供前端调用）

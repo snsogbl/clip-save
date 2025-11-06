@@ -60,10 +60,9 @@
             @keyup.enter="searchInputRef?.blur()"
             @input="onSearchChange"
             clearable
-            size="large"
             style="--wails-draggable: no-drag"
           />
-          <el-button class="setting-btn" circle @click="showSetting = true">
+          <el-button class="me-button" circle @click="showSetting = true">
             <el-icon :size="20">
               <Setting />
             </el-icon>
@@ -678,7 +677,7 @@ function changeLanguage(lang: string) {
 .toolbar {
   display: flex;
   gap: 12px;
-  padding: 14px 14px;
+  padding: 8px 14px;
   border-bottom: 1px solid #e0e0e0;
   /* align-items: center; */
 
@@ -688,7 +687,7 @@ function changeLanguage(lang: string) {
     gap: 8px;
 
     .title-bg {
-      margin-left: 80px;
+      margin-left: 60px;
       .toolbar-left-text {
         font-size: 16px;
         font-weight: 600;
@@ -739,8 +738,8 @@ function changeLanguage(lang: string) {
   border: 1px solid #e0e0e0;
   color: #666;
   transition: all 0.2s ease;
-  width: 38px !important;
-  height: 38px !important;
+  width: 30px !important;
+  height: 30px !important;
 }
 
 .setting-btn:hover {
@@ -766,7 +765,7 @@ function changeLanguage(lang: string) {
 }
 
 .left-panel {
-  width: 380px;
+  width: 280px;
   display: flex;
   flex-direction: column;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
@@ -778,7 +777,6 @@ function changeLanguage(lang: string) {
 .item-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
 }
 
 /* 去除程序化聚焦后的蓝色边框 */
@@ -800,7 +798,7 @@ function changeLanguage(lang: string) {
 }
 
 .list-item {
-  padding: 14px 20px;
+  padding: 10px;
   margin: 0 12px 10px;
   border-radius: 10px;
   cursor: pointer;

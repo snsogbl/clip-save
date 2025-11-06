@@ -139,7 +139,7 @@ func main() {
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
 		Mac: &mac.Options{
-			// TitleBar:             mac.TitleBarHiddenInset(),
+			TitleBar:             mac.TitleBarHiddenInset(),
 			WebviewIsTransparent: false,
 			About: &mac.AboutInfo{
 				Title:   common.T("app.name"),
