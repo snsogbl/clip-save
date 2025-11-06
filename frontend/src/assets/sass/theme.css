@@ -58,3 +58,10 @@
 .search-input .el-input__wrapper.is-focus:hover {
   box-shadow: 0 0 0 1px #666 inset !important;
 }
+
+.el-descriptions__label{
+  color: #666 !important;
+} 
+.el-descriptions__content{
+  color: #000 !important;
+}

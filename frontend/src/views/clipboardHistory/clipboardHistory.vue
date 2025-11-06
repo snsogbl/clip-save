@@ -145,7 +145,7 @@
 
         <!-- 右侧详情 -->
         <div class="right-panel" style="--wails-draggable: no-drag">
-          <div class="content-area">
+          <div class="content-area" ref="contentAreaRef">
             <ClipboardTitleView
               v-if="currentItem"
               :item="currentItem"
@@ -295,6 +295,7 @@ interface FileInfo {
 const items = ref<ClipboardItem[]>([]);
 const currentItem = ref<ClipboardItem | null>(null);
 const itemListRef = ref<HTMLElement | null>(null);
+const contentAreaRef = ref<HTMLElement | null>(null);
 const searchInputRef = ref<HTMLInputElement | null>(null);
 const textEditorRef = ref<InstanceType<typeof ClipboardTextView> | null>(null);
 const searchKeyword = ref("");
@@ -392,6 +393,10 @@ async function selectItem(item: ClipboardItem) {
   ) as HTMLElement | null;
   if (activeEl) {
     activeEl.scrollIntoView({ block: "nearest" });
+  }
+  // 将内容区域滚动到顶部
+  if (contentAreaRef.value) {
+    contentAreaRef.value.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
@@ -876,7 +881,6 @@ function changeLanguage(lang: string) {
   display: flex;
   flex-direction: column;
   background-color: transparent;
-  overflow-y: auto;
 }
 
 .content-area {

@@ -18,7 +18,7 @@
         <el-icon><Star /></el-icon>
         <span>{{ item?.IsFavorite === 1 ? "已收藏" : "收藏" }}</span>
       </el-button>
-      <el-button class="delete-btn" type="danger" @click="handleDelete" round>
+      <el-button type="danger" @click="handleDelete" round>
         <el-icon><Delete /></el-icon>
         <span>删除</span>
       </el-button>
