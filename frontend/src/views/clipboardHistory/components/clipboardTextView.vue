@@ -295,11 +295,15 @@ defineExpose({
 .content-text {
   white-space: pre-wrap;
   word-wrap: break-word;
+  word-break: break-all; /* 强制在任意字符处换行，解决长字符串（如 Base64 token）不换行的问题 */
+  overflow-wrap: anywhere; /* 备用方案，确保长字符串能够换行 */
   font-size: 15px;
   line-height: 1.7;
   margin: 0;
   color: #1a1a1a;
   letter-spacing: 0.01em;
+  max-width: 100%; /* 确保内容不会超出容器 */
+  overflow-x: auto; /* 如果内容仍然超出，显示横向滚动条 */
 }
 
 .decode-buttons {
@@ -331,6 +335,9 @@ defineExpose({
 pre code {
   font-size: 15px;
   line-height: 1.3;
+  word-break: break-all; /* 确保代码中的长字符串也能换行 */
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .hljs {
