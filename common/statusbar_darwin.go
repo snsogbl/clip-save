@@ -1,7 +1,7 @@
 //go:build darwin
 // +build darwin
 
-package main
+package common
 
 /*
 #cgo CFLAGS: -x objective-c
@@ -15,3 +15,4 @@ func SetDockIconVisibility(visible int) {
 	// 调用 Cgo 函数
 	C.setActivationPolicy(C.int(visible))
 }
+

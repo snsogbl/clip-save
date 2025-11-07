@@ -29,7 +29,8 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx            context.Context
+	isWindowHidden bool // 标记窗口是否被隐藏
 }
 
 // ShowAbout 显示关于对话框
@@ -79,7 +80,7 @@ func (a *App) startup(ctx context.Context) {
 				if err := json.Unmarshal([]byte(settingsJSON), &settings); err == nil {
 					if backgroundMode, ok := settings["backgroundMode"].(bool); ok && backgroundMode {
 						// 开启后台模式：隐藏 Dock 图标
-						SetDockIconVisibility(2)
+						common.SetDockIconVisibility(2)
 						log.Println("已根据设置启用后台模式（隐藏 Dock 图标）")
 					}
 				}
@@ -260,7 +261,7 @@ func (a *App) SetLanguage(lang string) error {
 
 // SetDockIconVisibility 设置 Dock 图标可见性（供前端调用，仅 macOS 生效）
 func (a *App) SetDockIconVisibility(visible int) error {
-	SetDockIconVisibility(visible)
+	common.SetDockIconVisibility(visible)
 	log.Printf("Dock 图标可见性已设置为: %d", visible)
 	return nil
 }
@@ -424,25 +425,36 @@ func (a *App) OpenURL(urlStr string) error {
 // ShowWindow 显示并聚焦窗口（供快捷键调用）
 func (a *App) ShowWindow() {
 	if a.ctx != nil {
-		// 在多屏环境下，先移动到当前聚焦的屏幕，然后再显示窗口（避免闪烁）
-		if gRuntime.GOOS == "darwin" {
-			// macOS 平台：先移动到目标屏幕
-			common.MoveWindowToCurrentScreen(a.ctx)
+		// 只有在窗口之前是隐藏状态时，才需要移动窗口到当前屏幕
+		// 如果窗口只是失去焦点（切换应用），保持原位置不变
+		if a.isWindowHidden && gRuntime.GOOS == "darwin" {
+			// macOS 平台：窗口之前是隐藏的，移动到当前聚焦的屏幕
+			common.EnsureWindowOnCurrentScreen(a.ctx)
 		}
 
 		runtime.WindowShow(a.ctx)
 		runtime.WindowUnminimise(a.ctx)
 
-		// 非 macOS 平台：使用 WindowCenter
-		if gRuntime.GOOS != "darwin" {
+		// 非 macOS 平台：如果窗口之前是隐藏的，使用 WindowCenter
+		if a.isWindowHidden && gRuntime.GOOS != "darwin" {
 			runtime.WindowCenter(a.ctx)
 		}
+
+		// 通知前端选中第一个列表项
+		if a.isWindowHidden {
+			fmt.Println("通知前端选中第一个列表项")
+			runtime.EventsEmit(a.ctx, "window.show")
+		}
+
+		// 清除隐藏标记
+		a.isWindowHidden = false
 
 		runtime.WindowSetAlwaysOnTop(a.ctx, true)
 		// 延迟取消置顶，确保窗口获得焦点
 		go func() {
 			time.Sleep(100 * time.Millisecond)
 			runtime.WindowSetAlwaysOnTop(a.ctx, false)
+
 		}()
 		log.Println("🪟 窗口已显示并聚焦")
 	}
@@ -515,6 +527,8 @@ func (a *App) HideWindow() {
 		} else {
 			// 其他平台：保持原有隐藏行为
 			runtime.WindowHide(a.ctx)
+			// 标记窗口已隐藏
+			a.isWindowHidden = true
 		}
 	}
 }
@@ -527,6 +541,8 @@ func (a *App) HideWindowAndQuit() {
 		} else {
 			// 其他平台：保持原有隐藏行为
 			runtime.Hide(a.ctx)
+			// 标记窗口已隐藏
+			a.isWindowHidden = true
 		}
 	}
 }

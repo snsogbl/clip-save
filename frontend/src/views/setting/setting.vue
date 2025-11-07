@@ -1,17 +1,5 @@
 <template>
-  <div class="setting-container">
-    <!-- 顶部导航栏 -->
-    <div class="setting-header" style="--wails-draggable: drag">
-      <el-button @click="$emit('back')" text>
-        <el-icon :size="20" style="margin-right: 8px">
-          <ArrowLeft />
-        </el-icon>
-        {{ $t('settings.back') }}
-      </el-button>
-      <h2>{{ $t('settings.title') }}</h2>
-      <div style="width: 80px"></div>
-    </div>
-
+  <div class="setting-container" style="--wails-draggable: no-drag">
     <!-- 设置内容 -->
     <div class="setting-content">
       <div class="setting-section">
@@ -28,7 +16,7 @@
               </div>
             </div>
           </div>
-          <el-button @click="showPasswordDialog = true">
+          <el-button class="me-button" @click="showPasswordDialog = true">
             {{ settings.password ? $t('settings.changePassword') : $t('settings.setPassword') }}
           </el-button>
         </div>
@@ -43,10 +31,10 @@
               <div class="setting-item-desc">{{ $t('settings.removePasswordDesc') }}</div>
             </div>
           </div>
-          <el-button @click="removePassword" type="danger">
+          <el-button class="me-button" @click="removePassword" type="danger">
             {{ $t('settings.removePassword') }}
           </el-button>
-          <el-button @click="lockPassword">{{ $t('settings.lock') }}</el-button>
+          <el-button class="me-button" @click="lockPassword">{{ $t('settings.lock') }}</el-button>
         </div>
       </div>
 
@@ -252,22 +240,19 @@
 import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { ElLoading, ElMessage, ElMessageBox } from "element-plus";
 import {
-  ArrowLeft,
   Clock,
   Calendar,
   List,
   Lock,
   Key,
   Delete,
-  Operation,
-  Warning,
+  Operation
 } from "@element-plus/icons-vue";
 import HotkeyDisplay from "./components/HotkeyDisplay.vue";
 import { useHotkey } from "../../composables/useHotkey";
 import { useI18n } from 'vue-i18n';
 import {
   ClearAllItems,
-  ClearItemsOlderThanDays,
   GetAppSettings,
   SaveAppSettings,
   RestartRegisterHotkey,
@@ -441,49 +426,6 @@ async function autoSaveSettings() {
   }
 }
 
-// 手动保存设置（显示成功消息）
-async function saveSettings() {
-  try {
-    await SaveAppSettings(JSON.stringify(settings.value));
-    ElMessage.success(t('message.settingsSaved'));
-    console.log("✅ 设置已手动保存到数据库:", settings.value);
-  } catch (e) {
-    console.error("❌ 保存设置失败:", e);
-    ElMessage.error(t('message.settingsError'));
-  }
-}
-
-// 保存并返回
-function saveAndBack() {
-  saveSettings();
-  setTimeout(() => {
-    emit("back");
-  }, 500); // 延迟返回，让用户看到保存成功的提示
-}
-
-// 立即手动清理
-async function manualCleanNow() {
-  if (!settings.value.autoClean) {
-    ElMessage.warning("请先启用自动清理功能");
-    return;
-  }
-
-  const retentionDays = settings.value.retentionDays || 30;
-
-  try {
-    ElMessage.info(`正在清理超过 ${retentionDays} 天的记录...`);
-    console.log(`🗑️ 手动清理: 删除超过 ${retentionDays} 天的记录`);
-
-    await ClearItemsOlderThanDays(retentionDays);
-
-    ElMessage.success("清理完成！");
-    console.log("✅ 手动清理完成");
-  } catch (error) {
-    console.error("❌ 清理失败:", error);
-    ElMessage.error("清理失败: " + error);
-  }
-}
-
 // 保存密码
 async function savePassword() {
   if (!newPassword.value) {
@@ -608,33 +550,16 @@ onUnmounted(() => {
 .setting-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background-color: #fafafa;
-}
-
-.setting-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 68px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.setting-header h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
 }
 
 .setting-content {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   width: 100%;
 }
 

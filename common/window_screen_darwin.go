@@ -8,7 +8,7 @@ package common
 #import <Cocoa/Cocoa.h>
 #import <dispatch/dispatch.h>
 
-void MoveWindowToCurrentScreen() {
+void EnsureWindowOnCurrentScreen() {
     // 使用同步方式执行，确保在显示窗口之前完成移动
     if ([NSThread isMainThread]) {
         // 如果已经在主线程，直接执行
@@ -39,18 +39,26 @@ void MoveWindowToCurrentScreen() {
                 }
             }
 
-            // 获取目标屏幕的框架
-            NSRect screenFrame = [currentScreen frame];
-
             // 获取窗口的框架
             NSRect windowFrame = [mainWindow frame];
 
-            // 计算窗口在目标屏幕中心的坐标
-            CGFloat centerX = screenFrame.origin.x + (screenFrame.size.width - windowFrame.size.width) / 2;
-            CGFloat centerY = screenFrame.origin.y + (screenFrame.size.height - windowFrame.size.height) / 2;
+            // 计算窗口中心点
+            NSPoint windowCenter = NSMakePoint(
+                windowFrame.origin.x + windowFrame.size.width / 2,
+                windowFrame.origin.y + windowFrame.size.height / 2
+            );
 
-            // 设置窗口位置
-            [mainWindow setFrameOrigin:NSMakePoint(centerX, centerY)];
+            // 获取目标屏幕的框架
+            NSRect screenFrame = [currentScreen frame];
+
+            // 检查窗口中心是否在当前聚焦的屏幕上
+            if (!NSPointInRect(windowCenter, screenFrame)) {
+                // 窗口不在当前屏幕上，移动到当前屏幕中心
+                CGFloat centerX = screenFrame.origin.x + (screenFrame.size.width - windowFrame.size.width) / 2;
+                CGFloat centerY = screenFrame.origin.y + (screenFrame.size.height - windowFrame.size.height) / 2;
+                [mainWindow setFrameOrigin:NSMakePoint(centerX, centerY)];
+            }
+            // 如果窗口已经在当前屏幕上，保持原位置不变
         }
     } else {
         // 如果不在主线程，同步调度到主线程执行
@@ -77,11 +85,21 @@ void MoveWindowToCurrentScreen() {
                     }
                 }
 
-                NSRect screenFrame = [currentScreen frame];
                 NSRect windowFrame = [mainWindow frame];
-                CGFloat centerX = screenFrame.origin.x + (screenFrame.size.width - windowFrame.size.width) / 2;
-                CGFloat centerY = screenFrame.origin.y + (screenFrame.size.height - windowFrame.size.height) / 2;
-                [mainWindow setFrameOrigin:NSMakePoint(centerX, centerY)];
+                NSPoint windowCenter = NSMakePoint(
+                    windowFrame.origin.x + windowFrame.size.width / 2,
+                    windowFrame.origin.y + windowFrame.size.height / 2
+                );
+
+                NSRect screenFrame = [currentScreen frame];
+
+                // 检查窗口中心是否在当前聚焦的屏幕上
+                if (!NSPointInRect(windowCenter, screenFrame)) {
+                    // 窗口不在当前屏幕上，移动到当前屏幕中心
+                    CGFloat centerX = screenFrame.origin.x + (screenFrame.size.width - windowFrame.size.width) / 2;
+                    CGFloat centerY = screenFrame.origin.y + (screenFrame.size.height - windowFrame.size.height) / 2;
+                    [mainWindow setFrameOrigin:NSMakePoint(centerX, centerY)];
+                }
             }
         });
     }
@@ -92,9 +110,10 @@ import (
 	"context"
 )
 
-// MoveWindowToCurrentScreen 将窗口移动到当前聚焦的屏幕中心（仅 macOS）
-// 使用同步方式执行，确保在显示窗口之前完成移动，避免闪烁
-func MoveWindowToCurrentScreen(ctx context.Context) {
-	// 使用 Cocoa API 同步移动窗口
-	C.MoveWindowToCurrentScreen()
+// EnsureWindowOnCurrentScreen 确保窗口在当前聚焦的屏幕上（仅 macOS）
+// 如果窗口已经在当前屏幕上，保持原位置不变
+// 如果窗口不在当前屏幕上，移动到当前屏幕中心
+func EnsureWindowOnCurrentScreen(ctx context.Context) {
+	// 使用 Cocoa API 检查并移动窗口
+	C.EnsureWindowOnCurrentScreen()
 }

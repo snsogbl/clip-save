@@ -65,8 +65,11 @@ const addKeyListener = () => {
   document.addEventListener("keydown", (event) => {
     // 当图片预览(ElImage Viewer)打开时，按 Esc 不隐藏窗口
     const hasImagePreview = !!document.querySelector('.el-image-viewer__wrapper');
-    const hasDialog = !!document.querySelector('.el-overlay');
+    // 检查是否有对话框打开，并且对话框是可见的（display 不为 none）
+    const dialogElement = document.querySelector('.el-overlay');
+    const hasDialog = dialogElement && window.getComputedStyle(dialogElement).display !== 'none';
     const shouldSuppress = (window as any).__suppressHideWindow || hasImagePreview || hasDialog;
+    console.log("event.key", event.key);
     if ((event.key === 'Escape' || event.keyCode === 27) && !shouldSuppress) {
       HideWindow();
     }

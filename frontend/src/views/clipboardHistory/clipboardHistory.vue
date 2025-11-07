@@ -1,229 +1,235 @@
 <template>
+  <!-- 设置页面 Drawer -->
+  <el-drawer
+    v-model="showSetting"
+    :title="$t('settings.title')"
+    direction="rtl"
+    size="600px"
+    @close="handleSettingBack"
+    class="settings-drawer"
+    destroy-on-close
+  >
+    <SettingView />
+  </el-drawer>
   <div class="clipboard-container" style="--wails-draggable: no-drag">
-    <!-- 设置页面 -->
-    <SettingView v-if="showSetting" @back="showSetting = false" />
-
-    <!-- 剪贴板历史主页面 -->
-    <template v-else>
-      <!-- 顶部工具栏 -->
-      <div class="toolbar" style="--wails-draggable: drag">
-        <div class="toolbar-left">
-          <div class="title-bg">
-            <el-icon :size="20" class="iconfont icon-shandian"> </el-icon>
-            <span class="toolbar-left-text">
-              {{ $t("app.title") }}
-            </span>
-          </div>
+    <!-- 顶部工具栏 -->
+    <div class="toolbar" style="--wails-draggable: drag">
+      <div class="toolbar-left">
+        <div class="title-bg">
+          <el-icon :size="20" class="iconfont icon-shandian"> </el-icon>
+          <span class="toolbar-left-text">
+            {{ $t("app.title") }}
+          </span>
         </div>
-        <div class="toolbar-right">
-          <el-dropdown placement="bottom">
-            <el-icon :size="20" class="iconfont icon-duoyuyan"> </el-icon>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item @click="changeLanguage('zh-CN')"
-                  >中文</el-dropdown-item
-                >
-                <el-dropdown-item @click="changeLanguage('en-US')"
-                  >English</el-dropdown-item
-                >
-                <el-dropdown-item @click="changeLanguage('fr-FR')"
-                  >Français</el-dropdown-item
-                >
-                <el-dropdown-item @click="changeLanguage('ar-SA')"
-                  >العربية</el-dropdown-item
-                >
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <el-select
-            v-model="filterType"
-            class="filter-select"
-            @change="onSearchChange"
-            size="large"
-            :placeholder="$t('main.filterAll')"
+      </div>
+      <div class="toolbar-right">
+        <el-dropdown placement="bottom">
+          <el-icon :size="20" class="iconfont icon-duoyuyan"> </el-icon>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="changeLanguage('zh-CN')"
+                >中文</el-dropdown-item
+              >
+              <el-dropdown-item @click="changeLanguage('en-US')"
+                >English</el-dropdown-item
+              >
+              <el-dropdown-item @click="changeLanguage('fr-FR')"
+                >Français</el-dropdown-item
+              >
+              <el-dropdown-item @click="changeLanguage('ar-SA')"
+                >العربية</el-dropdown-item
+              >
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-select
+          v-model="filterType"
+          class="filter-select"
+          @change="onSearchChange"
+          size="large"
+          :placeholder="$t('main.filterAll')"
+        >
+          <el-option :label="$t('main.filterAll')" value="" />
+          <el-option :label="$t('main.filterText')" value="Text" />
+          <el-option :label="$t('main.filterImage')" value="Image" />
+          <el-option :label="$t('main.filterFile')" value="File" />
+          <el-option :label="$t('main.filterUrl')" value="URL" />
+          <el-option :label="$t('main.filterColor')" value="Color" />
+          <el-option :label="$t('main.filterJSON')" value="JSON" />
+        </el-select>
+        <el-input
+          ref="searchInputRef"
+          v-model="searchKeyword"
+          type="text"
+          class="search-input"
+          :prefix-icon="Search"
+          :placeholder="$t('main.searchPlaceholder')"
+          @keyup.enter="searchInputRef?.blur()"
+          @input="onSearchChange"
+          clearable
+          style="--wails-draggable: no-drag"
+        />
+        <el-button class="me-button" circle @click="showSetting = true">
+          <el-icon :size="20">
+            <Setting />
+          </el-icon>
+        </el-button>
+      </div>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+      <!-- 左侧列表 -->
+      <div class="left-panel">
+        <div class="tab-buttons">
+          <el-button
+            round
+            class="me-button"
+            :class="{ active: leftTab === 'all' }"
+            @click="switchLeftTab('all')"
           >
-            <el-option :label="$t('main.filterAll')" value="" />
-            <el-option :label="$t('main.filterText')" value="Text" />
-            <el-option :label="$t('main.filterImage')" value="Image" />
-            <el-option :label="$t('main.filterFile')" value="File" />
-            <el-option :label="$t('main.filterUrl')" value="URL" />
-            <el-option :label="$t('main.filterColor')" value="Color" />
-            <el-option :label="$t('main.filterJSON')" value="JSON" />
-          </el-select>
-          <el-input
-            ref="searchInputRef"
-            v-model="searchKeyword"
-            type="text"
-            class="search-input"
-            :prefix-icon="Search"
-            :placeholder="$t('main.searchPlaceholder')"
-            @keyup.enter="searchInputRef?.blur()"
-            @input="onSearchChange"
-            clearable
-            style="--wails-draggable: no-drag"
-          />
-          <el-button class="me-button" circle @click="showSetting = true">
-            <el-icon :size="20">
-              <Setting />
-            </el-icon>
+            <el-icon :size="20" class="iconfont icon-liebiao"> </el-icon>
+            <span>{{ $t("main.listTitle") }}</span>
+          </el-button>
+          <el-button
+            round
+            class="me-button"
+            :class="{ active: leftTab === 'fav' }"
+            @click="switchLeftTab('fav')"
+          >
+            <el-icon><Star /></el-icon>
+            <span>{{ $t("main.favorite") }}</span>
           </el-button>
         </div>
-      </div>
-
-      <!-- 主内容区域 -->
-      <div class="main-content">
-        <!-- 左侧列表 -->
-        <div class="left-panel">
-          <div class="tab-buttons">
-            <el-button
-              round
-              class="me-button"
-              :class="{ active: leftTab === 'all' }"
-              @click="switchLeftTab('all')"
-            >
-            <el-icon :size="20" class="iconfont icon-liebiao"> </el-icon>
-              <span>{{ $t("main.listTitle") }}</span>
-            </el-button>
-            <el-button
-              round
-              class="me-button"
-              :class="{ active: leftTab === 'fav' }"
-              @click="switchLeftTab('fav')"
-            >
-              <el-icon><Star /></el-icon>
-              <span>{{ $t("main.favorite") }}</span>
-            </el-button>
+        <div class="item-list" ref="itemListRef" tabindex="-1">
+          <div v-if="loading" class="loading">{{ $t("main.loading") }}</div>
+          <div v-else-if="items.length === 0" class="empty-state">
+            <el-icon :size="48" class="iconfont icon-kongyemian"> </el-icon>
+            <div class="empty-text">{{ $t("main.emptyState") }}</div>
           </div>
-          <div class="item-list" ref="itemListRef" tabindex="-1">
-            <div v-if="loading" class="loading">{{ $t("main.loading") }}</div>
-            <div v-else-if="items.length === 0" class="empty-state">
-              <div class="empty-icon">📋</div>
-              <div class="empty-text">{{ $t("main.emptyState") }}</div>
+          <div
+            v-else
+            v-for="item in items"
+            :key="item.ID"
+            class="list-item"
+            :class="{ active: currentItem?.ID === item.ID }"
+            @click="selectItem(item)"
+            @dblclick="handleDoubleClick(item)"
+          >
+            <div class="item-header">
+              <el-icon class="item-icon" :size="18">
+                <Document v-if="item.ContentType === 'Text'" />
+                <Link v-else-if="item.ContentType === 'URL'" />
+                <Folder v-else-if="item.ContentType === 'File'" />
+                <Brush v-else-if="item.ContentType === 'Color'" />
+                <Picture v-else-if="item.ContentType === 'Image'" />
+                <Document v-else-if="item.ContentType === 'JSON'" />
+                <Document v-else />
+              </el-icon>
+              <span class="item-content">{{ getPreview(item) }}</span>
+              <div
+                v-if="item.ContentType === 'Color'"
+                class="color-circle-small"
+                :style="{ backgroundColor: item.Content }"
+              ></div>
+              <el-icon
+                v-if="item.IsFavorite === 1"
+                :size="16"
+                style="color: #f5a623"
+              >
+                <Star />
+              </el-icon>
             </div>
-            <div
-              v-else
-              v-for="item in items"
-              :key="item.ID"
-              class="list-item"
-              :class="{ active: currentItem?.ID === item.ID }"
-              @click="selectItem(item)"
-              @dblclick="handleDoubleClick(item)"
-            >
-              <div class="item-header">
-                <el-icon class="item-icon" :size="18">
-                  <Document v-if="item.ContentType === 'Text'" />
-                  <Link v-else-if="item.ContentType === 'URL'" />
-                  <Folder v-else-if="item.ContentType === 'File'" />
-                  <Brush v-else-if="item.ContentType === 'Color'" />
-                  <Picture v-else-if="item.ContentType === 'Image'" />
-                  <Document v-else-if="item.ContentType === 'JSON'" />
-                  <Document v-else />
-                </el-icon>
-                <span class="item-content">{{ getPreview(item) }}</span>
-                <div
-                  v-if="item.ContentType === 'Color'"
-                  class="color-circle-small"
-                  :style="{ backgroundColor: item.Content }"
-                ></div>
-                <el-icon
-                  v-if="item.IsFavorite === 1"
-                  :size="16"
-                  style="color: #f5a623"
-                >
-                  <Star />
-                </el-icon>
-              </div>
-              <div class="item-footer">
-                <span class="item-type" style="width: 40px">{{
-                  item.ContentType
-                }}</span>
-                <span class="item-time">{{ formatTime(item.Timestamp) }}</span>
-              </div>
+            <div class="item-footer">
+              <span class="item-type" style="width: 40px">{{
+                item.ContentType
+              }}</span>
+              <span class="item-time">{{ formatTime(item.Timestamp) }}</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- 右侧详情 -->
-        <div class="right-panel" style="--wails-draggable: no-drag">
-          <div class="content-area" ref="contentAreaRef">
-            <ClipboardTitleView
-              v-if="currentItem"
-              :item="currentItem"
-              @copy="copyItem"
-              @delete="deleteItem"
-              @collect="collectItem"
+      <!-- 右侧详情 -->
+      <div class="right-panel" style="--wails-draggable: no-drag">
+        <div class="content-area" ref="contentAreaRef">
+          <ClipboardTitleView
+            v-if="currentItem"
+            :item="currentItem"
+            @copy="copyItem"
+            @delete="deleteItem"
+            @collect="collectItem"
+          />
+          <div class="content-display">
+            <div v-if="!currentItem" class="welcome-text">
+              {{ $t("main.welcome") }}
+            </div>
+            <!-- 图片内容展示 -->
+            <ClipboardImageView
+              v-else-if="
+                currentItem.ContentType === 'Image' && currentItem.ImageData
+              "
+              :imageData="currentItem.ImageData"
             />
-            <div class="content-display">
-              <div v-if="!currentItem" class="welcome-text">
-                {{ $t("main.welcome") }}
-              </div>
-              <!-- 图片内容展示 -->
-              <ClipboardImageView
-                v-else-if="
-                  currentItem.ContentType === 'Image' && currentItem.ImageData
-                "
-                :imageData="currentItem.ImageData"
-              />
-              <!-- 文件内容展示 -->
-              <ClipboardFileView
-                v-else-if="currentItem.ContentType === 'File'"
-                :files="parseFileInfo(currentItem)"
-                @open-file="openInFinder"
-              />
-              <!-- URL 内容展示 -->
-              <ClipboardUrlView
-                v-else-if="currentItem.ContentType === 'URL'"
-                :url="currentItem.Content"
-                @open-url="openURL"
-              />
-              <!-- 颜色内容展示 -->
-              <ClipboardColorView
-                v-else-if="currentItem.ContentType === 'Color'"
-                :color="currentItem.Content"
-              />
-              <!-- JSON 内容展示/编辑 -->
-              <ClipboardJsonView
-                ref="jsonEditorRef"
-                v-else-if="currentItem.ContentType === 'JSON'"
-                :text="currentItem?.Content || '{}'"
-              />
-              <!-- 文本内容展示 -->
-              <ClipboardTextView
-                v-else
-                ref="textEditorRef"
-                :text="currentItem?.Content || '空内容'"
-              />
-            </div>
-          </div>
-          <div v-if="currentItem" class="info-panel">
-            <el-descriptions title="">
-              <el-descriptions-item :label="$t('main.source')">
-                {{ currentItem.Source }}
-              </el-descriptions-item>
-              <el-descriptions-item :label="$t('main.contentType')">
-                {{ currentItem.ContentType }}
-              </el-descriptions-item>
-              <template v-if="currentItem.ContentType === 'File'">
-                <el-descriptions-item :label="$t('main.fileCount')">
-                  {{ currentItem.WordCount }}
-                </el-descriptions-item>
-              </template>
-              <template v-else>
-                <el-descriptions-item :label="$t('main.charCount')">
-                  {{ currentItem.CharCount }}
-                </el-descriptions-item>
-                <el-descriptions-item :label="$t('main.wordCount')">
-                  {{ currentItem.WordCount }}
-                </el-descriptions-item>
-              </template>
-              <el-descriptions-item :label="$t('main.createTime')">
-                {{ new Date(currentItem.Timestamp).toLocaleString("zh-CN") }}
-              </el-descriptions-item>
-            </el-descriptions>
+            <!-- 文件内容展示 -->
+            <ClipboardFileView
+              v-else-if="currentItem.ContentType === 'File'"
+              :files="parseFileInfo(currentItem)"
+              @open-file="openInFinder"
+            />
+            <!-- URL 内容展示 -->
+            <ClipboardUrlView
+              v-else-if="currentItem.ContentType === 'URL'"
+              :url="currentItem.Content"
+              @open-url="openURL"
+            />
+            <!-- 颜色内容展示 -->
+            <ClipboardColorView
+              v-else-if="currentItem.ContentType === 'Color'"
+              :color="currentItem.Content"
+            />
+            <!-- JSON 内容展示/编辑 -->
+            <ClipboardJsonView
+              ref="jsonEditorRef"
+              v-else-if="currentItem.ContentType === 'JSON'"
+              :text="currentItem?.Content || '{}'"
+            />
+            <!-- 文本内容展示 -->
+            <ClipboardTextView
+              v-else
+              ref="textEditorRef"
+              :text="currentItem?.Content || '空内容'"
+            />
           </div>
         </div>
+        <div v-if="currentItem" class="info-panel">
+          <el-descriptions title="">
+            <el-descriptions-item :label="$t('main.source')">
+              {{ currentItem.Source }}
+            </el-descriptions-item>
+            <el-descriptions-item :label="$t('main.contentType')">
+              {{ currentItem.ContentType }}
+            </el-descriptions-item>
+            <template v-if="currentItem.ContentType === 'File'">
+              <el-descriptions-item :label="$t('main.fileCount')">
+                {{ currentItem.WordCount }}
+              </el-descriptions-item>
+            </template>
+            <template v-else>
+              <el-descriptions-item :label="$t('main.charCount')">
+                {{ currentItem.CharCount }}
+              </el-descriptions-item>
+              <el-descriptions-item :label="$t('main.wordCount')">
+                {{ currentItem.WordCount }}
+              </el-descriptions-item>
+            </template>
+            <el-descriptions-item :label="$t('main.createTime')">
+              {{ new Date(currentItem.Timestamp).toLocaleString("zh-CN") }}
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -304,18 +310,33 @@ const loading = ref(false);
 const showSetting = ref(false);
 const leftTab = ref<"all" | "fav">("all");
 const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
-// 从数据库获取设置
-async function getSettings() {
+
+// 缓存的设置数据，避免频繁查询数据库
+let cachedSettings: {
+  pageSize: number;
+  autoClean: boolean;
+  retentionDays: number;
+} | null = null;
+
+// 从数据库获取设置（带缓存）
+async function getSettings(forceRefresh = false) {
+  // 如果已有缓存且不需要强制刷新，直接返回缓存
+  if (cachedSettings && !forceRefresh) {
+    return cachedSettings;
+  }
+
   try {
     const savedSettings = await GetAppSettings();
     if (savedSettings) {
-      return JSON.parse(savedSettings);
+      cachedSettings = JSON.parse(savedSettings);
+      return cachedSettings;
     }
   } catch (e) {
     console.error("❌ 读取设置失败:", e);
   }
   // 返回默认值（数据库初始化时应该已经创建了默认设置）
-  return { pageSize: 100, autoClean: true, retentionDays: 30 };
+  cachedSettings = { pageSize: 100, autoClean: true, retentionDays: 30 };
+  return cachedSettings;
 }
 
 // 加载剪贴板项目
@@ -323,7 +344,7 @@ async function loadItems() {
   try {
     loading.value = true;
     const settings = await getSettings();
-    const pageSize = settings.pageSize || 100;
+    const pageSize = settings?.pageSize || 100;
     console.log("📊 使用页面大小:", pageSize);
 
     const result = await SearchClipboardItems(
@@ -349,8 +370,9 @@ async function loadItems() {
 // 静默检查更新（不显示加载状态）
 async function checkForUpdates() {
   try {
+    // 使用缓存的设置，避免频繁查询数据库
     const settings = await getSettings();
-    const pageSize = settings.pageSize || 100;
+    const pageSize = settings?.pageSize || 100;
 
     const result = await SearchClipboardItems(
       leftTab.value === "fav",
@@ -396,7 +418,7 @@ async function selectItem(item: ClipboardItem) {
   }
   // 将内容区域滚动到顶部
   if (contentAreaRef.value) {
-    contentAreaRef.value.scrollTo({ top: 0, behavior: 'smooth' });
+    contentAreaRef.value.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 
@@ -571,11 +593,19 @@ async function openURL(url: string) {
   }
 }
 
+// 处理设置页面返回
+async function handleSettingBack() {
+  console.log("handleSettingBack");
+  showSetting.value = false;
+  await getSettings(true);
+}
+
 // 自动清理超过指定天数的历史记录
 async function autoCleanOldItems() {
+  // 使用缓存的设置，避免频繁查询数据库
   const settings = await getSettings();
 
-  if (!settings.autoClean) {
+  if (!settings?.autoClean) {
     return; // 未启用自动清理
   }
 
@@ -592,7 +622,10 @@ async function autoCleanOldItems() {
 
 // 初始化和定时刷新
 onMounted(() => {
-  loadItems();
+  // 初始化设置缓存
+  getSettings().then(() => {
+    loadItems();
+  });
 
   // 每1秒静默检查更新（不会导致闪烁）
   setInterval(() => {
@@ -606,6 +639,16 @@ onMounted(() => {
   setInterval(() => {
     autoCleanOldItems();
   }, 60 * 60 * 1000); // 1小时 = 60分钟 * 60秒 * 1000毫秒
+
+  // 监听窗口显示事件：从后台切换到前台时，选中第一个列表项
+  EventsOn("window.show", () => {
+    setTimeout(() => {
+      checkForUpdates();
+      if (items.value.length > 0) {
+        selectItem(items.value[0]);
+      }
+    }, 100);
+  });
 
   // 监听菜单事件：上一条/下一条
   EventsOn("nav.prev", () => {
@@ -653,18 +696,6 @@ onMounted(() => {
     textEditorRef.value?.translateText();
   });
 });
-
-function hideApp() {
-  setTimeout(() => {
-    HideWindow();
-  }, 100);
-}
-
-function handleTabKeydown(event: KeyboardEvent) {
-  console.log("handleTabKeydown", event);
-  event.preventDefault();
-  event.stopPropagation();
-}
 
 function changeLanguage(lang: string) {
   SetLanguage(lang);
@@ -792,14 +823,13 @@ function changeLanguage(lang: string) {
 
 .loading,
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   padding: 40px 20px;
   color: #86868b;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  gap: 10px;
 }
 
 .list-item {
@@ -953,5 +983,17 @@ function changeLanguage(lang: string) {
   padding: 16px 16px 12px 20px;
   display: inline-flex;
   gap: 4px;
+}
+
+/* Drawer 样式 */
+</style>
+
+<style>
+.el-drawer {
+  background-color: #fafafa !important;
+}
+.el-drawer__body {
+  background-color: #fafafa !important;
+  padding: 0 !important;
 }
 </style>
