@@ -106,9 +106,7 @@ void EnsureWindowOnCurrentScreen() {
 }
 */
 import "C"
-import (
-	"context"
-)
+import "context"
 
 // EnsureWindowOnCurrentScreen 确保窗口在当前聚焦的屏幕上（仅 macOS）
 // 如果窗口已经在当前屏幕上，保持原位置不变

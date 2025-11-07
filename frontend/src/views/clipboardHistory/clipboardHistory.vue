@@ -248,7 +248,7 @@ import {
   HideWindow,
   ToggleFavorite,
   HideWindowAndQuit,
-  SetLanguage,
+  SetLanguage
 } from "../../../wailsjs/go/main/App";
 
 const { t, locale } = useI18n();

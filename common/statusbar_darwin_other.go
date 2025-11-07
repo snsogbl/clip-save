@@ -7,4 +7,3 @@ package common
 func SetDockIconVisibility(visible int) {
 	// 其他平台不需要实现
 }
-

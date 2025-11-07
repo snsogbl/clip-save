@@ -125,7 +125,7 @@ func main() {
 		Height:    800,
 		Frameless: false,
 		OnBeforeClose: func(ctx context.Context) bool {
-			if isMac && !isForceQuit() {
+			if isMac && !common.IsForceQuit() {
 				app.HideWindow()
 				return true
 			}

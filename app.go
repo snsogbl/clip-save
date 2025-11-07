@@ -30,7 +30,7 @@ import (
 // App struct
 type App struct {
 	ctx            context.Context
-	isWindowHidden bool // 标记窗口是否被隐藏
+	isWindowHidden bool
 }
 
 // ShowAbout 显示关于对话框
@@ -67,7 +67,7 @@ func (a *App) startup(ctx context.Context) {
 	common.InitDockReopen(func() {
 		a.ShowWindow()
 	})
-	common.SetForceQuitCallback(func() { setForceQuit() })
+	common.SetForceQuitCallback(func() { common.SetForceQuit() })
 
 	// 根据设置调整 Dock 图标可见性（仅 macOS 生效）
 	if gRuntime.GOOS == "darwin" {
@@ -427,7 +427,7 @@ func (a *App) ShowWindow() {
 	if a.ctx != nil {
 		// 只有在窗口之前是隐藏状态时，才需要移动窗口到当前屏幕
 		// 如果窗口只是失去焦点（切换应用），保持原位置不变
-		if a.isWindowHidden && gRuntime.GOOS == "darwin" {
+		if gRuntime.GOOS == "darwin" {
 			// macOS 平台：窗口之前是隐藏的，移动到当前聚焦的屏幕
 			common.EnsureWindowOnCurrentScreen(a.ctx)
 		}
@@ -435,15 +435,21 @@ func (a *App) ShowWindow() {
 		runtime.WindowShow(a.ctx)
 		runtime.WindowUnminimise(a.ctx)
 
-		// 非 macOS 平台：如果窗口之前是隐藏的，使用 WindowCenter
-		if a.isWindowHidden && gRuntime.GOOS != "darwin" {
-			runtime.WindowCenter(a.ctx)
+		// 非 macOS 平台：如果窗口之前是隐藏的，使用 EnsureWindowOnCurrentScreen
+		if gRuntime.GOOS != "darwin" {
+			common.EnsureWindowOnCurrentScreen(a.ctx)
 		}
 
 		// 通知前端选中第一个列表项
+		// 使用 goroutine 异步发送事件，避免在 CGO 回调中直接调用导致信号错误
 		if a.isWindowHidden {
-			fmt.Println("通知前端选中第一个列表项")
-			runtime.EventsEmit(a.ctx, "window.show")
+			go func() {
+				// 短暂延迟确保窗口操作已完成
+				time.Sleep(50 * time.Millisecond)
+				if a.ctx != nil {
+					runtime.EventsEmit(a.ctx, "window.show")
+				}
+			}()
 		}
 
 		// 清除隐藏标记
@@ -479,7 +485,7 @@ func (a *App) ForceQuit() {
 	if a.ctx == nil {
 		return
 	}
-	setForceQuit()
+	common.SetForceQuit()
 	runtime.Quit(a.ctx)
 }
 
@@ -525,10 +531,9 @@ func (a *App) HideWindow() {
 		if gRuntime.GOOS == "windows" {
 			// runtime.WindowMinimise(a.ctx)
 		} else {
+			a.isWindowHidden = true
 			// 其他平台：保持原有隐藏行为
 			runtime.WindowHide(a.ctx)
-			// 标记窗口已隐藏
-			a.isWindowHidden = true
 		}
 	}
 }
@@ -539,10 +544,9 @@ func (a *App) HideWindowAndQuit() {
 		if gRuntime.GOOS == "windows" {
 			// runtime.WindowMinimise(a.ctx)
 		} else {
+			a.isWindowHidden = true
 			// 其他平台：保持原有隐藏行为
 			runtime.Hide(a.ctx)
-			// 标记窗口已隐藏
-			a.isWindowHidden = true
 		}
 	}
 }
