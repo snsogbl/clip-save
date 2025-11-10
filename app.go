@@ -263,6 +263,18 @@ func (a *App) SetLanguage(lang string) error {
 func (a *App) SetDockIconVisibility(visible int) error {
 	common.SetDockIconVisibility(visible)
 	log.Printf("Dock 图标可见性已设置为: %d", visible)
+
+	// 设置后台模式后，确保窗口仍然显示（不自动隐藏）
+	if visible == 2 && a.ctx != nil {
+		// 延迟确保 Activation Policy 设置完成后再显示窗口
+		go func() {
+			time.Sleep(10 * time.Millisecond)
+			runtime.WindowShow(a.ctx)
+			runtime.WindowUnminimise(a.ctx)
+			log.Println("✅ 后台模式设置后，窗口已保持显示")
+		}()
+	}
+
 	return nil
 }
 
