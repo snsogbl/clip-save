@@ -647,6 +647,7 @@ onMounted(() => {
       if (items.value.length > 0) {
         selectItem(items.value[0]);
       }
+      searchInputRef.value?.focus();
     }, 100);
   });
 

@@ -137,8 +137,14 @@ func run() {
 		// 优先级2: 检查是否有图片 - 尝试多种格式
 		imgData := tryReadImage()
 		if len(imgData) > 0 {
-			// 计算图片哈希值来判断是否是新图片（对完整数据做 SHA-256，避免前缀碰撞）
-			h := sha256.Sum256(imgData)
+			// 统一转换为PNG格式后计算哈希，确保相同图片内容产生相同哈希值
+			pngData, err := convertToPNG(imgData)
+			if err != nil {
+				log.Printf("❌ 转换图片为PNG失败: %v", err)
+				continue
+			}
+			// 对PNG数据计算哈希值来判断是否是新图片
+			h := sha256.Sum256(pngData)
 			imageHash := hex.EncodeToString(h[:])
 			if imageHash != lastImageHash {
 				lastImageHash = imageHash
@@ -192,6 +198,24 @@ func tryReadImage() []byte {
 	}
 
 	return nil
+}
+
+// convertToPNG 将任意格式的图片数据转换为PNG格式
+func convertToPNG(imgData []byte) ([]byte, error) {
+	// 解码图片
+	img, _, err := image.Decode(bytes.NewReader(imgData))
+	if err != nil {
+		return nil, fmt.Errorf("解码图片失败: %v", err)
+	}
+
+	// 转换为PNG格式
+	var buf bytes.Buffer
+	err = png.Encode(&buf, img)
+	if err != nil {
+		return nil, fmt.Errorf("编码PNG失败: %v", err)
+	}
+
+	return buf.Bytes(), nil
 }
 
 // handleTextClipboard 处理文本剪贴板
