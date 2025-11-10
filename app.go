@@ -425,20 +425,11 @@ func (a *App) OpenURL(urlStr string) error {
 // ShowWindow 显示并聚焦窗口（供快捷键调用）
 func (a *App) ShowWindow() {
 	if a.ctx != nil {
-		// 只有在窗口之前是隐藏状态时，才需要移动窗口到当前屏幕
-		// 如果窗口只是失去焦点（切换应用），保持原位置不变
-		if gRuntime.GOOS == "darwin" {
-			// macOS 平台：窗口之前是隐藏的，移动到当前聚焦的屏幕
-			common.EnsureWindowOnCurrentScreen(a.ctx)
-		}
-
+		// 如果窗口之前是隐藏状态，需要移动到当前活动的桌面空间
 		runtime.WindowShow(a.ctx)
-		runtime.WindowUnminimise(a.ctx)
+		common.EnsureWindowOnCurrentScreen(a.ctx)
 
-		// 非 macOS 平台：如果窗口之前是隐藏的，使用 EnsureWindowOnCurrentScreen
-		if gRuntime.GOOS != "darwin" {
-			common.EnsureWindowOnCurrentScreen(a.ctx)
-		}
+		runtime.WindowUnminimise(a.ctx)
 
 		// 通知前端选中第一个列表项
 		// 使用 goroutine 异步发送事件，避免在 CGO 回调中直接调用导致信号错误
