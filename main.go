@@ -95,7 +95,7 @@ func main() {
 	displaySubMenu.AddText(common.T("menu.copyCurrent"), keys.CmdOrCtrl("enter"), func(_ *menu.CallbackData) {
 		app.CopyCurrentItem()
 		app.HideWindowAndQuit()
-		go common.PasteCmdV()
+		app.AutoPasteCurrentItem()
 	})
 	displaySubMenu.AddText(common.T("menu.deleteCurrent"), keys.CmdOrCtrl("backspace"), func(_ *menu.CallbackData) {
 		app.DeleteCurrentItem()

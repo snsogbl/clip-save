@@ -64,7 +64,7 @@
           class="search-input"
           :prefix-icon="Search"
           :placeholder="$t('main.searchPlaceholder')"
-          @keyup.enter="searchInputRef?.blur()"
+          @keydown="handleSearchKeydown"
           @input="onSearchChange"
           clearable
           style="--wails-draggable: no-drag"
@@ -248,7 +248,8 @@ import {
   HideWindow,
   ToggleFavorite,
   HideWindowAndQuit,
-  SetLanguage
+  SetLanguage,
+  AutoPasteCurrentItem
 } from "../../../wailsjs/go/main/App";
 
 const { t, locale } = useI18n();
@@ -433,6 +434,7 @@ async function handleDoubleClick(item: ClipboardItem) {
   // 复制当前项
   await copyItem(item.ID);
   HideWindowAndQuit();
+  AutoPasteCurrentItem();
 }
 
 // 复制项目
@@ -558,6 +560,44 @@ const onSearchChange = () => {
   loadItems();
 };
 
+// 处理搜索框键盘按下事件
+function handleSearchKeydown(event: KeyboardEvent) {
+  // 检测 Cmd+Enter 或 Ctrl+Enter
+  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+    event.preventDefault();
+    event.stopPropagation();
+    // 直接执行复制并退出功能
+    if (currentItem.value) {
+      handleDoubleClick(currentItem.value);
+    }
+    return;
+  }
+  // 检测 Cmd+Left 或 Ctrl+Left（切换到列表页签）
+  if ((event.metaKey || event.ctrlKey) && event.key === "ArrowLeft") {
+    event.preventDefault();
+    event.stopPropagation();
+    switchLeftTab("all").then(() => {
+      // 切换后恢复搜索框焦点
+      nextTick(() => {
+        searchInputRef.value?.focus();
+      });
+    });
+    return;
+  }
+  // 检测 Cmd+Right 或 Ctrl+Right（切换到收藏页签）
+  if ((event.metaKey || event.ctrlKey) && event.key === "ArrowRight") {
+    event.preventDefault();
+    event.stopPropagation();
+    switchLeftTab("fav").then(() => {
+      // 切换后恢复搜索框焦点
+      nextTick(() => {
+        searchInputRef.value?.focus();
+      });
+    });
+    return;
+  }
+}
+
 // 解析文件信息
 function parseFileInfo(item: ClipboardItem): FileInfo[] {
   if (!item.FileInfo) return [];
@@ -661,7 +701,6 @@ onMounted(() => {
     const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
     const nextIdx = Math.max(0, idx - 1);
     selectItem(items.value[nextIdx]);
-    searchInputRef.value?.blur();
   });
   EventsOn("nav.next", () => {
     if (items.value.length === 0) return;
@@ -672,7 +711,6 @@ onMounted(() => {
     const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
     const nextIdx = Math.min(items.value.length - 1, idx + 1);
     selectItem(items.value[nextIdx]);
-    searchInputRef.value?.blur();
   });
 
   EventsOn("nav.switch", (tab: "all" | "fav") => {

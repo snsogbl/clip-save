@@ -554,6 +554,12 @@ func (a *App) HideWindowAndQuit() {
 	}
 }
 
+func (a *App) AutoPasteCurrentItem() {
+	if a.ctx != nil {
+		go common.PasteCmdV()
+	}
+}
+
 // SaveImagePNG 通过系统对话框将 Base64 PNG 保存到本地（供前端调用）
 func (a *App) SaveImagePNG(base64Data string, suggestedName string) (string, error) {
 	if a.ctx == nil {
