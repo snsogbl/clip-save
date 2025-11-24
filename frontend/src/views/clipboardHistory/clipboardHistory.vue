@@ -109,13 +109,20 @@
           </div>
           <div
             v-else
-            v-for="item in items"
+            v-for="(item, index) in items"
             :key="item.ID"
             class="list-item"
             :class="{ active: currentItem?.ID === item.ID }"
             @click="selectItem(item)"
             @dblclick="handleDoubleClick(item)"
           >
+            <!-- 数字标签（按住 Command 时显示前 9 个） -->
+            <div
+              v-if="isCommandPressed && index < 9"
+              class="quick-access-badge"
+            >
+              {{ index + 1 }}
+            </div>
             <div class="item-header">
               <el-icon class="item-icon" :size="18">
                 <Document v-if="item.ContentType === 'Text'" />
@@ -234,7 +241,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import { EventsOn } from "../../../wailsjs/runtime/runtime";
 import { useI18n } from "vue-i18n";
 import {
@@ -311,6 +318,7 @@ const loading = ref(false);
 const showSetting = ref(false);
 const leftTab = ref<"all" | "fav">("all");
 const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
+const isCommandPressed = ref(false);
 
 // 缓存的设置数据，避免频繁查询数据库
 let cachedSettings: {
@@ -598,6 +606,45 @@ function handleSearchKeydown(event: KeyboardEvent) {
   }
 }
 
+// 处理全局键盘事件（用于 Command+数字键快速粘贴）
+function handleGlobalKeydown(event: KeyboardEvent) {
+  // 检测 Command/Ctrl 键按下
+  if (event.metaKey || event.ctrlKey) {
+    if (!isCommandPressed.value) {
+      isCommandPressed.value = true;
+    }
+    
+    // 检测 Command+数字键（1-9）
+    const numKey = parseInt(event.key);
+    if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
+      event.preventDefault();
+      event.stopPropagation();
+      // 快速粘贴对应索引的项目（索引从 0 开始，所以减 1）
+      const index = numKey - 1;
+      if (items.value[index]) {
+        handleDoubleClick(items.value[index]);
+      }
+      // 重置状态
+      isCommandPressed.value = false;
+      return;
+    }
+  } else {
+    // 非 Command 键按下时，如果之前是按下的状态，检查是否是 Command 键本身
+    if (event.key !== "Meta" && event.key !== "Control" && isCommandPressed.value) {
+      // 如果按下的不是 Command 键，说明 Command 已经松开
+      isCommandPressed.value = false;
+    }
+  }
+}
+
+// 处理全局键盘松开事件
+function handleGlobalKeyup(event: KeyboardEvent) {
+  // Command/Ctrl 键松开
+  if (event.key === "Meta" || event.key === "Control" || event.key === "MetaLeft" || event.key === "MetaRight" || event.key === "ControlLeft" || event.key === "ControlRight") {
+    isCommandPressed.value = false;
+  }
+}
+
 // 解析文件信息
 function parseFileInfo(item: ClipboardItem): FileInfo[] {
   if (!item.FileInfo) return [];
@@ -680,6 +727,10 @@ onMounted(() => {
     autoCleanOldItems();
   }, 60 * 60 * 1000); // 1小时 = 60分钟 * 60秒 * 1000毫秒
 
+  // 监听全局键盘事件（用于 Command+数字键快速粘贴）
+  window.addEventListener("keydown", handleGlobalKeydown);
+  window.addEventListener("keyup", handleGlobalKeyup);
+
   // 监听窗口显示事件：从后台切换到前台时，选中第一个列表项
   EventsOn("window.show", () => {
     setTimeout(() => {
@@ -740,6 +791,12 @@ function changeLanguage(lang: string) {
   SetLanguage(lang);
   locale.value = lang as any;
 }
+
+// 组件卸载时清理事件监听器
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleGlobalKeydown);
+  window.removeEventListener("keyup", handleGlobalKeyup);
+});
 </script>
 
 <style scoped>
@@ -878,6 +935,7 @@ function changeLanguage(lang: string) {
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #e8e8e8;
+  position: relative;
 }
 
 .list-item.active {
@@ -1024,7 +1082,23 @@ function changeLanguage(lang: string) {
   gap: 4px;
 }
 
-/* Drawer 样式 */
+.quick-access-badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 16px;
+  height: 16px;
+  background: rgba(153, 153, 153, 0.6);
+  color: #fff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
 </style>
 
 <style>
