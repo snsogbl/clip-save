@@ -320,6 +320,13 @@ const leftTab = ref<"all" | "fav">("all");
 const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
 const isCommandPressed = ref(false);
 
+// 窗口可见性变化处理函数（需要在组件作用域中定义，以便清理）
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'hidden') {
+    isCommandPressed.value = false;
+  }
+};
+
 // 缓存的设置数据，避免频繁查询数据库
 let cachedSettings: {
   pageSize: number;
@@ -610,7 +617,8 @@ function handleSearchKeydown(event: KeyboardEvent) {
 function handleGlobalKeydown(event: KeyboardEvent) {
   // 检测 Command/Ctrl 键按下
   if (event.metaKey || event.ctrlKey) {
-    if (!isCommandPressed.value) {
+    // 只有在窗口可见时才显示标签
+    if (!isCommandPressed.value && document.visibilityState === 'visible') {
       isCommandPressed.value = true;
     }
     
@@ -730,9 +738,14 @@ onMounted(() => {
   // 监听全局键盘事件（用于 Command+数字键快速粘贴）
   window.addEventListener("keydown", handleGlobalKeydown);
   window.addEventListener("keyup", handleGlobalKeyup);
+  
+  // 监听窗口可见性变化，隐藏窗口时重置状态
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 
   // 监听窗口显示事件：从后台切换到前台时，选中第一个列表项
   EventsOn("window.show", () => {
+    // 重置 Command 键状态，避免标签一直显示
+    isCommandPressed.value = false;
     setTimeout(() => {
       checkForUpdates();
       if (items.value.length > 0) {
@@ -796,6 +809,7 @@ function changeLanguage(lang: string) {
 onUnmounted(() => {
   window.removeEventListener("keydown", handleGlobalKeydown);
   window.removeEventListener("keyup", handleGlobalKeyup);
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
 });
 </script>
 
@@ -936,6 +950,7 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   border: 1px solid #e8e8e8;
   position: relative;
+  overflow: hidden;
 }
 
 .list-item.active {
@@ -1086,17 +1101,17 @@ onUnmounted(() => {
   position: absolute;
   top: 0px;
   right: 0px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background: rgba(153, 153, 153, 0.6);
   color: #fff;
-  border-radius: 4px;
+  border-top-right-radius: 4px;
+  border-bottom-left-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   z-index: 10;
 }
 </style>
