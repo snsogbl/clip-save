@@ -201,6 +201,29 @@
           </div>
         </div>
       </div>
+
+      <div class="setting-section donation-section">
+        <h3 class="donation-title">
+          <span class="donation-heart">💗</span>
+          {{ $t('settings.donationTitle') }}
+        </h3>
+        <div class="donation-content">
+          <p class="donation-text">{{ $t('settings.donationDesc') }}</p>
+          <p class="donation-text">{{ $t('settings.donationImpact') }}</p>
+          <p class="donation-motivation">{{ $t('settings.donationMotivation') }}</p>
+          <div class="donation-qr-container">
+            <div class="donation-qr-label">{{ $t('settings.donationScan') }}</div>
+            <img :src="donationQR" alt="赞赏码" class="donation-qr-code" />
+            <div class="donation-coffee-text">"{{ $t('settings.donationCoffee') }} ☕"</div>
+          </div>
+          <div class="donation-star-link" @click="openGitHubStar">
+            <el-icon :size="16" style="margin-right: 4px">
+              <Star />
+            </el-icon>
+            {{ $t('settings.donationStar') }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 密码设置对话框 -->
@@ -246,11 +269,13 @@ import {
   Lock,
   Key,
   Delete,
-  Operation
+  Operation,
+  Star
 } from "@element-plus/icons-vue";
 import HotkeyDisplay from "./components/HotkeyDisplay.vue";
 import { useHotkey } from "../../composables/useHotkey";
 import { useI18n } from 'vue-i18n';
+import donationQR from "../../assets/static/zs.png";
 import {
   ClearAllItems,
   GetAppSettings,
@@ -259,6 +284,7 @@ import {
   GetCurrentLanguage,
   SetLanguage,
   SetDockIconVisibility,
+  OpenURL,
 } from "../../../wailsjs/go/main/App";
 
 const { t, locale } = useI18n();
@@ -527,6 +553,16 @@ async function hashPassword(password: string): Promise<string> {
 }
 
 
+// 打开 GitHub Star 链接
+async function openGitHubStar() {
+  try {
+    await OpenURL("https://github.com/snsogbl/clip-save");
+  } catch (error) {
+    console.error("打开 GitHub 链接失败:", error);
+    ElMessage.error("打开链接失败");
+  }
+}
+
 //设置变化，自动保存
 watch(
   settings,
@@ -684,5 +720,105 @@ onUnmounted(() => {
   color: #999;
   font-style: italic;
   min-width: 120px;
+}
+
+/* 赞赏码样式 */
+.donation-section {
+  text-align: center;
+}
+
+.donation-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.donation-heart {
+  font-size: 20px;
+}
+
+.donation-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.donation-text {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.donation-motivation {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  margin: 8px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.donation-star-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 16px 0;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.donation-star-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.donation-star-link:active {
+  transform: translateY(0);
+}
+
+.donation-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.donation-qr-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.donation-qr-code {
+  width: 400px;
+  height: auto;
+  max-width: 400px;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.donation-coffee-text {
+  font-size: 14px;
+  color: #999;
+  font-style: italic;
 }
 </style>

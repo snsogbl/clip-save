@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { GetCurrentLanguage } from '../../wailsjs/go/main/App'
 
-const AppVersion = '2.0.5'
+const AppVersion = '2.0.6'
 
 // 中文语言包
 const zhCN = {
@@ -63,7 +63,15 @@ const zhCN = {
     language: '语言设置',
     languageDesc: '选择应用界面语言',
     backgroundMode: '后台运行',
-    backgroundModeDesc: '开启后应用将在后台运行，不显示 Dock 图标'
+    backgroundModeDesc: '开启后应用将在后台运行，不显示 Dock 图标',
+    donation: '赞赏支持',
+    donationTitle: '请作者喝杯咖啡',
+    donationDesc: '如果这个软件帮你省下了时间（或者至少没让你抓狂），欢迎请作者喝杯咖啡 ☕ 或者啤酒 🍺！',
+    donationImpact: '每一杯咖啡都会神奇地转化为：新功能、更少的 bug（我尽量）、以及作者熬夜写代码时的精神支柱。',
+    donationMotivation: '你的 Star ⭐ 和捐赠是我修复 bug 和添加新功能的原动力（也是我买咖啡的经费）！',
+    donationScan: '微信扫一扫',
+    donationCoffee: '请我喝杯咖啡吧',
+    donationStar: '给项目点个 Star ⭐'
   },
 
   // 密码设置对话框
@@ -277,7 +285,15 @@ const enUS = {
     language: 'Language Settings',
     languageDesc: 'Select application interface language',
     backgroundMode: 'Background Mode',
-    backgroundModeDesc: 'When enabled, the app will run in the background without showing Dock icon'
+    backgroundModeDesc: 'When enabled, the app will run in the background without showing Dock icon',
+    donation: 'Support',
+    donationTitle: 'Buy the Author a Coffee',
+    donationDesc: 'If this app saved you time (or at least didn\'t drive you crazy), feel free to buy the author a coffee ☕ or beer 🍺!',
+    donationImpact: 'Every cup magically transforms into: new features, fewer bugs (I\'ll try my best), and the author\'s late-night coding fuel.',
+    donationMotivation: 'Your Star ⭐ and donations are my motivation to fix bugs and add features (and also my coffee budget)!',
+    donationScan: 'WeChat Scan',
+    donationCoffee: 'Buy me a coffee',
+    donationStar: 'Star this project ⭐'
   },
 
   // 密码设置对话框
@@ -491,7 +507,15 @@ const frFR = {
     language: 'Paramètres de Langue',
     languageDesc: 'Sélectionner la langue de l\'interface de l\'application',
     backgroundMode: 'Mode Arrière-plan',
-    backgroundModeDesc: 'Lorsqu\'il est activé, l\'application fonctionnera en arrière-plan sans afficher l\'icône du Dock'
+    backgroundModeDesc: 'Lorsqu\'il est activé, l\'application fonctionnera en arrière-plan sans afficher l\'icône du Dock',
+    donation: 'Soutien',
+    donationTitle: 'Offrez un Café à l\'Auteur',
+    donationDesc: 'Si cette app vous a fait gagner du temps (ou au moins ne vous a pas rendu fou), n\'hésitez pas à offrir un café ☕ ou une bière 🍺 à l\'auteur !',
+    donationImpact: 'Chaque tasse se transforme magiquement en : nouvelles fonctionnalités, moins de bugs (je ferai de mon mieux), et le carburant nocturne de l\'auteur pour coder.',
+    donationMotivation: 'Votre Star ⭐ et vos dons sont ma motivation pour corriger les bugs et ajouter des fonctionnalités (et aussi mon budget café) !',
+    donationScan: 'Scanner WeChat',
+    donationCoffee: 'Offrez-moi un café',
+    donationStar: 'Mettre une étoile à ce projet ⭐'
   },
 
   // 密码设置对话框
@@ -705,7 +729,15 @@ const arSA = {
     language: 'إعدادات اللغة',
     languageDesc: 'اختر لغة واجهة التطبيق',
     backgroundMode: 'وضع الخلفية',
-    backgroundModeDesc: 'عند التمكين، سيعمل التطبيق في الخلفية دون عرض أيقونة Dock'
+    backgroundModeDesc: 'عند التمكين، سيعمل التطبيق في الخلفية دون عرض أيقونة Dock',
+    donation: 'الدعم',
+    donationTitle: 'اشتري للمؤلف فنجان قهوة',
+    donationDesc: 'إذا وفر لك هذا التطبيق الوقت (أو على الأقل لم يجعلك مجنوناً)، لا تتردد في شراء فنجان قهوة ☕ أو بيرة 🍺 للمؤلف!',
+    donationImpact: 'كل فنجان يتحول بشكل سحري إلى: ميزات جديدة، أخطاء أقل (سأبذل قصارى جهدي)، ووقود المؤلف الليلي للبرمجة.',
+    donationMotivation: 'نجمتك ⭐ وتبرعاتك هي دافعي لإصلاح الأخطاء وإضافة الميزات (وأيضاً ميزانية القهوة الخاصة بي)!',
+    donationScan: 'مسح WeChat',
+    donationCoffee: 'اشتري لي فنجان قهوة',
+    donationStar: 'ضع نجمة لهذا المشروع ⭐'
   },
 
   // 密码设置对话框
