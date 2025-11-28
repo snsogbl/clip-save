@@ -63,6 +63,11 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	log.Println("Wails 应用启动成功")
 
+	// 初始化统计模块
+	if err := common.InitAnalytics(); err != nil {
+		log.Printf("初始化统计模块失败: %v", err)
+	}
+
 	// 注册 Dock 点击激活时的自动恢复与强退标记（仅 macOS 生效，其他平台为 no-op）
 	common.InitDockReopen(func() {
 		a.ShowWindow()
