@@ -42,9 +42,8 @@ type ClipboardItem struct {
 	IsFavorite  int // 0/1
 }
 
-// 剪贴板更新通知 channel
-var clipboardUpdateChan chan ClipboardItem
-var updateListeners []chan ClipboardItem
+// 剪贴板更新通知监听器（只发送信号，不传递数据）
+var clipboardListener chan struct{}
 
 func init() {
 	// 初始化剪贴板
@@ -54,10 +53,6 @@ func init() {
 		return
 	}
 
-	// 初始化通知 channel
-	clipboardUpdateChan = make(chan ClipboardItem, 10)
-	updateListeners = make([]chan ClipboardItem, 0)
-
 	// 初始化数据库
 	if err := InitDB(); err != nil {
 		log.Printf("数据库初始化失败: %v", err)
@@ -65,28 +60,22 @@ func init() {
 
 	// 启动剪贴板
 	go run()
-
-	// 启动通知分发器
-	go notifyDispatcher()
 }
 
-// RegisterClipboardListener 注册剪贴板更新
-func RegisterClipboardListener() chan ClipboardItem {
-	listener := make(chan ClipboardItem, 10)
-	updateListeners = append(updateListeners, listener)
-	return listener
+// RegisterClipboardListener 注册剪贴板更新监听器
+func RegisterClipboardListener() chan struct{} {
+	clipboardListener = make(chan struct{}, 10)
+	return clipboardListener
 }
 
-// notifyDispatcher 分发通知到所有
-func notifyDispatcher() {
-	for item := range clipboardUpdateChan {
-		for _, listener := range updateListeners {
-			select {
-			case listener <- item:
-			default:
-				// 如果 channel 已满，跳过这次通知
-				log.Printf("channel 已满，跳过通知")
-			}
+// notifyListeners 通知监听器（只发送信号）
+func notifyListeners() {
+	if clipboardListener != nil {
+		select {
+		case clipboardListener <- struct{}{}:
+		default:
+			// 如果 channel 已满，跳过这次通知
+			log.Printf("channel 已满，跳过通知")
 		}
 	}
 }
@@ -240,11 +229,8 @@ func handleTextClipboard(content string, appName string) {
 	if err := SaveClipboardItem(&item); err != nil {
 		log.Printf("保存剪贴板内容失败: %v", err)
 	} else {
-		// 发送更新通知
-		select {
-		case clipboardUpdateChan <- item:
-		default:
-		}
+		// 通知监听器
+		notifyListeners()
 	}
 }
 
@@ -294,11 +280,8 @@ func handleImageClipboard(imgData []byte, appName string, precomputedHash string
 	if err := SaveClipboardItem(&item); err != nil {
 		log.Printf("❌ 保存图片剪贴板失败: %v", err)
 	} else {
-		// 发送更新通知
-		select {
-		case clipboardUpdateChan <- item:
-		default:
-		}
+		// 通知监听器
+		notifyListeners()
 	}
 }
 
@@ -523,11 +506,8 @@ func handleFileClipboard(fileJSON string, fileCount int, appName string, precomp
 	if err := SaveClipboardItem(&item); err != nil {
 		log.Printf("❌ 保存文件剪贴板失败: %v", err)
 	} else {
-		// 发送更新通知
-		select {
-		case clipboardUpdateChan <- item:
-		default:
-		}
+		// 通知监听器
+		notifyListeners()
 	}
 }
 

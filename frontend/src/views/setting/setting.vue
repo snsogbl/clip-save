@@ -296,7 +296,7 @@ const emit = defineEmits(["back"]);
 const settings = ref({
   autoClean: true,
   retentionDays: 30,
-  pageSize: 100,
+  pageSize: 50,
   password: "", // 加密后的密码
   hotkey: "Command+Option+c", // 全局快捷键
   backgroundMode: false, // 后台运行模式（仅 macOS）

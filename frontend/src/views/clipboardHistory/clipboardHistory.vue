@@ -256,7 +256,8 @@ import {
   ToggleFavorite,
   HideWindowAndQuit,
   SetLanguage,
-  AutoPasteCurrentItem
+  AutoPasteCurrentItem,
+  GetClipboardItemByID,
 } from "../../../wailsjs/go/main/App";
 
 const { t, locale } = useI18n();
@@ -320,9 +321,14 @@ const leftTab = ref<"all" | "fav">("all");
 const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
 const isCommandPressed = ref(false);
 
+// 定时器引用，用于清理
+let autoCleanInterval: ReturnType<typeof setInterval> | null = null;
+// 事件监听器清理函数
+const eventCleanupFunctions: (() => void)[] = [];
+
 // 窗口可见性变化处理函数（需要在组件作用域中定义，以便清理）
 const handleVisibilityChange = () => {
-  if (document.visibilityState === 'hidden') {
+  if (document.visibilityState === "hidden") {
     isCommandPressed.value = false;
   }
 };
@@ -351,7 +357,7 @@ async function getSettings(forceRefresh = false) {
     console.error("❌ 读取设置失败:", e);
   }
   // 返回默认值（数据库初始化时应该已经创建了默认设置）
-  cachedSettings = { pageSize: 100, autoClean: true, retentionDays: 30 };
+  cachedSettings = { pageSize: 50, autoClean: true, retentionDays: 30 };
   return cachedSettings;
 }
 
@@ -360,7 +366,7 @@ async function loadItems() {
   try {
     loading.value = true;
     const settings = await getSettings();
-    const pageSize = settings?.pageSize || 100;
+    const pageSize = settings?.pageSize || 50;
     console.log("📊 使用页面大小:", pageSize);
 
     const result = await SearchClipboardItems(
@@ -388,7 +394,7 @@ async function checkForUpdates() {
   try {
     // 使用缓存的设置，避免频繁查询数据库
     const settings = await getSettings();
-    const pageSize = settings?.pageSize || 100;
+    const pageSize = settings?.pageSize || 50;
 
     const result = await SearchClipboardItems(
       leftTab.value === "fav",
@@ -421,7 +427,34 @@ async function checkForUpdates() {
 
 // 选择项目
 async function selectItem(item: ClipboardItem) {
-  currentItem.value = item;
+  // 清理之前项目的图片数据，释放内存（如果之前是图片类型）
+  if (
+    currentItem.value?.ContentType === "Image" &&
+    currentItem.value.ImageData
+  ) {
+    // 只有当切换到不同项目时才清理
+    if (currentItem.value.ID !== item.ID) {
+      currentItem.value.ImageData = null as any;
+    }
+  }
+
+  // 如果是图片类型且没有图片数据，需要重新加载完整数据
+  if (item.ContentType === "Image" && !item.ImageData) {
+    try {
+      const fullItem = await GetClipboardItemByID(item.ID);
+      if (fullItem) {
+        currentItem.value = fullItem;
+      } else {
+        currentItem.value = item;
+      }
+    } catch (error) {
+      console.error("加载图片数据失败:", error);
+      currentItem.value = item;
+    }
+  } else {
+    currentItem.value = item;
+  }
+
   await nextTick();
   // 确保当前选中项进入可视区域
   const container = itemListRef.value;
@@ -618,10 +651,10 @@ function handleGlobalKeydown(event: KeyboardEvent) {
   // 检测 Command/Ctrl 键按下
   if (event.metaKey || event.ctrlKey) {
     // 只有在窗口可见时才显示标签
-    if (!isCommandPressed.value && document.visibilityState === 'visible') {
+    if (!isCommandPressed.value && document.visibilityState === "visible") {
       isCommandPressed.value = true;
     }
-    
+
     // 检测 Command+数字键（1-9）
     const numKey = parseInt(event.key);
     if (!isNaN(numKey) && numKey >= 1 && numKey <= 9) {
@@ -638,7 +671,11 @@ function handleGlobalKeydown(event: KeyboardEvent) {
     }
   } else {
     // 非 Command 键按下时，如果之前是按下的状态，检查是否是 Command 键本身
-    if (event.key !== "Meta" && event.key !== "Control" && isCommandPressed.value) {
+    if (
+      event.key !== "Meta" &&
+      event.key !== "Control" &&
+      isCommandPressed.value
+    ) {
       // 如果按下的不是 Command 键，说明 Command 已经松开
       isCommandPressed.value = false;
     }
@@ -648,7 +685,14 @@ function handleGlobalKeydown(event: KeyboardEvent) {
 // 处理全局键盘松开事件
 function handleGlobalKeyup(event: KeyboardEvent) {
   // Command/Ctrl 键松开
-  if (event.key === "Meta" || event.key === "Control" || event.key === "MetaLeft" || event.key === "MetaRight" || event.key === "ControlLeft" || event.key === "ControlRight") {
+  if (
+    event.key === "Meta" ||
+    event.key === "Control" ||
+    event.key === "MetaLeft" ||
+    event.key === "MetaRight" ||
+    event.key === "ControlLeft" ||
+    event.key === "ControlRight"
+  ) {
     isCommandPressed.value = false;
   }
 }
@@ -720,84 +764,105 @@ onMounted(() => {
   // 初始化设置缓存
   getSettings().then(() => {
     loadItems();
+    // 启动时执行一次自动清理
+    autoCleanOldItems();
   });
 
-  // 每1秒静默检查更新（不会导致闪烁）
-  setInterval(() => {
-    checkForUpdates();
-  }, 1000);
-
-  // 启动时执行一次自动清理
-  autoCleanOldItems();
+  // 监听剪贴板更新事件（事件驱动）
+  eventCleanupFunctions.push(
+    EventsOn("clipboard.updated", () => {
+      // 收到剪贴板更新事件时，静默刷新列表
+      checkForUpdates();
+    })
+  );
 
   // 每小时执行一次自动清理
-  setInterval(() => {
+  autoCleanInterval = setInterval(() => {
     autoCleanOldItems();
   }, 60 * 60 * 1000); // 1小时 = 60分钟 * 60秒 * 1000毫秒
 
   // 监听全局键盘事件（用于 Command+数字键快速粘贴）
   window.addEventListener("keydown", handleGlobalKeydown);
   window.addEventListener("keyup", handleGlobalKeyup);
-  
+
   // 监听窗口可见性变化，隐藏窗口时重置状态
   document.addEventListener("visibilitychange", handleVisibilityChange);
 
   // 监听窗口显示事件：从后台切换到前台时，选中第一个列表项
-  EventsOn("window.show", () => {
-    // 重置 Command 键状态，避免标签一直显示
-    isCommandPressed.value = false;
-    setTimeout(() => {
-      checkForUpdates();
-      if (items.value.length > 0) {
-        selectItem(items.value[0]);
-      }
-      searchInputRef.value?.focus();
-    }, 100);
-  });
+  eventCleanupFunctions.push(
+    EventsOn("window.show", () => {
+      // 重置 Command 键状态，避免标签一直显示
+      isCommandPressed.value = false;
+      setTimeout(() => {
+        checkForUpdates();
+        if (items.value.length > 0) {
+          selectItem(items.value[0]);
+        }
+        searchInputRef.value?.focus();
+      }, 100);
+    })
+  );
 
   // 监听菜单事件：上一条/下一条
-  EventsOn("nav.prev", () => {
-    if (items.value.length === 0) return;
-    if (!currentItem.value) {
-      selectItem(items.value[0]);
-      return;
-    }
-    const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
-    const nextIdx = Math.max(0, idx - 1);
-    selectItem(items.value[nextIdx]);
-  });
-  EventsOn("nav.next", () => {
-    if (items.value.length === 0) return;
-    if (!currentItem.value) {
-      selectItem(items.value[0]);
-      return;
-    }
-    const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
-    const nextIdx = Math.min(items.value.length - 1, idx + 1);
-    selectItem(items.value[nextIdx]);
-  });
-
-  EventsOn("nav.switch", (tab: "all" | "fav") => {
-    switchLeftTab(tab);
-  });
-  EventsOn("nav.setting", () => {
-    showSetting.value = true;
-  });
-  EventsOn("copy.current", () => {
-    copyItem(currentItem.value!.ID);
-  });
-  EventsOn("delete.current", () => {
-    deleteItem(currentItem.value!.ID);
-  });
-  EventsOn("collect.current", () => {
-    collectItem(currentItem.value!.ID);
-  });
-  EventsOn("search.item", () => {
-    searchInputRef.value?.focus();
-  });
-  EventsOn("translate.current", () => {
-    textEditorRef.value?.translateText();
-  });
+  eventCleanupFunctions.push(
+    EventsOn("nav.prev", () => {
+      if (items.value.length === 0) return;
+      if (!currentItem.value) {
+        selectItem(items.value[0]);
+        return;
+      }
+      const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
+      const nextIdx = Math.max(0, idx - 1);
+      selectItem(items.value[nextIdx]);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("nav.next", () => {
+      if (items.value.length === 0) return;
+      if (!currentItem.value) {
+        selectItem(items.value[0]);
+        return;
+      }
+      const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
+      const nextIdx = Math.min(items.value.length - 1, idx + 1);
+      selectItem(items.value[nextIdx]);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("nav.switch", (tab: "all" | "fav") => {
+      switchLeftTab(tab);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("nav.setting", () => {
+      showSetting.value = true;
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("copy.current", () => {
+      copyItem(currentItem.value!.ID);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("delete.current", () => {
+      deleteItem(currentItem.value!.ID);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("collect.current", () => {
+      collectItem(currentItem.value!.ID);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("search.item", () => {
+      searchInputRef.value?.focus();
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("translate.current", () => {
+      textEditorRef.value?.translateText();
+    })
+  );
 });
 
 function changeLanguage(lang: string) {
@@ -805,11 +870,32 @@ function changeLanguage(lang: string) {
   locale.value = lang as any;
 }
 
-// 组件卸载时清理事件监听器
+// 组件卸载时清理事件监听器和定时器
 onUnmounted(() => {
+  // 清理定时器
+  if (autoCleanInterval) {
+    clearInterval(autoCleanInterval);
+    autoCleanInterval = null;
+  }
+
+  // 清理事件监听器
+  eventCleanupFunctions.forEach((cleanup) => cleanup());
+  eventCleanupFunctions.length = 0;
+
+  // 清理 DOM 事件监听器
   window.removeEventListener("keydown", handleGlobalKeydown);
   window.removeEventListener("keyup", handleGlobalKeyup);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+  // 清理图片数据缓存，释放内存
+  if (
+    currentItem.value?.ContentType === "Image" &&
+    currentItem.value.ImageData
+  ) {
+    currentItem.value.ImageData = null as any;
+  }
+  currentItem.value = null;
+  items.value = [];
 });
 </script>
 
