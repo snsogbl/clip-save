@@ -166,14 +166,15 @@ func SaveClipboardItem(item *ClipboardItem) error {
 	return nil
 }
 
-// GetClipboardItems 获取剪贴板项目列表
+// GetClipboardItems 获取剪贴板项目列表（不加载图片数据以节省内存）
 func GetClipboardItems(limit int) ([]ClipboardItem, error) {
 	if DB == nil {
 		return nil, fmt.Errorf("数据库未初始化")
 	}
 
+	// 列表查询时不加载 image_data，节省内存
 	query := `
-    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, NULL as image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
 	FROM clipboard_items
 	ORDER BY timestamp DESC
 	LIMIT ?
@@ -339,14 +340,15 @@ func ToggleFavorite(id string) (int, error) {
 	return newVal, nil
 }
 
-// SearchClipboardItems 搜索剪贴板项目
+// SearchClipboardItems 搜索剪贴板项目（不加载图片数据以节省内存）
 func SearchClipboardItems(isFavorite bool, keyword string, filterType string, limit int) ([]ClipboardItem, error) {
 	if DB == nil {
 		return nil, fmt.Errorf("数据库未初始化")
 	}
 
+	// 列表查询时不加载 image_data，节省内存
 	query := `
-    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, NULL as image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
 	FROM clipboard_items
 	WHERE 1=1
 	`
@@ -469,7 +471,7 @@ func initDefaultSettings() error {
 	}
 
 	// 创建默认设置 JSON（密码默认为空，表示不需要密码，快捷键默认为 Command+Option++c）
-	defaultSettings := `{"autoClean":true,"retentionDays":30,"pageSize":100,"password":"","hotkey":"Command+Option+c"}`
+	defaultSettings := `{"autoClean":true,"retentionDays":30,"pageSize":50,"password":"","hotkey":"Command+Option+c"}`
 
 	insertSQL := `
 	INSERT INTO app_settings (key, value, updated_at) 

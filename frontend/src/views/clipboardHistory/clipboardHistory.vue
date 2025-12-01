@@ -256,7 +256,8 @@ import {
   ToggleFavorite,
   HideWindowAndQuit,
   SetLanguage,
-  AutoPasteCurrentItem
+  AutoPasteCurrentItem,
+  GetClipboardItemByID
 } from "../../../wailsjs/go/main/App";
 
 const { t, locale } = useI18n();
@@ -351,7 +352,7 @@ async function getSettings(forceRefresh = false) {
     console.error("❌ 读取设置失败:", e);
   }
   // 返回默认值（数据库初始化时应该已经创建了默认设置）
-  cachedSettings = { pageSize: 100, autoClean: true, retentionDays: 30 };
+  cachedSettings = { pageSize: 50, autoClean: true, retentionDays: 30 };
   return cachedSettings;
 }
 
@@ -360,7 +361,7 @@ async function loadItems() {
   try {
     loading.value = true;
     const settings = await getSettings();
-    const pageSize = settings?.pageSize || 100;
+    const pageSize = settings?.pageSize || 50;
     console.log("📊 使用页面大小:", pageSize);
 
     const result = await SearchClipboardItems(
@@ -388,7 +389,7 @@ async function checkForUpdates() {
   try {
     // 使用缓存的设置，避免频繁查询数据库
     const settings = await getSettings();
-    const pageSize = settings?.pageSize || 100;
+    const pageSize = settings?.pageSize || 50;
 
     const result = await SearchClipboardItems(
       leftTab.value === "fav",
@@ -421,7 +422,23 @@ async function checkForUpdates() {
 
 // 选择项目
 async function selectItem(item: ClipboardItem) {
-  currentItem.value = item;
+  // 如果是图片类型且没有图片数据，需要重新加载完整数据
+  if (item.ContentType === "Image" && !item.ImageData) {
+    try {
+      const fullItem = await GetClipboardItemByID(item.ID);
+      if (fullItem) {
+        currentItem.value = fullItem;
+      } else {
+        currentItem.value = item;
+      }
+    } catch (error) {
+      console.error("加载图片数据失败:", error);
+      currentItem.value = item;
+    }
+  } else {
+    currentItem.value = item;
+  }
+  
   await nextTick();
   // 确保当前选中项进入可视区域
   const container = itemListRef.value;
