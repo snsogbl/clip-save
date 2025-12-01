@@ -242,6 +242,26 @@ sudo apt-get install build-essential libgtk-3-dev libwebkit2gtk-4.0-dev
 
 MIT License
 
+## 赞赏支持
+
+💗 **请作者喝杯咖啡**
+
+如果这个软件帮你省下了时间（或者至少没让你抓狂），欢迎请作者喝杯咖啡 ☕ 或者啤酒 🍺！
+
+每一杯咖啡都会神奇地转化为：新功能、更少的 bug（我尽量）、以及作者熬夜写代码时的精神支柱。
+
+你的 Star ⭐ 和捐赠是我修复 bug 和添加新功能的原动力（也是我买咖啡的经费）！
+
+### 微信扫一扫
+
+![赞赏码](frontend/src/assets/static/zs.png)
+
+**"请我喝杯咖啡吧 ☕"**
+
+### 给项目点个 Star ⭐
+
+如果这个项目对你有帮助，欢迎给项目点个 Star ⭐，这是对我最大的支持！
+
 ## 致谢
 
 - [Wails](https://wails.io) - 构建桌面应用的框架
