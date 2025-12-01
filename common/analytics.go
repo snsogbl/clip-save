@@ -102,7 +102,8 @@ func TrackEvent(eventName string, properties map[string]interface{}) {
 			properties = make(map[string]interface{})
 		}
 		properties["$lib"] = "clip-save"
-		properties["$lib_version"] = "2.0.6"
+		properties["$lib_version"] = "2.0.7"
+		properties["$os"] = gRuntime.GOOS
 
 		// 使用 PostHog SDK 发送事件
 		err := posthogClient.Enqueue(posthog.Capture{
