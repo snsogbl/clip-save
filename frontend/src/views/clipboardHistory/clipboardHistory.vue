@@ -321,6 +321,12 @@ const leftTab = ref<"all" | "fav">("all");
 const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
 const isCommandPressed = ref(false);
 
+// 定时器引用，用于清理
+let updateCheckInterval: ReturnType<typeof setInterval> | null = null;
+let autoCleanInterval: ReturnType<typeof setInterval> | null = null;
+// 事件监听器清理函数
+const eventCleanupFunctions: (() => void)[] = [];
+
 // 窗口可见性变化处理函数（需要在组件作用域中定义，以便清理）
 const handleVisibilityChange = () => {
   if (document.visibilityState === 'hidden') {
@@ -422,6 +428,14 @@ async function checkForUpdates() {
 
 // 选择项目
 async function selectItem(item: ClipboardItem) {
+  // 清理之前项目的图片数据，释放内存（如果之前是图片类型）
+  if (currentItem.value?.ContentType === "Image" && currentItem.value.ImageData) {
+    // 只有当切换到不同项目时才清理
+    if (currentItem.value.ID !== item.ID) {
+      currentItem.value.ImageData = null as any;
+    }
+  }
+  
   // 如果是图片类型且没有图片数据，需要重新加载完整数据
   if (item.ContentType === "Image" && !item.ImageData) {
     try {
@@ -740,7 +754,7 @@ onMounted(() => {
   });
 
   // 每1秒静默检查更新（不会导致闪烁）
-  setInterval(() => {
+  updateCheckInterval = setInterval(() => {
     checkForUpdates();
   }, 1000);
 
@@ -748,7 +762,7 @@ onMounted(() => {
   autoCleanOldItems();
 
   // 每小时执行一次自动清理
-  setInterval(() => {
+  autoCleanInterval = setInterval(() => {
     autoCleanOldItems();
   }, 60 * 60 * 1000); // 1小时 = 60分钟 * 60秒 * 1000毫秒
 
@@ -760,61 +774,80 @@ onMounted(() => {
   document.addEventListener("visibilitychange", handleVisibilityChange);
 
   // 监听窗口显示事件：从后台切换到前台时，选中第一个列表项
-  EventsOn("window.show", () => {
-    // 重置 Command 键状态，避免标签一直显示
-    isCommandPressed.value = false;
-    setTimeout(() => {
-      checkForUpdates();
-      if (items.value.length > 0) {
-        selectItem(items.value[0]);
-      }
-      searchInputRef.value?.focus();
-    }, 100);
-  });
+  eventCleanupFunctions.push(
+    EventsOn("window.show", () => {
+      // 重置 Command 键状态，避免标签一直显示
+      isCommandPressed.value = false;
+      setTimeout(() => {
+        checkForUpdates();
+        if (items.value.length > 0) {
+          selectItem(items.value[0]);
+        }
+        searchInputRef.value?.focus();
+      }, 100);
+    })
+  );
 
   // 监听菜单事件：上一条/下一条
-  EventsOn("nav.prev", () => {
-    if (items.value.length === 0) return;
-    if (!currentItem.value) {
-      selectItem(items.value[0]);
-      return;
-    }
-    const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
-    const nextIdx = Math.max(0, idx - 1);
-    selectItem(items.value[nextIdx]);
-  });
-  EventsOn("nav.next", () => {
-    if (items.value.length === 0) return;
-    if (!currentItem.value) {
-      selectItem(items.value[0]);
-      return;
-    }
-    const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
-    const nextIdx = Math.min(items.value.length - 1, idx + 1);
-    selectItem(items.value[nextIdx]);
-  });
-
-  EventsOn("nav.switch", (tab: "all" | "fav") => {
-    switchLeftTab(tab);
-  });
-  EventsOn("nav.setting", () => {
-    showSetting.value = true;
-  });
-  EventsOn("copy.current", () => {
-    copyItem(currentItem.value!.ID);
-  });
-  EventsOn("delete.current", () => {
-    deleteItem(currentItem.value!.ID);
-  });
-  EventsOn("collect.current", () => {
-    collectItem(currentItem.value!.ID);
-  });
-  EventsOn("search.item", () => {
-    searchInputRef.value?.focus();
-  });
-  EventsOn("translate.current", () => {
-    textEditorRef.value?.translateText();
-  });
+  eventCleanupFunctions.push(
+    EventsOn("nav.prev", () => {
+      if (items.value.length === 0) return;
+      if (!currentItem.value) {
+        selectItem(items.value[0]);
+        return;
+      }
+      const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
+      const nextIdx = Math.max(0, idx - 1);
+      selectItem(items.value[nextIdx]);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("nav.next", () => {
+      if (items.value.length === 0) return;
+      if (!currentItem.value) {
+        selectItem(items.value[0]);
+        return;
+      }
+      const idx = items.value.findIndex((i) => i.ID === currentItem.value!.ID);
+      const nextIdx = Math.min(items.value.length - 1, idx + 1);
+      selectItem(items.value[nextIdx]);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("nav.switch", (tab: "all" | "fav") => {
+      switchLeftTab(tab);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("nav.setting", () => {
+      showSetting.value = true;
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("copy.current", () => {
+      copyItem(currentItem.value!.ID);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("delete.current", () => {
+      deleteItem(currentItem.value!.ID);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("collect.current", () => {
+      collectItem(currentItem.value!.ID);
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("search.item", () => {
+      searchInputRef.value?.focus();
+    })
+  );
+  eventCleanupFunctions.push(
+    EventsOn("translate.current", () => {
+      textEditorRef.value?.translateText();
+    })
+  );
 });
 
 function changeLanguage(lang: string) {
@@ -822,11 +855,33 @@ function changeLanguage(lang: string) {
   locale.value = lang as any;
 }
 
-// 组件卸载时清理事件监听器
+// 组件卸载时清理事件监听器和定时器
 onUnmounted(() => {
+  // 清理定时器
+  if (updateCheckInterval) {
+    clearInterval(updateCheckInterval);
+    updateCheckInterval = null;
+  }
+  if (autoCleanInterval) {
+    clearInterval(autoCleanInterval);
+    autoCleanInterval = null;
+  }
+  
+  // 清理事件监听器
+  eventCleanupFunctions.forEach(cleanup => cleanup());
+  eventCleanupFunctions.length = 0;
+  
+  // 清理 DOM 事件监听器
   window.removeEventListener("keydown", handleGlobalKeydown);
   window.removeEventListener("keyup", handleGlobalKeyup);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
+  
+  // 清理图片数据缓存，释放内存
+  if (currentItem.value?.ContentType === "Image" && currentItem.value.ImageData) {
+    currentItem.value.ImageData = null as any;
+  }
+  currentItem.value = null;
+  items.value = [];
 });
 </script>
 
