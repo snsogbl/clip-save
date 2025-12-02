@@ -338,6 +338,7 @@ let cachedSettings: {
   pageSize: number;
   autoClean: boolean;
   retentionDays: number;
+  doubleClickPaste?: boolean;
 } | null = null;
 
 // 从数据库获取设置（带缓存）
@@ -350,14 +351,20 @@ async function getSettings(forceRefresh = false) {
   try {
     const savedSettings = await GetAppSettings();
     if (savedSettings) {
-      cachedSettings = JSON.parse(savedSettings);
+      const parsed = JSON.parse(savedSettings);
+      cachedSettings = {
+        pageSize: parsed.pageSize || 50,
+        autoClean: parsed.autoClean !== undefined ? parsed.autoClean : true,
+        retentionDays: parsed.retentionDays || 30,
+        doubleClickPaste: parsed.doubleClickPaste !== undefined ? parsed.doubleClickPaste : true,
+      };
       return cachedSettings;
     }
   } catch (e) {
     console.error("❌ 读取设置失败:", e);
   }
   // 返回默认值（数据库初始化时应该已经创建了默认设置）
-  cachedSettings = { pageSize: 50, autoClean: true, retentionDays: 30 };
+  cachedSettings = { pageSize: 50, autoClean: true, retentionDays: 30, doubleClickPaste: true };
   return cachedSettings;
 }
 
@@ -473,6 +480,15 @@ async function selectItem(item: ClipboardItem) {
 
 // 处理双击事件
 async function handleDoubleClick(item: ClipboardItem) {
+  const settings = await getSettings();
+  if (settings?.doubleClickPaste === false) {
+    return;
+  }
+  autoPasteCurrentItem(item);
+}
+
+// 自动粘贴当前项目
+async function autoPasteCurrentItem(item: ClipboardItem) {
   // 如果双击的项目不是当前选中的，先选中它
   if (currentItem.value?.ID !== item.ID) {
     await selectItem(item);
@@ -481,6 +497,7 @@ async function handleDoubleClick(item: ClipboardItem) {
   }
   // 复制当前项
   await copyItem(item.ID);
+  
   HideWindowAndQuit();
   AutoPasteCurrentItem();
 }
@@ -616,7 +633,7 @@ function handleSearchKeydown(event: KeyboardEvent) {
     event.stopPropagation();
     // 直接执行复制并退出功能
     if (currentItem.value) {
-      handleDoubleClick(currentItem.value);
+      autoPasteCurrentItem(currentItem.value);
     }
     return;
   }
@@ -663,7 +680,7 @@ function handleGlobalKeydown(event: KeyboardEvent) {
       // 快速粘贴对应索引的项目（索引从 0 开始，所以减 1）
       const index = numKey - 1;
       if (items.value[index]) {
-        handleDoubleClick(items.value[index]);
+        autoPasteCurrentItem(items.value[index]);
       }
       // 重置状态
       isCommandPressed.value = false;

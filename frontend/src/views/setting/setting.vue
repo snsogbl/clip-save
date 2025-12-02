@@ -115,6 +115,21 @@
         <div class="setting-item">
           <div class="setting-item-left">
             <el-icon :size="20" class="setting-icon">
+              <Operation />
+            </el-icon>
+            <div class="setting-item-info">
+              <div class="setting-item-title">{{ $t('settings.doubleClickPaste') }}</div>
+              <div class="setting-item-desc">
+                {{ $t('settings.doubleClickPasteDesc') }}
+              </div>
+            </div>
+          </div>
+          <el-switch v-model="settings.doubleClickPaste" />
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-item-left">
+            <el-icon :size="20" class="setting-icon">
               <Delete />
             </el-icon>
             <div class="setting-item-info">
@@ -300,6 +315,7 @@ const settings = ref({
   password: "", // 加密后的密码
   hotkey: "Command+Option+c", // 全局快捷键
   backgroundMode: false, // 后台运行模式（仅 macOS）
+  doubleClickPaste: true, // 双击自动粘贴功能
 });
 
 // 当前语言

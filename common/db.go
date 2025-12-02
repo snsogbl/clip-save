@@ -471,7 +471,7 @@ func initDefaultSettings() error {
 	}
 
 	// 创建默认设置 JSON（密码默认为空，表示不需要密码，快捷键默认为 Command+Option++c）
-	defaultSettings := `{"autoClean":true,"retentionDays":30,"pageSize":50,"password":"","hotkey":"Command+Option+c"}`
+	defaultSettings := `{"autoClean":true,"retentionDays":30,"pageSize":50,"password":"","hotkey":"Command+Option+c","doubleClickPaste":true}`
 
 	insertSQL := `
 	INSERT INTO app_settings (key, value, updated_at) 
