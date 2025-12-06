@@ -11,6 +11,13 @@
   >
     <SettingView />
   </el-drawer>
+  <!-- 脚本选择器 -->
+  <ScriptSelector
+    v-if="currentItem"
+    v-model="showScriptSelector"
+    :item="currentItem"
+    @script-executed="handleScriptExecuted"
+  />
   <div class="clipboard-container" style="--wails-draggable: no-drag">
     <!-- 顶部工具栏 -->
     <div class="toolbar" style="--wails-draggable: drag">
@@ -166,6 +173,7 @@
             @copy="copyItem"
             @delete="deleteItem"
             @collect="collectItem"
+            @run-script="handleRunScript"
           />
           <div class="content-display">
             <div v-if="!currentItem" class="welcome-text">
@@ -176,7 +184,13 @@
               v-else-if="
                 currentItem.ContentType === 'Image' && currentItem.ImageData
               "
-              :imageData="currentItem.ImageData"
+              :imageData="
+                Array.isArray(currentItem.ImageData)
+                  ? currentItem.ImageData.map((b) =>
+                      String.fromCharCode(b)
+                    ).join('')
+                  : String(currentItem.ImageData)
+              "
             />
             <!-- 文件内容展示 -->
             <ClipboardFileView
@@ -209,6 +223,12 @@
             />
           </div>
         </div>
+        <!-- 脚本执行结果 -->
+        <ScriptResultView
+          v-if="currentItem && scriptResults[currentItem.ID]"
+          :item-id="currentItem.ID"
+          :results="scriptResults[currentItem.ID]"
+        />
         <div v-if="currentItem" class="info-panel">
           <el-descriptions title="">
             <el-descriptions-item :label="$t('main.source')">
@@ -267,12 +287,9 @@ import {
   Folder,
   Brush,
   Picture,
-  DocumentCopy,
-  Delete,
   Setting,
   Star,
   Search,
-  List,
 } from "@element-plus/icons-vue";
 import ClipboardUrlView from "./components/clipboardUrlView.vue";
 import ClipboardColorView from "./components/clipboardColorView.vue";
@@ -281,22 +298,14 @@ import ClipboardTextView from "./components/clipboardTextView.vue";
 import ClipboardImageView from "./components/clipboardImageView.vue";
 import ClipboardJsonView from "./components/clipboardJsonView.vue";
 import ClipboardTitleView from "./components/clipboardTitleView.vue";
+import ScriptResultView from "./components/ScriptResultView.vue";
+import ScriptSelector from "./components/ScriptSelector.vue";
 import SettingView from "../setting/setting.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
+import { common } from "../../../wailsjs/go/models";
 
-interface ClipboardItem {
-  ID: string;
-  Content: string;
-  ContentType: string;
-  ImageData: any; // Go []byte 会被序列化为 base64 字符串
-  FilePaths: string; // JSON 数组格式
-  FileInfo: string; // JSON 格式
-  Timestamp: string;
-  Source: string;
-  CharCount: number;
-  WordCount: number;
-  IsFavorite: number;
-}
+// 使用 Wails 生成的类型
+type ClipboardItem = common.ClipboardItem;
 
 interface FileInfo {
   name: string;
@@ -317,9 +326,20 @@ const searchKeyword = ref("");
 const filterType = ref("");
 const loading = ref(false);
 const showSetting = ref(false);
+const showScriptSelector = ref(false);
 const leftTab = ref<"all" | "fav">("all");
 const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
 const isCommandPressed = ref(false);
+
+// 脚本执行结果存储
+interface ScriptExecutionResult {
+  error?: string;
+  returnValue?: any; // 脚本的返回值
+  timestamp: number;
+  scriptName?: string;
+}
+
+const scriptResults = ref<Record<string, ScriptExecutionResult[]>>({});
 
 // 定时器引用，用于清理
 let autoCleanInterval: ReturnType<typeof setInterval> | null = null;
@@ -356,7 +376,10 @@ async function getSettings(forceRefresh = false) {
         pageSize: parsed.pageSize || 50,
         autoClean: parsed.autoClean !== undefined ? parsed.autoClean : true,
         retentionDays: parsed.retentionDays || 30,
-        doubleClickPaste: parsed.doubleClickPaste !== undefined ? parsed.doubleClickPaste : true,
+        doubleClickPaste:
+          parsed.doubleClickPaste !== undefined
+            ? parsed.doubleClickPaste
+            : true,
       };
       return cachedSettings;
     }
@@ -364,7 +387,12 @@ async function getSettings(forceRefresh = false) {
     console.error("❌ 读取设置失败:", e);
   }
   // 返回默认值（数据库初始化时应该已经创建了默认设置）
-  cachedSettings = { pageSize: 50, autoClean: true, retentionDays: 30, doubleClickPaste: true };
+  cachedSettings = {
+    pageSize: 50,
+    autoClean: true,
+    retentionDays: 30,
+    doubleClickPaste: true,
+  };
   return cachedSettings;
 }
 
@@ -445,6 +473,11 @@ async function selectItem(item: ClipboardItem) {
     }
   }
 
+  // 切换项目时清空之前的脚本执行结果
+  if (currentItem.value && currentItem.value.ID !== item.ID) {
+    delete scriptResults.value[currentItem.value.ID];
+  }
+
   // 如果是图片类型且没有图片数据，需要重新加载完整数据
   if (item.ContentType === "Image" && !item.ImageData) {
     try {
@@ -497,7 +530,7 @@ async function autoPasteCurrentItem(item: ClipboardItem) {
   }
   // 复制当前项
   await copyItem(item.ID);
-  
+
   HideWindowAndQuit();
   AutoPasteCurrentItem();
 }
@@ -586,7 +619,25 @@ async function switchLeftTab(tab: "all" | "fav") {
   await nextTick();
   itemListRef.value?.focus();
 }
-// 格式化时间
+
+// 处理运行脚本按钮点击
+function handleRunScript() {
+  if (currentItem.value) {
+    showScriptSelector.value = true;
+  }
+}
+
+// 处理脚本执行结果
+function handleScriptExecuted(itemId: string, result: ScriptExecutionResult) {
+  if (!scriptResults.value[itemId]) {
+    scriptResults.value[itemId] = [];
+  }
+  scriptResults.value[itemId].push({
+    ...result,
+    timestamp: Date.now(),
+  });
+}
+
 function formatTime(timestamp: string): string {
   const date = new Date(timestamp);
   const now = new Date();
@@ -856,6 +907,13 @@ onMounted(() => {
     })
   );
   eventCleanupFunctions.push(
+    EventsOn("nav.runScript", () => {
+      if (currentItem.value) {
+        showScriptSelector.value = true;
+      }
+    })
+  );
+  eventCleanupFunctions.push(
     EventsOn("copy.current", () => {
       copyItem(currentItem.value!.ID);
     })
@@ -955,6 +1013,17 @@ onUnmounted(() => {
 }
 .search-input :deep(.el-input__wrapper) {
   border-radius: 20px;
+}
+
+.search-input :deep(.el-input__clear) {
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
 }
 
 .filter-select {

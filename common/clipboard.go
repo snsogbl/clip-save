@@ -229,6 +229,9 @@ func handleTextClipboard(content string, appName string) {
 	if err := SaveClipboardItem(&item); err != nil {
 		log.Printf("保存剪贴板内容失败: %v", err)
 	} else {
+		// 执行 after_save 脚本
+		executeAfterSaveScripts(&item)
+
 		// 通知监听器
 		notifyListeners()
 	}
@@ -280,6 +283,9 @@ func handleImageClipboard(imgData []byte, appName string, precomputedHash string
 	if err := SaveClipboardItem(&item); err != nil {
 		log.Printf("❌ 保存图片剪贴板失败: %v", err)
 	} else {
+		// 执行 after_save 脚本
+		executeAfterSaveScripts(&item)
+
 		// 通知监听器
 		notifyListeners()
 	}
@@ -506,6 +512,9 @@ func handleFileClipboard(fileJSON string, fileCount int, appName string, precomp
 	if err := SaveClipboardItem(&item); err != nil {
 		log.Printf("❌ 保存文件剪贴板失败: %v", err)
 	} else {
+		// 执行 after_save 脚本
+		executeAfterSaveScripts(&item)
+
 		// 通知监听器
 		notifyListeners()
 	}
@@ -605,4 +614,30 @@ func calculateFilePathsHash(filePathsJSON string) string {
 	// 对排序后的JSON计算哈希
 	hash := sha256.Sum256(sortedJSON)
 	return hex.EncodeToString(hash[:])
+}
+
+// executeAfterSaveScripts 执行保存后的脚本（发送事件到前端）
+func executeAfterSaveScripts(item *ClipboardItem) {
+	scripts, err := GetEnabledUserScripts("after_save")
+	if err != nil {
+		log.Printf("❌ 获取 after_save 脚本失败: %v", err)
+		return
+	}
+
+	if len(scripts) == 0 {
+		log.Printf("ℹ️ 没有启用的 after_save 脚本")
+		return
+	}
+
+	log.Printf("🔧 找到 %d 个 after_save 脚本，发送事件到前端执行...", len(scripts))
+
+	// 发送事件到前端，让前端在浏览器环境中执行脚本
+	if globalScriptEventCallback != nil {
+		globalScriptEventCallback("clipboard.script.execute", map[string]interface{}{
+			"itemId":  item.ID,
+			"trigger": "after_save",
+		})
+	} else {
+		log.Printf("⚠️ 脚本事件回调未设置，无法执行脚本")
+	}
 }

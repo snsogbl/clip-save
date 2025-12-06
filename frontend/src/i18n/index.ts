@@ -73,7 +73,41 @@ const zhCN = {
     donationMotivation: '你的 Star ⭐ 和捐赠是我修复 bug 和添加新功能的原动力（也是我买咖啡的经费）！',
     donationScan: '微信扫一扫',
     donationCoffee: '请我喝杯咖啡吧',
-    donationStar: '给项目点个 Star ⭐'
+    donationStar: '给项目点个 Star ⭐',
+    scripts: {
+      title: '自定义脚本',
+      manage: '脚本管理',
+      desc: '创建自定义脚本来自动处理剪贴板内容',
+      manageButton: '管理脚本',
+      newScript: '新建脚本',
+      editScript: '编辑脚本',
+      name: '脚本名称',
+      namePlaceholder: '请输入脚本名称',
+      description: '脚本描述',
+      descriptionPlaceholder: '请输入脚本描述（可选）',
+      enabled: '启用',
+      trigger: '触发时机',
+      triggerPlaceholder: '选择触发时机',
+      triggerAfterSave: '保存后',
+      triggerManual: '手动执行',
+      contentTypes: '内容类型',
+      contentTypesPlaceholder: '选择触发的内容类型（留空表示所有类型）',
+      contentTypesHint: '留空表示所有类型都会触发',
+      keywords: '关键词过滤',
+      keywordsPlaceholder: '输入关键词，用逗号或换行分隔',
+      keywordsHint: '只有包含关键词的内容才会触发脚本（留空表示不过滤）。支持正则表达式，格式：/pattern/ 或 /pattern/flags，例如：/^test$/i、/\\d+/',
+      script: '脚本代码',
+      scriptPlaceholder: '请输入 JavaScript 脚本代码',
+      deleteConfirm: '确定要删除脚本 "{name}" 吗？',
+      deleteTitle: '删除脚本',
+      deleteSuccess: '脚本已删除',
+      deleteError: '删除脚本失败',
+      order: '顺序',
+      orderInvalid: '顺序无效',
+      orderUpdated: '顺序已更新',
+      orderUpdateError: '更新顺序失败',
+      findScripts: '查找脚本'
+    }
   },
 
   // 密码设置对话框
@@ -116,7 +150,6 @@ const zhCN = {
     createTime: '创建时间:',
     copy: '复制',
     delete: '删除',
-    clipboardHistory: '剪贴板历史'
   },
 
   // 组件相关文本
@@ -209,8 +242,6 @@ const zhCN = {
     openUrlError: '打开链接失败: {0}',
     settingsSaved: '设置已保存',
     settingsError: '保存设置失败',
-    hotkeyUpdated: '快捷键已更新',
-    hotkeyError: '快捷键更新失败，请重试',
     clearConfirm: '确定要清除所有剪贴板历史记录吗？此操作不可恢复！',
     clearConfirmTitle: '确认清除',
     clearConfirmBtn: '确定清除',
@@ -224,6 +255,29 @@ const zhCN = {
     favoriteAdded: '已收藏',
     favoriteRemoved: '已取消收藏',
     favoriteError: '收藏操作失败'
+  },
+
+  // 通用文本
+  common: {
+    enabled: '已启用',
+    disabled: '已禁用',
+    edit: '编辑',
+    delete: '删除',
+    cancel: '取消',
+    save: '保存',
+    close: '关闭',
+    actions: '操作'
+  },
+
+  // 脚本相关
+  scripts: {
+    selectScript: '选择脚本',
+    noManualScripts: '没有可用的手动执行脚本',
+    filterNotMatch: '脚本"{name}"的过滤条件不匹配当前剪贴板项',
+    runScript: '运行脚本',
+    executeSuccess: '脚本执行完成',
+    executeError: '脚本执行失败',
+    noReturnValue: '脚本没有返回值'
   }
 }
 
@@ -279,6 +333,40 @@ const enUS = {
     clearAllButton: 'Clear All',
     doubleClickPaste: 'Double Click to Paste',
     doubleClickPasteDesc: 'When enabled, double-clicking a clipboard history item will automatically paste it to the currently active window',
+    scripts: {
+      title: 'Custom Scripts',
+      manage: 'Script Management',
+      desc: 'Create custom scripts to automatically process clipboard content',
+      manageButton: 'Manage Scripts',
+      newScript: 'New Script',
+      editScript: 'Edit Script',
+      name: 'Script Name',
+      namePlaceholder: 'Enter script name',
+      description: 'Description',
+      descriptionPlaceholder: 'Enter script description (optional)',
+      enabled: 'Enabled',
+      trigger: 'Trigger',
+      triggerPlaceholder: 'Select trigger',
+      triggerAfterSave: 'After Save',
+      triggerManual: 'Manual Execution',
+      contentTypes: 'Content Types',
+      contentTypesPlaceholder: 'Select content types (empty for all types)',
+      contentTypesHint: 'Empty means all types will trigger',
+      keywords: 'Keywords Filter',
+      keywordsPlaceholder: 'Enter keywords separated by commas or line breaks',
+      keywordsHint: 'Only content containing keywords will trigger (empty means no filter). Supports regex, format: /pattern/ or /pattern/flags, e.g., /^test$/i, /\\d+/',
+      script: 'Script Code',
+      scriptPlaceholder: 'Enter JavaScript script code',
+      deleteConfirm: 'Are you sure you want to delete script "{name}"?',
+      deleteTitle: 'Delete Script',
+      deleteSuccess: 'Script deleted successfully',
+      deleteError: 'Failed to delete script',
+      order: 'Order',
+      orderInvalid: 'Invalid order',
+      orderUpdated: 'Order updated successfully',
+      orderUpdateError: 'Failed to update order',
+      findScripts: 'Find Scripts'
+    },
     interface: 'Interface Settings',
     pageSize: 'Items Per Page',
     pageSizeDesc: 'Number of records to load each time in the list',
@@ -340,7 +428,6 @@ const enUS = {
     createTime: 'Created:',
     copy: 'Copy',
     delete: 'Delete',
-    clipboardHistory: 'Clipboard History'
   },
 
   // 组件相关文本
@@ -433,8 +520,6 @@ const enUS = {
     openUrlError: 'Failed to open link: {0}',
     settingsSaved: 'Settings saved',
     settingsError: 'Failed to save settings',
-    hotkeyUpdated: 'Hotkey updated',
-    hotkeyError: 'Failed to update hotkey, please try again',
     clearConfirm: 'Are you sure you want to clear all clipboard history records? This operation cannot be undone!',
     clearConfirmTitle: 'Confirm Clear',
     clearConfirmBtn: 'Confirm Clear',
@@ -448,6 +533,29 @@ const enUS = {
     favoriteAdded: 'Added to favorites',
     favoriteRemoved: 'Removed from favorites',
     favoriteError: 'Favorite action failed'
+  },
+
+  // 通用文本
+  common: {
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    edit: 'Edit',
+    delete: 'Delete',
+    cancel: 'Cancel',
+    save: 'Save',
+    close: 'Close',
+    actions: 'Actions'
+  },
+
+  // 脚本相关
+  scripts: {
+    selectScript: 'Select Script',
+    noManualScripts: 'No manual execution scripts available',
+    filterNotMatch: 'Script "{name}" filter conditions do not match the current clipboard item',
+    runScript: 'Run Script',
+    executeSuccess: 'Script executed successfully',
+    executeError: 'Script execution failed',
+    noReturnValue: 'Script has no return value'
   }
 }
 
@@ -521,7 +629,41 @@ const frFR = {
     donationMotivation: 'Votre Star ⭐ et vos dons sont ma motivation pour corriger les bugs et ajouter des fonctionnalités (et aussi mon budget café) !',
     donationScan: 'Scanner WeChat',
     donationCoffee: 'Offrez-moi un café',
-    donationStar: 'Mettre une étoile à ce projet ⭐'
+    donationStar: 'Mettre une étoile à ce projet ⭐',
+    scripts: {
+      title: 'Scripts Personnalisés',
+      manage: 'Gestion des Scripts',
+      desc: 'Créer des scripts personnalisés pour traiter automatiquement le contenu du presse-papiers',
+      manageButton: 'Gérer les Scripts',
+      newScript: 'Nouveau Script',
+      editScript: 'Modifier le Script',
+      name: 'Nom du Script',
+      namePlaceholder: 'Entrez le nom du script',
+      description: 'Description',
+      descriptionPlaceholder: 'Entrez la description du script (optionnel)',
+      enabled: 'Activé',
+      trigger: 'Déclencheur',
+      triggerPlaceholder: 'Sélectionner le déclencheur',
+      triggerAfterSave: 'Après Sauvegarde',
+      triggerManual: 'Exécution Manuelle',
+      contentTypes: 'Types de Contenu',
+      contentTypesPlaceholder: 'Sélectionner les types de contenu (vide pour tous les types)',
+      contentTypesHint: 'Vide signifie que tous les types déclencheront',
+      keywords: 'Filtre de Mots-clés',
+      keywordsPlaceholder: 'Entrez les mots-clés séparés par des virgules ou des retours à la ligne',
+      keywordsHint: 'Seul le contenu contenant des mots-clés déclenchera (vide signifie aucun filtre). Supporte les expressions régulières, format: /pattern/ ou /pattern/flags, ex: /^test$/i, /\\d+/',
+      script: 'Code du Script',
+      scriptPlaceholder: 'Entrez le code JavaScript du script',
+      deleteConfirm: 'Êtes-vous sûr de vouloir supprimer le script "{name}" ?',
+      deleteTitle: 'Supprimer le Script',
+      deleteSuccess: 'Script supprimé avec succès',
+      deleteError: 'Échec de la suppression du script',
+      order: 'Ordre',
+      orderInvalid: 'Ordre invalide',
+      orderUpdated: 'Ordre mis à jour avec succès',
+      orderUpdateError: 'Échec de la mise à jour de l\'ordre',
+      findScripts: 'Trouver des Scripts'
+    }
   },
 
   // 密码设置对话框
@@ -564,7 +706,6 @@ const frFR = {
     createTime: 'Créé :',
     copy: 'Copier',
     delete: 'Supprimer',
-    clipboardHistory: 'Historique du Presse-papiers'
   },
 
   // 组件相关文本
@@ -657,8 +798,6 @@ const frFR = {
     openUrlError: 'Échec de l\'ouverture du lien : {0}',
     settingsSaved: 'Paramètres enregistrés',
     settingsError: 'Échec de l\'enregistrement des paramètres',
-    hotkeyUpdated: 'Raccourci mis à jour',
-    hotkeyError: 'Échec de la mise à jour du raccourci, veuillez réessayer',
     clearConfirm: 'Êtes-vous sûr de vouloir effacer tous les enregistrements d\'historique du presse-papiers ? Cette opération est irréversible !',
     clearConfirmTitle: 'Confirmer l\'Effacement',
     clearConfirmBtn: 'Confirmer l\'Effacement',
@@ -671,7 +810,26 @@ const frFR = {
     removePasswordSuccess: 'Mot de passe supprimé',
     favoriteAdded: 'Ajouté aux favoris',
     favoriteRemoved: 'Retiré des favoris',
-    favoriteError: 'Échec de l’action des favoris'
+    favoriteError: 'Échec de l\'action des favoris'
+  },
+
+  // 脚本相关
+  scripts: {
+    selectScript: 'Sélectionner le Script',
+    noManualScripts: 'Aucun script d\'exécution manuelle disponible',
+    filterNotMatch: 'Les conditions de filtrage du script "{name}" ne correspondent pas à l\'élément du presse-papiers actuel',
+    runScript: 'Exécuter le Script',
+    executeSuccess: 'Script exécuté avec succès',
+    executeError: 'Échec de l\'exécution du script',
+    noReturnValue: 'Le script n\'a pas de valeur de retour',
+    deleteConfirm: 'Êtes-vous sûr de vouloir supprimer le script "{name}" ?',
+    deleteTitle: 'Supprimer le Script',
+    deleteSuccess: 'Script supprimé avec succès',
+    deleteError: 'Échec de la suppression du script',
+    order: 'Ordre',
+    orderUpdated: 'Ordre mis à jour avec succès',
+    orderUpdateError: 'Échec de la mise à jour de l\'ordre',
+    findScripts: 'Trouver des Scripts'
   }
 }
 
@@ -745,7 +903,41 @@ const arSA = {
     donationMotivation: 'نجمتك ⭐ وتبرعاتك هي دافعي لإصلاح الأخطاء وإضافة الميزات (وأيضاً ميزانية القهوة الخاصة بي)!',
     donationScan: 'مسح WeChat',
     donationCoffee: 'اشتري لي فنجان قهوة',
-    donationStar: 'ضع نجمة لهذا المشروع ⭐'
+    donationStar: 'ضع نجمة لهذا المشروع ⭐',
+    scripts: {
+      title: 'السكريبتات المخصصة',
+      manage: 'إدارة السكريبتات',
+      desc: 'إنشاء سكريبتات مخصصة لمعالجة محتوى الحافظة تلقائياً',
+      manageButton: 'إدارة السكريبتات',
+      newScript: 'سكريبت جديد',
+      editScript: 'تعديل السكريبت',
+      name: 'اسم السكريبت',
+      namePlaceholder: 'أدخل اسم السكريبت',
+      description: 'الوصف',
+      descriptionPlaceholder: 'أدخل وصف السكريبت (اختياري)',
+      enabled: 'مفعل',
+      trigger: 'المشغل',
+      triggerPlaceholder: 'اختر المشغل',
+      triggerAfterSave: 'بعد الحفظ',
+      triggerManual: 'تنفيذ يدوي',
+      contentTypes: 'أنواع المحتوى',
+      contentTypesPlaceholder: 'اختر أنواع المحتوى (فارغ لجميع الأنواع)',
+      contentTypesHint: 'فارغ يعني أن جميع الأنواع ستعمل',
+      keywords: 'تصفية الكلمات المفتاحية',
+      keywordsPlaceholder: 'أدخل الكلمات المفتاحية مفصولة بفواصل أو أسطر جديدة',
+      keywordsHint: 'فقط المحتوى الذي يحتوي على كلمات مفتاحية سيعمل (فارغ يعني بدون تصفية). يدعم التعبيرات النمطية، التنسيق: /pattern/ أو /pattern/flags، مثال: /^test$/i، /\\d+/',
+      script: 'كود السكريبت',
+      scriptPlaceholder: 'أدخل كود JavaScript للسكريبت',
+      deleteConfirm: 'هل أنت متأكد من حذف السكريبت "{name}"؟',
+      deleteTitle: 'حذف السكريبت',
+      deleteSuccess: 'تم حذف السكريبت بنجاح',
+      deleteError: 'فشل حذف السكريبت',
+      order: 'الترتيب',
+      orderInvalid: 'ترتيب غير صالح',
+      orderUpdated: 'تم تحديث الترتيب بنجاح',
+      orderUpdateError: 'فشل تحديث الترتيب',
+      findScripts: 'البحث عن السكريبتات'
+    }
   },
 
   // 密码设置对话框
@@ -788,7 +980,6 @@ const arSA = {
     createTime: 'تاريخ الإنشاء:',
     copy: 'نسخ',
     delete: 'حذف',
-    clipboardHistory: 'سجل الحافظة'
   },
 
   // 组件相关文本
@@ -881,8 +1072,6 @@ const arSA = {
     openUrlError: 'فشل في فتح الرابط: {0}',
     settingsSaved: 'تم حفظ الإعدادات',
     settingsError: 'فشل في حفظ الإعدادات',
-    hotkeyUpdated: 'تم تحديث الاختصار',
-    hotkeyError: 'فشل في تحديث الاختصار، يرجى المحاولة مرة أخرى',
     clearConfirm: 'هل أنت متأكد من مسح جميع سجلات سجل الحافظة؟ هذه العملية لا يمكن التراجع عنها!',
     clearConfirmTitle: 'تأكيد المسح',
     clearConfirmBtn: 'تأكيد المسح',
@@ -896,8 +1085,27 @@ const arSA = {
     favoriteAdded: 'تمت الإضافة إلى المفضلة',
     favoriteRemoved: 'تمت الإزالة من المفضلة',
     favoriteError: 'فشل إجراء المفضلة'
+  },
+
+  // 脚本相关
+  scripts: {
+    selectScript: 'اختر السكريبت',
+    noManualScripts: 'لا توجد سكريبتات تنفيذ يدوي متاحة',
+    filterNotMatch: 'شروط التصفية للسكريبت "{name}" لا تطابق عنصر الحافظة الحالي',
+    runScript: 'تشغيل السكريبت',
+    executeSuccess: 'تم تنفيذ السكريبت بنجاح',
+    executeError: 'فشل تنفيذ السكريبت',
+    noReturnValue: 'السكريبت ليس له قيمة إرجاع',
+    deleteConfirm: 'هل أنت متأكد من حذف السكريبت "{name}"؟',
+    deleteTitle: 'حذف السكريبت',
+    deleteSuccess: 'تم حذف السكريبت بنجاح',
+    deleteError: 'فشل حذف السكريبت',
+    order: 'الترتيب',
+    orderUpdated: 'تم تحديث الترتيب بنجاح',
+    orderUpdateError: 'فشل تحديث الترتيب',
+    findScripts: 'البحث عن السكريبتات'
+    }
   }
-}
 
 // 创建i18n实例
 const i18n = createI18n({

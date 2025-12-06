@@ -49,6 +49,11 @@ func InitDB() error {
 		return fmt.Errorf("添加新字段失败: %v", err)
 	}
 
+	// 检查并添加脚本表
+	if err := checkAndAddScriptTable(); err != nil {
+		return fmt.Errorf("初始化脚本表失败: %v", err)
+	}
+
 	// 初始化默认设置
 	if err := initDefaultSettings(); err != nil {
 		log.Printf("警告: 初始化默认设置失败: %v", err)

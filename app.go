@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -49,6 +51,13 @@ func (a *App) ShowAbout() {
 func (a *App) ShowSetting() {
 	if a.ctx != nil {
 		runtime.EventsEmit(a.ctx, "nav.setting")
+	}
+}
+
+// RunScript 显示脚本选择器
+func (a *App) RunScript() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "nav.runScript")
 	}
 }
 
@@ -99,6 +108,13 @@ func (a *App) startup(ctx context.Context) {
 		common.AdjustWindowButtons()
 		log.Println("已调整窗口控制按钮位置")
 	}()
+
+	// 设置脚本事件回调函数，用于发送事件到前端
+	common.SetScriptEventCallback(func(eventName string, data interface{}) {
+		if a.ctx != nil {
+			runtime.EventsEmit(a.ctx, eventName, data)
+		}
+	})
 }
 
 // shutdown is called when the app is closing
@@ -783,4 +799,117 @@ func (a *App) RestartRegisterHotkey() error {
 
 	log.Printf("✅ 快捷键注册成功: %s", hotkey)
 	return nil
+}
+
+// GetAllUserScripts 获取所有用户脚本
+func (a *App) GetAllUserScripts() ([]common.UserScript, error) {
+	return common.GetAllUserScripts()
+}
+
+// GetEnabledUserScriptsByTrigger 根据触发类型获取启用的脚本
+func (a *App) GetEnabledUserScriptsByTrigger(trigger string) ([]common.UserScript, error) {
+	return common.GetEnabledUserScripts(trigger)
+}
+
+// UpdateUserScriptOrder 更新单个脚本顺序
+func (a *App) UpdateUserScriptOrder(scriptID string, sortOrder int) error {
+	return common.UpdateUserScriptOrder(scriptID, sortOrder)
+}
+
+// GetUserScriptByID 根据 ID 获取脚本
+func (a *App) GetUserScriptByID(id string) (*common.UserScript, error) {
+	return common.GetUserScriptByID(id)
+}
+
+// SaveUserScript 保存用户脚本
+func (a *App) SaveUserScript(scriptJSON string) error {
+	var script common.UserScript
+	if err := json.Unmarshal([]byte(scriptJSON), &script); err != nil {
+		return fmt.Errorf("解析脚本数据失败: %v", err)
+	}
+	return common.SaveUserScript(&script)
+}
+
+// DeleteUserScript 删除用户脚本
+func (a *App) DeleteUserScript(id string) error {
+	return common.DeleteUserScript(id)
+}
+
+// HttpRequest 通用的 HTTP 请求代理函数（用于绕过 CORS 限制）
+// method: HTTP 方法（GET, POST, PUT, DELETE 等）
+// requestUrl: 请求 URL
+// headersJson: 请求头 JSON 字符串，格式如 {"Content-Type": "application/json", "Authorization": "Bearer token"}
+// bodyJson: 请求体 JSON 字符串（GET 请求可为空字符串）
+// 返回响应体的 JSON 字符串和错误信息
+func (a *App) HttpRequest(method string, requestUrl string, headersJson string, bodyJson string) (string, error) {
+	// 解析请求头
+	var headers map[string]string
+	if headersJson != "" {
+		if err := json.Unmarshal([]byte(headersJson), &headers); err != nil {
+			return "", fmt.Errorf("解析请求头失败: %v", err)
+		}
+	} else {
+		headers = make(map[string]string)
+	}
+
+	// 创建请求体
+	var bodyReader io.Reader
+	if bodyJson != "" && (method == "POST" || method == "PUT" || method == "PATCH") {
+		bodyReader = bytes.NewBufferString(bodyJson)
+	}
+
+	// 创建 HTTP 请求
+	req, err := http.NewRequest(method, requestUrl, bodyReader)
+	if err != nil {
+		return "", fmt.Errorf("创建请求失败: %v", err)
+	}
+
+	// 设置请求头
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	// 如果没有设置 Content-Type 且有请求体，默认设置为 application/json
+	if bodyReader != nil && req.Header.Get("Content-Type") == "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	// 发送请求
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("发送请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// 读取响应体
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("读取响应失败: %v", err)
+	}
+
+	// 构建响应对象
+	response := map[string]interface{}{
+		"status":     resp.StatusCode,
+		"statusText": resp.Status,
+		"headers":    resp.Header,
+		"body":       string(body),
+	}
+
+	// 如果响应是 JSON，尝试解析
+	var bodyObj interface{}
+	if err := json.Unmarshal(body, &bodyObj); err == nil {
+		response["body"] = bodyObj
+	}
+
+	// 返回 JSON 格式的响应
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return "", fmt.Errorf("序列化响应失败: %v", err)
+	}
+
+	return string(responseJSON), nil
 }

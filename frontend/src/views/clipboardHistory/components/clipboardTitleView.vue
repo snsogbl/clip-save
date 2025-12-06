@@ -16,7 +16,11 @@
         round
       >
         <el-icon><Star /></el-icon>
-      <span>{{ item?.IsFavorite === 1 ? $t('main.unfavorite') : $t('main.favorite') }}</span>
+        <span>{{ item?.IsFavorite === 1 ? $t('main.unfavorite') : $t('main.favorite') }}</span>
+      </el-button>
+      <el-button class="me-button" @click="handleRunScript" round>
+        <el-icon><Document /></el-icon>
+        <span>{{ $t('scripts.runScript') }}</span>
       </el-button>
       <el-button type="danger" @click="handleDelete" round>
         <el-icon><Delete /></el-icon>
@@ -28,24 +32,18 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { DocumentCopy, Delete, Star } from "@element-plus/icons-vue";
-
-interface ClipboardItem {
-  ID: string;
-  Content: string;
-  ContentType: string;
-  Source: string;
-  IsFavorite: number;
-}
+import { DocumentCopy, Delete, Star, Document } from "@element-plus/icons-vue";
+import { common } from "../../../../wailsjs/go/models";
 
 const props = defineProps<{
-  item: ClipboardItem | null;
+  item: common.ClipboardItem | null;
 }>();
 
 const emit = defineEmits<{
   copy: [id: string];
   delete: [id: string];
   collect: [id: string];
+  'run-script': [];
 }>();
 
 const displayContent = computed(() => {
@@ -74,6 +72,10 @@ function handleCollect() {
   if (props.item) {
     emit("collect", props.item.ID);
   }
+}
+
+function handleRunScript() {
+  emit("run-script");
 }
 </script>
 

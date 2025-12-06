@@ -75,6 +75,58 @@ export namespace common {
 	        this.extension = source["extension"];
 	    }
 	}
+	export class UserScript {
+	    ID: string;
+	    Name: string;
+	    Enabled: boolean;
+	    Trigger: string;
+	    ContentType: string[];
+	    Keywords: string[];
+	    Script: string;
+	    Description: string;
+	    SortOrder: number;
+	    // Go type: time
+	    CreatedAt: any;
+	    // Go type: time
+	    UpdatedAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new UserScript(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ID = source["ID"];
+	        this.Name = source["Name"];
+	        this.Enabled = source["Enabled"];
+	        this.Trigger = source["Trigger"];
+	        this.ContentType = source["ContentType"];
+	        this.Keywords = source["Keywords"];
+	        this.Script = source["Script"];
+	        this.Description = source["Description"];
+	        this.SortOrder = source["SortOrder"];
+	        this.CreatedAt = this.convertValues(source["CreatedAt"], null);
+	        this.UpdatedAt = this.convertValues(source["UpdatedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 
 }
 

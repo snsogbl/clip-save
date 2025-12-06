@@ -9,7 +9,7 @@ import {
   HideWindow,
 } from "../wailsjs/go/main/App";
 import { ElMessage } from "element-plus";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import "highlight.js/styles/github.css";
 
 const { t } = useI18n();
@@ -49,28 +49,34 @@ async function handleUnlock(password: string) {
     const isValid = await VerifyPassword(password);
     if (isValid) {
       isLocked.value = false;
-      ElMessage.success(t('login.unlockSuccess'));
+      ElMessage.success(t("login.unlockSuccess"));
       console.log("✅ 密码验证成功");
     } else {
-      ElMessage.error(t('login.passwordError'));
+      ElMessage.error(t("login.passwordError"));
       console.log("❌ 密码验证失败");
     }
   } catch (error) {
-    ElMessage.error(t('login.verifyError', [error]));
+    ElMessage.error(t("login.verifyError", [error]));
     console.error("验证密码失败:", error);
   }
 }
 
 const addKeyListener = () => {
   document.addEventListener("keydown", (event) => {
-    // 当图片预览(ElImage Viewer)打开时，按 Esc 不隐藏窗口
-    const hasImagePreview = !!document.querySelector('.el-image-viewer__wrapper');
-    // 检查是否有对话框打开，并且对话框是可见的（display 不为 none）
-    const dialogElement = document.querySelector('.el-overlay');
-    const hasDialog = dialogElement && window.getComputedStyle(dialogElement).display !== 'none';
-    const shouldSuppress = (window as any).__suppressHideWindow || hasImagePreview || hasDialog;
-    console.log("event.key", event.key);
-    if ((event.key === 'Escape' || event.keyCode === 27) && !shouldSuppress) {
+    if (event.key === "Escape" || event.keyCode === 27) {
+      // 当图片预览(ElImage Viewer)打开时，按 Esc 不隐藏窗口
+      const hasImagePreview = !!document.querySelector(
+        ".el-image-viewer__wrapper"
+      );
+      // 检查是否有对话框打开，并且对话框是可见的（display 不为 none）
+      const dialogElements = document.querySelectorAll(".el-overlay");
+      const hasDialog = Array.from(dialogElements).some(
+        (element) => window.getComputedStyle(element).display !== "none"
+      );
+      const shouldSuppress =
+        (window as any).__suppressHideWindow || hasImagePreview || hasDialog;
+
+      if (shouldSuppress) return;
       HideWindow();
     }
     if ((event.metaKey || event.ctrlKey) && event.key === "w") {
@@ -79,7 +85,10 @@ const addKeyListener = () => {
     }
 
     // 拦截 ⌘+↑ / ⌘+↓，避免列表滚动，并触发上一条/下一条
-    if ((event.metaKey || event.ctrlKey) && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+    if (
+      (event.metaKey || event.ctrlKey) &&
+      (event.key === "ArrowUp" || event.key === "ArrowDown")
+    ) {
       event.preventDefault();
       if (event.key === "ArrowUp") {
         EventsEmit("nav.prev");
@@ -104,7 +113,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div style="--wails-draggable: drag;">
+  <div>
     <!-- <div style="width: 100px;height: 100px;background-color: antiquewhite;"></div> -->
     <div v-if="isLoading" class="loading-screen">
       <div class="loading-spinner"></div>

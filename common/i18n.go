@@ -54,6 +54,7 @@ func InitI18n() error {
 			"menu.copyCurrent":      "复制当前项",
 			"menu.deleteCurrent":    "删除当前项",
 			"menu.favoriteCurrent":  "收藏当前项",
+			"menu.runScript":        "运行脚本",
 			"menu.translateCurrent": "翻译",
 		},
 	}
@@ -79,6 +80,7 @@ func InitI18n() error {
 			"menu.copyCurrent":      "Copy Current Item",
 			"menu.deleteCurrent":    "Delete Current Item",
 			"menu.favoriteCurrent":  "Favorite Current Item",
+			"menu.runScript":        "Run Script",
 			"menu.translateCurrent": "Translate",
 		},
 	}
@@ -104,6 +106,7 @@ func InitI18n() error {
 			"menu.copyCurrent":      "Copier l'élément courant",
 			"menu.deleteCurrent":    "Supprimer l'élément courant",
 			"menu.favoriteCurrent":  "Ajouter l'élément courant aux favoris",
+			"menu.runScript":        "Exécuter le script",
 			"menu.translateCurrent": "Traduire",
 		},
 	}
@@ -129,6 +132,7 @@ func InitI18n() error {
 			"menu.copyCurrent":      "نسخ العنصر الحالي",
 			"menu.deleteCurrent":    "حذف العنصر الحالي",
 			"menu.favoriteCurrent":  "إضافة العنصر الحالي للمفضلة",
+			"menu.runScript":        "تشغيل السكريبت",
 			"menu.translateCurrent": "ترجمة",
 		},
 	}

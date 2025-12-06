@@ -200,6 +200,26 @@
       </div>
 
       <div class="setting-section">
+        <h3>{{ $t('settings.scripts.title') }}</h3>
+        <div class="setting-item">
+          <div class="setting-item-left">
+            <el-icon :size="20" class="setting-icon">
+              <Document />
+            </el-icon>
+            <div class="setting-item-info">
+              <div class="setting-item-title">{{ $t('settings.scripts.manage') }}</div>
+              <div class="setting-item-desc">
+                {{ $t('settings.scripts.desc') }}
+              </div>
+            </div>
+          </div>
+          <el-button class="me-button" @click="showScriptManager = true">
+            {{ $t('settings.scripts.manageButton') }}
+          </el-button>
+        </div>
+      </div>
+
+      <div class="setting-section">
         <h3>{{ $t('settings.about') }}</h3>
         <div class="about-info">
           <div class="about-item">
@@ -271,6 +291,9 @@
         <el-button type="primary" @click="savePassword">{{ $t('passwordDialog.confirm') }}</el-button>
       </template>
     </el-dialog>
+
+    <!-- 脚本管理对话框 -->
+    <ScriptManager v-model="showScriptManager" />
   </div>
 </template>
 
@@ -285,9 +308,11 @@ import {
   Key,
   Delete,
   Operation,
-  Star
+  Star,
+  Document
 } from "@element-plus/icons-vue";
 import HotkeyDisplay from "./components/HotkeyDisplay.vue";
+import ScriptManager from "./components/ScriptManager.vue";
 import { useHotkey } from "../../composables/useHotkey";
 import { useI18n } from 'vue-i18n';
 import donationQR from "../../assets/static/zs.png";
@@ -387,6 +412,9 @@ watch(isHotkeyModified, () => {
 const showPasswordDialog = ref(false);
 const newPassword = ref("");
 const confirmPassword = ref("");
+
+// 脚本管理
+const showScriptManager = ref(false);
 
 // 加载设置（从数据库）
 async function loadSettings() {
@@ -578,6 +606,7 @@ async function openGitHubStar() {
     ElMessage.error("打开链接失败");
   }
 }
+
 
 //设置变化，自动保存
 watch(
@@ -778,6 +807,16 @@ onUnmounted(() => {
   margin: 8px 0;
   text-align: left;
   width: 100%;
+}
+
+.script-manager {
+  padding: 0;
+}
+
+.script-manager-header {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .donation-star-link {

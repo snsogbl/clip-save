@@ -22,11 +22,15 @@ export function DeleteClipboardItem(arg1:string):Promise<void>;
 
 export function DeleteCurrentItem():Promise<void>;
 
+export function DeleteUserScript(arg1:string):Promise<void>;
+
 export function DetectQRCode(arg1:string):Promise<boolean>;
 
 export function ForceQuit():Promise<void>;
 
 export function GenerateQRCode(arg1:string,arg2:number):Promise<string>;
+
+export function GetAllUserScripts():Promise<Array<common.UserScript>>;
 
 export function GetAppSettings():Promise<string>;
 
@@ -36,15 +40,21 @@ export function GetClipboardItems(arg1:number):Promise<Array<common.ClipboardIte
 
 export function GetCurrentLanguage():Promise<string>;
 
+export function GetEnabledUserScriptsByTrigger(arg1:string):Promise<Array<common.UserScript>>;
+
 export function GetFileInfo(arg1:string):Promise<Array<common.FileInfo>>;
 
 export function GetStatistics():Promise<Record<string, any>>;
 
 export function GetSupportedLanguages():Promise<Array<string>>;
 
+export function GetUserScriptByID(arg1:string):Promise<common.UserScript>;
+
 export function HideWindow():Promise<void>;
 
 export function HideWindowAndQuit():Promise<void>;
+
+export function HttpRequest(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
 export function NextItem():Promise<void>;
 
@@ -58,9 +68,13 @@ export function RecognizeQRCode(arg1:string):Promise<string>;
 
 export function RestartRegisterHotkey():Promise<void>;
 
+export function RunScript():Promise<void>;
+
 export function SaveAppSettings(arg1:string):Promise<void>;
 
 export function SaveImagePNG(arg1:string,arg2:string):Promise<string>;
+
+export function SaveUserScript(arg1:string):Promise<void>;
 
 export function SearchClipboardItems(arg1:boolean,arg2:string,arg3:string,arg4:number):Promise<Array<common.ClipboardItem>>;
 
@@ -81,5 +95,7 @@ export function SwitchLeftTab(arg1:string):Promise<void>;
 export function ToggleFavorite(arg1:string):Promise<number>;
 
 export function TranslateCurrentItem():Promise<void>;
+
+export function UpdateUserScriptOrder(arg1:string,arg2:number):Promise<void>;
 
 export function VerifyPassword(arg1:string):Promise<boolean>;

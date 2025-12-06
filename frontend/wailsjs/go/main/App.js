@@ -42,6 +42,10 @@ export function DeleteCurrentItem() {
   return window['go']['main']['App']['DeleteCurrentItem']();
 }
 
+export function DeleteUserScript(arg1) {
+  return window['go']['main']['App']['DeleteUserScript'](arg1);
+}
+
 export function DetectQRCode(arg1) {
   return window['go']['main']['App']['DetectQRCode'](arg1);
 }
@@ -52,6 +56,10 @@ export function ForceQuit() {
 
 export function GenerateQRCode(arg1, arg2) {
   return window['go']['main']['App']['GenerateQRCode'](arg1, arg2);
+}
+
+export function GetAllUserScripts() {
+  return window['go']['main']['App']['GetAllUserScripts']();
 }
 
 export function GetAppSettings() {
@@ -70,6 +78,10 @@ export function GetCurrentLanguage() {
   return window['go']['main']['App']['GetCurrentLanguage']();
 }
 
+export function GetEnabledUserScriptsByTrigger(arg1) {
+  return window['go']['main']['App']['GetEnabledUserScriptsByTrigger'](arg1);
+}
+
 export function GetFileInfo(arg1) {
   return window['go']['main']['App']['GetFileInfo'](arg1);
 }
@@ -82,12 +94,20 @@ export function GetSupportedLanguages() {
   return window['go']['main']['App']['GetSupportedLanguages']();
 }
 
+export function GetUserScriptByID(arg1) {
+  return window['go']['main']['App']['GetUserScriptByID'](arg1);
+}
+
 export function HideWindow() {
   return window['go']['main']['App']['HideWindow']();
 }
 
 export function HideWindowAndQuit() {
   return window['go']['main']['App']['HideWindowAndQuit']();
+}
+
+export function HttpRequest(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['HttpRequest'](arg1, arg2, arg3, arg4);
 }
 
 export function NextItem() {
@@ -114,12 +134,20 @@ export function RestartRegisterHotkey() {
   return window['go']['main']['App']['RestartRegisterHotkey']();
 }
 
+export function RunScript() {
+  return window['go']['main']['App']['RunScript']();
+}
+
 export function SaveAppSettings(arg1) {
   return window['go']['main']['App']['SaveAppSettings'](arg1);
 }
 
 export function SaveImagePNG(arg1, arg2) {
   return window['go']['main']['App']['SaveImagePNG'](arg1, arg2);
+}
+
+export function SaveUserScript(arg1) {
+  return window['go']['main']['App']['SaveUserScript'](arg1);
 }
 
 export function SearchClipboardItems(arg1, arg2, arg3, arg4) {
@@ -160,6 +188,10 @@ export function ToggleFavorite(arg1) {
 
 export function TranslateCurrentItem() {
   return window['go']['main']['App']['TranslateCurrentItem']();
+}
+
+export function UpdateUserScriptOrder(arg1, arg2) {
+  return window['go']['main']['App']['UpdateUserScriptOrder'](arg1, arg2);
 }
 
 export function VerifyPassword(arg1) {
