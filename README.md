@@ -6,7 +6,7 @@
 https://apps.apple.com/us/app/剪存/id6754015301
 
 ## 功能特性
-
+- [新增自定义脚本-点击查看](scriptingExample/README.md)
 - 📋 自动保存剪贴板历史
 - 🖼️ 支持文本和图片
 - 🔍 实时搜索和过滤功能
