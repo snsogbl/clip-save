@@ -1,88 +1,103 @@
 <template>
   <div v-if="lastResult" class="script-results">
     <div class="result-header">
-      <el-tag :type="lastResult.error ? 'danger' : 'success'" size="small">
-        {{ lastResult.error ? $t('scripts.executeError') : $t('scripts.executeSuccess') }}
-      </el-tag>
+      <!-- 执行中状态 -->
+      <div v-if="lastResult.status === 'executing'">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span style="margin-left: 4px">
+          {{ lastResult.scriptName || $t("scripts.executing") }}
+        </span>
+      </div>
+      <div v-else>
+        {{
+          lastResult.error
+            ? $t("scripts.executeError")
+            : $t("scripts.executeSuccess")
+        }}
+      </div>
       <span class="result-time">{{ formatTime(lastResult.timestamp) }}</span>
     </div>
-    
+
+    <!-- 执行中提示 -->
+    <div v-if="lastResult.status === 'executing'" class="result-executing">
+      <el-icon class="is-loading"><Loading /></el-icon>
+      <span>{{ $t("scripts.executing") }}: {{ lastResult.scriptName }}</span>
+    </div>
+
     <!-- 错误信息 -->
-    <div v-if="lastResult.error" class="result-error">
+    <div v-else-if="lastResult.error" class="result-error">
       <el-icon><Warning /></el-icon>
       <span>{{ lastResult.error }}</span>
     </div>
-    
+
     <!-- 显示脚本返回值 -->
     <div v-else-if="lastResult.returnValue !== undefined" class="result-return">
       <div class="result-content">
-        <pre class="return-value">{{ formatReturnValue(lastResult.returnValue) }}</pre>
+        <pre class="return-value">{{
+          formatReturnValue(lastResult.returnValue)
+        }}</pre>
       </div>
     </div>
-    
+
     <!-- 如果没有返回值也没有错误，显示空状态 -->
     <div v-else class="result-empty">
-      {{ $t('scripts.noReturnValue') }}
+      {{ $t("scripts.noReturnValue") }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Warning } from '@element-plus/icons-vue'
-import { useI18n } from 'vue-i18n'
+import { computed } from "vue";
+import { Warning, Loading } from "@element-plus/icons-vue";
+import { useI18n } from "vue-i18n";
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 interface ScriptExecutionResult {
-  error?: string
-  returnValue?: any
-  timestamp: number
-  scriptName?: string
+  error?: string;
+  returnValue?: any;
+  timestamp: number;
+  scriptName?: string;
+  status?: "executing" | "completed" | "error";
 }
 
 const props = defineProps<{
-  itemId: string
-  results: ScriptExecutionResult[]
-}>()
+  itemId: string;
+  result: ScriptExecutionResult;
+}>();
 
-// 只显示最后一次执行的结果
-const lastResult = computed(() => {
-  if (!props.results || props.results.length === 0) {
-    return null
-  }
-  return props.results[props.results.length - 1]
-})
+// 直接使用传入的结果
+const lastResult = computed(() => props.result);
 
 // 格式化时间
 function formatTime(timestamp: number): string {
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString('zh-CN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }
 
 // 格式化返回值
 function formatReturnValue(value: any): string {
   if (value === null) {
-    return 'null'
+    return "null";
   }
   if (value === undefined) {
-    return 'undefined'
+    return "undefined";
   }
-  if (typeof value === 'string') {
-    return value
+  if (typeof value === "string") {
+    return value;
   }
-  if (typeof value === 'object') {
+  if (typeof value === "object") {
     try {
-      return JSON.stringify(value, null, 2)
+      return JSON.stringify(value, null, 2);
     } catch {
-      return String(value)
+      return String(value);
     }
   }
-  return String(value)
+  return String(value);
 }
 </script>
 
@@ -147,5 +162,33 @@ function formatReturnValue(value: any): string {
   color: #909399;
   font-size: 13px;
 }
-</style>
 
+.result-executing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #f0f9ff;
+  border-left: 3px solid #409eff;
+  border-radius: 4px;
+  color: #409eff;
+  margin-top: 8px;
+}
+
+.result-executing .el-icon {
+  animation: rotating 2s linear infinite;
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.is-loading {
+  animation: rotating 2s linear infinite;
+}
+</style>

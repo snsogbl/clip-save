@@ -277,6 +277,7 @@ const zhCN = {
     runScript: '运行脚本',
     executeSuccess: '脚本执行完成',
     executeError: '脚本执行失败',
+    executing: '执行中',
     noReturnValue: '脚本没有返回值'
   }
 }
@@ -555,6 +556,7 @@ const enUS = {
     runScript: 'Run Script',
     executeSuccess: 'Script executed successfully',
     executeError: 'Script execution failed',
+    executing: 'Executing',
     noReturnValue: 'Script has no return value'
   }
 }
@@ -821,6 +823,7 @@ const frFR = {
     runScript: 'Exécuter le Script',
     executeSuccess: 'Script exécuté avec succès',
     executeError: 'Échec de l\'exécution du script',
+    executing: 'Exécution en cours',
     noReturnValue: 'Le script n\'a pas de valeur de retour',
     deleteConfirm: 'Êtes-vous sûr de vouloir supprimer le script "{name}" ?',
     deleteTitle: 'Supprimer le Script',
@@ -1095,6 +1098,7 @@ const arSA = {
     runScript: 'تشغيل السكريبت',
     executeSuccess: 'تم تنفيذ السكريبت بنجاح',
     executeError: 'فشل تنفيذ السكريبت',
+    executing: 'قيد التنفيذ',
     noReturnValue: 'السكريبت ليس له قيمة إرجاع',
     deleteConfirm: 'هل أنت متأكد من حذف السكريبت "{name}"؟',
     deleteTitle: 'حذف السكريبت',

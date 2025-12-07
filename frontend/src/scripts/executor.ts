@@ -2,7 +2,7 @@
  * 脚本执行器 - 在浏览器环境中执行用户脚本
  */
 
-import { EventsOn } from '../../wailsjs/runtime/runtime'
+import { EventsOn, EventsEmit } from '../../wailsjs/runtime/runtime'
 import { GetEnabledUserScriptsByTrigger, GetClipboardItemByID, HttpRequest, GetUserScriptsByIDs } from '../../wailsjs/go/main/App'
 import { common } from '../../wailsjs/go/models'
 import { ElMessageBox } from 'element-plus'
@@ -280,7 +280,7 @@ async function handleScriptExecution(data: {
 
     console.log(`找到 ${scriptsToExecute.length} 个匹配的脚本，开始执行...`)
 
-    // 执行每个脚本
+    // 执行每个脚本（静默执行，不显示执行中状态）
     for (const script of scriptsToExecute) {
       console.log(`执行脚本: ${script.Name}`)
       await executeScriptInBrowser(script, item)

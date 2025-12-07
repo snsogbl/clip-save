@@ -16,7 +16,6 @@
     v-if="currentItem"
     v-model="showScriptSelector"
     :item="currentItem"
-    @script-executed="handleScriptExecuted"
   />
   <div class="clipboard-container" style="--wails-draggable: no-drag">
     <!-- 顶部工具栏 -->
@@ -227,7 +226,7 @@
         <ScriptResultView
           v-if="currentItem && scriptResults[currentItem.ID]"
           :item-id="currentItem.ID"
-          :results="scriptResults[currentItem.ID]"
+          :result="scriptResults[currentItem.ID]"
         />
         <div v-if="currentItem" class="info-panel">
           <el-descriptions title="">
@@ -337,9 +336,11 @@ interface ScriptExecutionResult {
   returnValue?: any; // 脚本的返回值
   timestamp: number;
   scriptName?: string;
+  status?: 'executing' | 'completed' | 'error'; // 执行状态
 }
 
-const scriptResults = ref<Record<string, ScriptExecutionResult[]>>({});
+const scriptResults = ref<Record<string, ScriptExecutionResult>>({}); // 只存储最后一次执行结果
+const executingScripts = ref<Record<string, string>>({}); // 正在执行的脚本：itemId -> scriptId
 
 // 定时器引用，用于清理
 let autoCleanInterval: ReturnType<typeof setInterval> | null = null;
@@ -631,17 +632,6 @@ function handleRunScript() {
   }
 }
 
-// 处理脚本执行结果
-function handleScriptExecuted(itemId: string, result: ScriptExecutionResult) {
-  if (!scriptResults.value[itemId]) {
-    scriptResults.value[itemId] = [];
-  }
-  scriptResults.value[itemId].push({
-    ...result,
-    timestamp: Date.now(),
-  });
-}
-
 function formatTime(timestamp: string): string {
   const date = new Date(timestamp);
   const now = new Date();
@@ -883,6 +873,40 @@ onMounted(() => {
   eventCleanupFunctions.push(
     EventsOn("translate.current", () => {
       textEditorRef.value?.translateText();
+    })
+  );
+  
+  // 监听脚本执行中事件
+  eventCleanupFunctions.push(
+    EventsOn("script.executing", (data: { itemId: string; scriptName: string; scriptId: string }) => {
+      const { itemId, scriptName, scriptId } = data;
+      
+      // 记录当前正在执行的脚本ID
+      executingScripts.value[itemId] = scriptId;
+      
+      // 更新执行中状态
+      scriptResults.value[itemId] = {
+        scriptName,
+        timestamp: Date.now(),
+        status: 'executing',
+      };
+    })
+  );
+  
+  // 监听脚本执行完成事件
+  eventCleanupFunctions.push(
+    EventsOn("script.executed", (data: { itemId: string; scriptName: string; result: ScriptExecutionResult }) => {
+      const { itemId, result } = data;
+      
+      // 清除执行中状态
+      delete executingScripts.value[itemId];
+      
+      // 更新为完成状态
+      scriptResults.value[itemId] = {
+        ...result,
+        status: (result.error ? 'error' : 'completed') as 'error' | 'completed',
+        timestamp: result.timestamp || Date.now(),
+      };
     })
   );
 });

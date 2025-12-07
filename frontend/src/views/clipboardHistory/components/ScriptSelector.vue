@@ -56,6 +56,7 @@ import { ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { ArrowRight, Setting } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
+import { EventsEmit } from "../../../../wailsjs/runtime/runtime";
 import { GetEnabledUserScriptsByTrigger } from "../../../../wailsjs/go/main/App";
 import {
   executeScriptInBrowser,
@@ -73,8 +74,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "update:modelValue": [value: boolean];
-  "script-executed": [itemId: string, result: any];
+  "update:modelValue": [value: boolean]
 }>();
 
 const visible = ref(false);
@@ -127,14 +127,28 @@ async function handleSelectScript(script: common.UserScript) {
     ElMessage.warning(t("scripts.filterNotMatch", { name: script.Name }));
     return;
   }
+  
+  visible.value = false;
+  
+  // 发送执行中状态（使用 EventsEmit）
+  EventsEmit('script.executing', {
+    itemId: props.item.ID,
+    scriptName: script.Name,
+    scriptId: script.ID,
+  });
 
   try {
     const result = await executeScriptInBrowser(script, props.item);
 
-    // 发送脚本执行结果事件
-    emit("script-executed", props.item.ID, {
-      ...result,
+    // 发送脚本执行完成事件
+    EventsEmit('script.executed', {
+      itemId: props.item.ID,
       scriptName: script.Name,
+      result: {
+        ...result,
+        scriptName: script.Name,
+        timestamp: Date.now(),
+      },
     });
 
     ElMessage.success(
@@ -149,7 +163,17 @@ async function handleSelectScript(script: common.UserScript) {
       timestamp: Date.now(),
       scriptName: script.Name,
     };
-    emit("script-executed", props.item.ID, errorResult);
+    
+    // 发送脚本执行完成事件（错误）
+    EventsEmit('script.executed', {
+      itemId: props.item.ID,
+      scriptName: script.Name,
+      result: {
+        ...errorResult,
+        status: 'error',
+      },
+    });
+    
     ElMessage.error(`${t("scripts.executeError")}: ${error.message || error}`);
   }
 }
