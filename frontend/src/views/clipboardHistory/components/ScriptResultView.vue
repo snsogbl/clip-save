@@ -127,7 +127,7 @@ function formatReturnValue(value: any): string {
   background-color: #f5f7fa;
   border-radius: 4px;
   padding: 12px;
-  max-height: 150px;
+  max-height: 260px;
   overflow-y: auto;
 }
 

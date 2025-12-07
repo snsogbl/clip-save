@@ -1,5 +1,10 @@
-// 时间戳转换脚本
-// 自动检测输入是时间戳还是日期时间，并执行相应转换
+/**
+ * 自动检测输入是时间戳还是日期时间，并执行相应转换
+ * @author ClipSave
+ * @param {string} input - 输入的时间戳或日期时间字符串，从剪贴板内容获取
+ * @returns {object} - 转换结果
+ * @returns {object} - 错误信息
+ */
 
 if (item.ContentType !== 'Text') {
   return {

@@ -1,5 +1,10 @@
-// 文本提取脚本
-// 从文本中提取邮箱、URL、手机号等信息
+/**
+ * 从文本中提取邮箱、URL、手机号等信息
+ * @author ClipSave
+ * @param {string} text - 文本内容，从剪贴板内容获取
+ * @returns {object} - 提取结果
+ * @returns {object} - 错误信息
+ */
 
 if (item.ContentType !== "Text") {
   return {

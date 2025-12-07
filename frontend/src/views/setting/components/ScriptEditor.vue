@@ -85,6 +85,7 @@
             v-model="form.script"
             class="script-editor"
             :placeholder="$t('settings.scripts.scriptPlaceholder')"
+            @keydown="handleKeydown"
           />
         </div>
       </el-form-item>
@@ -101,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import {
   GetUserScriptByID,
@@ -218,6 +219,30 @@ if (item.ContentType === 'Text') {
     description: "",
   };
   isEdit.value = false;
+}
+
+// 处理键盘事件（Tab 键插入制表符）
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === "Tab") {
+    event.preventDefault();
+    const textarea = event.target as HTMLTextAreaElement;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = textarea.value;
+    
+    // 插入 2 个空格（或使用 \t 插入制表符）
+    const tab = "  "; // 2 个空格
+    const newValue = value.substring(0, start) + tab + value.substring(end);
+    
+    // 更新值
+    form.value.script = newValue;
+    
+    // 恢复光标位置（插入后光标应该在插入内容之后）
+    nextTick(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + tab.length;
+      textarea.focus();
+    });
+  }
 }
 
 function handleClose() {

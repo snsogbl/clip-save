@@ -26,11 +26,18 @@
       </div>
       <div v-else class="script-list">
         <div
-          v-for="script in scripts"
+          v-for="(script, index) in scripts"
           :key="script.ID"
           class="script-item"
           @click="handleSelectScript(script)"
         >
+          <!-- 数字标签（按住 Command 时显示前 9 个） -->
+          <div
+            v-if="isCommandPressed && index < 9"
+            class="quick-access-badge"
+          >
+            {{ index + 1 }}
+          </div>
           <div class="script-info">
             <div class="script-name">{{ script.Name }}</div>
           </div>
@@ -56,6 +63,7 @@ import {
 } from "../../../scripts/executor";
 import { common } from "../../../../wailsjs/go/models";
 import ScriptManager from "../../setting/components/ScriptManager.vue";
+import { useCommandNumberShortcut } from "../../../composables/useCommandNumberShortcut";
 
 const { t } = useI18n();
 
@@ -145,13 +153,23 @@ async function handleSelectScript(script: common.UserScript) {
     ElMessage.error(`${t("scripts.executeError")}: ${error.message || error}`);
   }
 }
+
+// 使用 Command+数字键快捷键
+const { isCommandPressed } = useCommandNumberShortcut({
+  enabled: visible,
+  itemCount: () => scripts.value.length,
+  onSelect: (index) => {
+    if (scripts.value[index]) {
+      handleSelectScript(scripts.value[index]);
+    }
+  },
+  useCapture: true, // 使用捕获阶段，确保优先处理
+  stopPropagation: true, // 阻止事件传播
+  stopImmediatePropagation: true, // 阻止其他监听器处理
+});
 </script>
 
 <style scoped>
-.script-selector {
-  /* min-height: 200px; */
-}
-
 .empty-state {
   text-align: center;
   padding: 40px;
@@ -174,6 +192,8 @@ async function handleSelectScript(script: common.UserScript) {
   cursor: pointer;
   transition: all 0.2s;
   width: calc(100% / 6 - 6px);
+  position: relative;
+  overflow: hidden;
 }
 
 .script-item:hover {
@@ -202,5 +222,23 @@ async function handleSelectScript(script: common.UserScript) {
   align-items: center;
   width: 100%;
   margin-top: -4px;
+}
+
+.quick-access-badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 14px;
+  height: 14px;
+  background: rgba(153, 153, 153, 0.6);
+  color: #fff;
+  border-top-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 10;
 }
 </style>

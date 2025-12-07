@@ -1,5 +1,22 @@
-// JWT Token 生成脚本
-const jwtKey = "your-secret-key";
+/**
+ * 生成 JWT Token
+ * @author ClipSave
+ * @param {string} memberCode - 会员码，从剪贴板内容获取
+ * @param {string} secretKey - 密钥
+ * @returns {string} - 生成的 JWT Token
+ * @returns {object} - 错误信息
+ */
+
+const secretKey = "your-secret-key";
+
+// 主逻辑：从剪贴板内容获取 memberCode
+const memberCode = item.Content ? item.Content.trim() : "";
+
+if (!memberCode) {
+  return {
+    error: "剪贴板内容为空，无法生成 token"
+  };
+}
 
 function base64UrlEncode(str) {
   const encoder = new TextEncoder();
@@ -59,16 +76,7 @@ async function generateJWT(memberCode, secretKey) {
   return `${encodedHeader}.${encodedPayload}.${signatureBase64}`;
 }
 
-// 主逻辑：从剪贴板内容获取 memberCode
-const memberCode = item.Content ? item.Content.trim() : "";
-
-if (!memberCode) {
-  return {
-    error: "剪贴板内容为空，无法生成 token"
-  };
-}
-
 // 生成 token
-const token = await generateJWT(memberCode, jwtKey);
+const token = await generateJWT(memberCode, secretKey);
 
 return token;

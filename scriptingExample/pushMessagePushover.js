@@ -1,5 +1,13 @@
-// Pushover 推送消息脚本
-// 将剪贴板内容推送到 Pushover
+/**
+ * 将剪贴板内容推送到 Pushover
+ * @author ClipSave
+ * @param {string} token - Pushover token
+ * @param {string} user - Pushover user key
+ * @param {string} device - Pushover device name
+ * @param {string} message - 消息内容，从剪贴板内容获取
+ * @returns {object} - 推送结果
+ * @returns {object} - 错误信息
+ */
 
 // 从剪贴板项获取消息内容
 if (item.ContentType !== 'Text') {

@@ -1,6 +1,11 @@
-// 钉钉推送消息脚本
-// 将剪贴板内容推送到钉钉群
-// 使用通用 httpRequest 函数绕过 CORS 限制
+/**
+ * 将剪贴板内容推送到钉钉群
+ * @author ClipSave
+ * @param {string} access_token - 钉钉机器人 access_token
+ * @param {string} message - 消息内容，从剪贴板内容获取
+ * @returns {object} - 推送结果
+ * @returns {object} - 错误信息
+ */
 
 const access_token = "your-access-token";
 

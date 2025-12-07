@@ -1,5 +1,10 @@
-// URL 短链接生成脚本
-// 使用 TinyURL API 生成短链接
+/**
+ * 使用 TinyURL API 生成短链接
+ * @author ClipSave
+ * @param {string} url - 输入的 URL，从剪贴板内容获取
+ * @returns {object} - 短链接
+ * @returns {object} - 错误信息
+ */
 
 // 检查剪贴板内容是否为 URL
 if (item.ContentType !== 'URL') {

@@ -33,7 +33,7 @@
 
 #### 手动执行脚本
 1. 选中一个剪贴板项
-2. 点击标题栏的"运行脚本"按钮
+2. 点击标题栏的"运行脚本"按钮（快捷键：command+r）
 3. 在弹出的对话框中选择要执行的脚本
 4. 查看执行结果
 
@@ -85,29 +85,6 @@ async function process() {
 }
 return process();
 ```
-
-#### 调试技巧
-
-在开发脚本时，可以使用以下方式查看调试信息：
-
-1. **使用 `alert()` 函数**：显示弹窗提示，适合快速查看中间结果
-   ```javascript
-   alert("当前内容: " + item.Content);
-   alert("处理结果: " + result);
-   ```
-
-2. **使用 `return` 返回值**：返回值会显示在脚本执行结果区域
-   ```javascript
-   // 返回调试信息
-   return {
-     debug: "调试信息",
-     content: item.Content,
-     result: processedResult
-   };
-   
-   // 或者直接返回字符串
-   return "调试信息: " + JSON.stringify(item, null, 2);
-   ```
 
 ## 📚 现有脚本示例
 
@@ -257,8 +234,28 @@ async function fetchData() {
 }
 return await fetchData();
 ```
+### 4. **使用 `alert()` 函数**：显示弹窗提示，适合快速查看中间结果
+   ```javascript
+   alert("当前内容: " + item.Content);
+   alert("处理结果: " + result);
+   ```
 
-### 4. 使用浏览器 API
+### 5. **使用 `return` 返回值**：返回值会显示在脚本执行结果区域
+   ```javascript
+   // 返回调试信息
+   return {
+     debug: "调试信息",
+     content: item.Content,
+     result: processedResult
+   };
+   
+   // 或者直接返回字符串
+   return "调试信息: " + JSON.stringify(item, null, 2);
+   ```
+
+
+
+### 6. 使用浏览器 API
 脚本可以访问所有浏览器 API：
 
 - `fetch()` - HTTP 请求（注意：可能受 CORS 限制）
@@ -268,7 +265,7 @@ return await fetchData();
 - `Date` - 日期时间处理
 - 等等...
 
-### 5. 使用 httpRequest 函数绕过 CORS
+### 7. 使用 httpRequest 函数绕过 CORS
 当需要调用外部 API 时，如果遇到 CORS 限制，可以使用内置的 `httpRequest` 函数：
 
 ```javascript
@@ -294,7 +291,7 @@ console.log(response.body);      // 响应体（可能是对象或字符串）
 
 **注意：** `httpRequest` 函数由脚本执行器自动注入，无需手动导入。
 
-### 6. 关键词过滤的正则表达式
+### 8. 关键词过滤的正则表达式
 在脚本配置中，关键词字段支持正则表达式，可以更精确地匹配内容：
 
 ```javascript

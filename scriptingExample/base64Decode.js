@@ -1,5 +1,10 @@
-// Base64 解码脚本
-// 将 Base64 编码的字符串解码为原始文本
+/**
+ * 将 Base64 编码的字符串解码为原始文本
+ * @author ClipSave
+ * @param {string} input - 输入的 Base64 编码的字符串
+ * @returns {string} - 解码后的原始文本
+ * @returns {object} - 错误信息
+ */
 
 if (item.ContentType !== "Text") {
   return {

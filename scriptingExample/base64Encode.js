@@ -1,5 +1,10 @@
-// Base64 编码脚本
-// 将文本内容编码为 Base64 格式
+/**
+ * 将文本内容编码为 Base64 格式
+ * @author ClipSave
+ * @param {string} input - 输入的文本内容
+ * @returns {string} - 编码后的 Base64 字符串
+ * @returns {object} - 错误信息
+ */
 
 if (item.ContentType !== "Text") {
   return {
