@@ -616,6 +616,113 @@ func calculateFilePathsHash(filePathsJSON string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+// shouldTriggerScript 检查脚本是否应该触发（匹配内容类型和关键词）
+func shouldTriggerScript(script *UserScript, item *ClipboardItem) bool {
+	// 检查内容类型
+	if len(script.ContentType) > 0 {
+		matched := false
+		for _, contentType := range script.ContentType {
+			if contentType == item.ContentType {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+
+	// 检查关键词（支持正则表达式）
+	if len(script.Keywords) > 0 {
+		content := strings.ToLower(item.Content)
+		hasKeyword := false
+
+		for _, keyword := range script.Keywords {
+			keywordLower := strings.ToLower(keyword)
+
+			// 检查是否是正则表达式格式（以 / 开头）
+			if strings.HasPrefix(keyword, "/") && len(keyword) > 1 {
+				// 去掉开头的 /
+				regexStr := keyword[1:]
+
+				// 查找最后一个 / 的位置（用于分割 pattern 和 flags）
+				lastSlashIndex := strings.LastIndex(regexStr, "/")
+
+				var pattern string
+				var flags string
+
+				if lastSlashIndex >= 0 {
+					// 有 / 分隔符，可能是 /pattern/ 或 /pattern/flags
+					pattern = regexStr[:lastSlashIndex]
+					afterSlash := regexStr[lastSlashIndex+1:]
+
+					if len(afterSlash) > 0 {
+						// 有标志部分，如 /pattern/i
+						flags = afterSlash
+					}
+				} else {
+					// 没有找到 /，说明格式不对，回退到字符串匹配
+					if strings.Contains(content, keywordLower) {
+						hasKeyword = true
+						break
+					}
+					continue
+				}
+
+				// 如果 pattern 为空，回退到字符串匹配
+				if pattern == "" {
+					if strings.Contains(content, keywordLower) {
+						hasKeyword = true
+						break
+					}
+					continue
+				}
+
+				// 根据 flags 决定是否区分大小写
+				caseInsensitive := strings.Contains(flags, "i")
+				var regex *regexp.Regexp
+				var err error
+
+				if caseInsensitive {
+					// 不区分大小写：添加 (?i) 标志
+					regex, err = regexp.Compile("(?i)" + pattern)
+				} else {
+					// 区分大小写：直接编译
+					regex, err = regexp.Compile(pattern)
+				}
+
+				if err != nil {
+					// 正则表达式无效，回退到字符串匹配
+					log.Printf("⚠️ 无效的正则表达式: %s, 回退到字符串匹配", keyword)
+					if strings.Contains(content, keywordLower) {
+						hasKeyword = true
+						break
+					}
+					continue
+				}
+
+				// 使用编译好的正则表达式匹配
+				if regex.MatchString(item.Content) {
+					hasKeyword = true
+					break
+				}
+			} else {
+				// 普通字符串匹配（不区分大小写）
+				if strings.Contains(content, keywordLower) {
+					hasKeyword = true
+					break
+				}
+			}
+		}
+
+		if !hasKeyword {
+			return false
+		}
+	}
+
+	return true
+}
+
 // executeAfterSaveScripts 执行保存后的脚本（发送事件到前端）
 func executeAfterSaveScripts(item *ClipboardItem) {
 	scripts, err := GetEnabledUserScripts("after_save")
@@ -629,13 +736,45 @@ func executeAfterSaveScripts(item *ClipboardItem) {
 		return
 	}
 
-	log.Printf("🔧 找到 %d 个 after_save 脚本，发送事件到前端执行...", len(scripts))
+	// 过滤匹配的脚本，只收集ID
+	var matchedScriptIDs []string
+	for i := range scripts {
+		if shouldTriggerScript(&scripts[i], item) {
+			matchedScriptIDs = append(matchedScriptIDs, scripts[i].ID)
+		}
+	}
 
-	// 发送事件到前端，让前端在浏览器环境中执行脚本
+	if len(matchedScriptIDs) == 0 {
+		log.Printf("ℹ️ 没有匹配的 after_save 脚本")
+		return
+	}
+
+	log.Printf("🔧 找到 %d 个匹配的 after_save 脚本，发送事件到前端执行...", len(matchedScriptIDs))
+
+	// 准备 item 数据（不包含 ImageData，避免事件数据过大）
+	// ImageData 如果脚本需要，前端可以延迟加载
+	itemData := map[string]interface{}{
+		"ID":          item.ID,
+		"Content":     item.Content,
+		"ContentType": item.ContentType,
+		"ContentHash": item.ContentHash,
+		"FilePaths":   item.FilePaths,
+		"FileInfo":    item.FileInfo,
+		"Timestamp":   item.Timestamp.Format(time.RFC3339),
+		"Source":      item.Source,
+		"CharCount":   item.CharCount,
+		"WordCount":   item.WordCount,
+		"IsFavorite":  item.IsFavorite,
+		// 注意：不传递 ImageData，如果脚本需要，前端会延迟加载
+	}
+
+	// 发送事件到前端，包含匹配的脚本ID列表和 item 数据
 	if globalScriptEventCallback != nil {
 		globalScriptEventCallback("clipboard.script.execute", map[string]interface{}{
-			"itemId":  item.ID,
-			"trigger": "after_save",
+			"itemId":    item.ID,
+			"trigger":   "after_save",
+			"scriptIds": matchedScriptIDs, // 直接传递匹配的脚本ID列表
+			"item":      itemData,         // 传递 item 数据，避免前端再次查询
 		})
 	} else {
 		log.Printf("⚠️ 脚本事件回调未设置，无法执行脚本")

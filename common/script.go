@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -291,6 +292,63 @@ func GetUserScriptByID(id string) (*UserScript, error) {
 	}
 
 	return &script, nil
+}
+
+// GetUserScriptsByIDs 根据 ID 列表批量获取脚本
+func GetUserScriptsByIDs(ids []string) ([]UserScript, error) {
+	if DB == nil {
+		return nil, fmt.Errorf("数据库未初始化")
+	}
+
+	if len(ids) == 0 {
+		return []UserScript{}, nil
+	}
+
+	// 构建 IN 查询的占位符
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	query := fmt.Sprintf(`SELECT id, name, enabled, trigger, content_types, keywords, 
+	                            script, description, sort_order, created_at, updated_at
+	                     FROM user_scripts WHERE id IN (%s)`,
+		strings.Join(placeholders, ","))
+
+	rows, err := DB.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("批量查询脚本失败: %v", err)
+	}
+	defer rows.Close()
+
+	var scripts []UserScript
+	for rows.Next() {
+		var script UserScript
+		var contentTypesJSON, keywordsJSON string
+
+		err := rows.Scan(
+			&script.ID, &script.Name, &script.Enabled, &script.Trigger,
+			&contentTypesJSON, &keywordsJSON, &script.Script,
+			&script.Description, &script.SortOrder, &script.CreatedAt, &script.UpdatedAt,
+		)
+		if err != nil {
+			log.Printf("扫描脚本行失败: %v", err)
+			continue
+		}
+
+		if contentTypesJSON != "" {
+			json.Unmarshal([]byte(contentTypesJSON), &script.ContentType)
+		}
+		if keywordsJSON != "" {
+			json.Unmarshal([]byte(keywordsJSON), &script.Keywords)
+		}
+
+		scripts = append(scripts, script)
+	}
+
+	return scripts, nil
 }
 
 // UpdateUserScriptOrder 更新单个脚本顺序

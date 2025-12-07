@@ -98,6 +98,10 @@ export function GetUserScriptByID(arg1) {
   return window['go']['main']['App']['GetUserScriptByID'](arg1);
 }
 
+export function GetUserScriptsByIDs(arg1) {
+  return window['go']['main']['App']['GetUserScriptsByIDs'](arg1);
+}
+
 export function HideWindow() {
   return window['go']['main']['App']['HideWindow']();
 }

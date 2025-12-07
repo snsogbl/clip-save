@@ -3,7 +3,7 @@
  */
 
 import { EventsOn } from '../../wailsjs/runtime/runtime'
-import { GetEnabledUserScriptsByTrigger, GetClipboardItemByID, HttpRequest } from '../../wailsjs/go/main/App'
+import { GetEnabledUserScriptsByTrigger, GetClipboardItemByID, HttpRequest, GetUserScriptsByIDs } from '../../wailsjs/go/main/App'
 import { common } from '../../wailsjs/go/models'
 import { ElMessageBox } from 'element-plus'
 
@@ -214,32 +214,74 @@ export async function executeScriptInBrowser(
 async function handleScriptExecution(data: {
   itemId: string
   trigger: string
+  scriptIds?: string[]  // 可选的脚本ID列表（后端已匹配）
+  item?: ClipboardItem  // 可选的 item 数据（后端已传递，避免重复查询）
 }) {
-  const { itemId, trigger } = data
+  const { itemId, trigger, scriptIds, item: itemFromEvent } = data
 
   try {
-    // 获取剪贴板项
-    const item = await GetClipboardItemByID(itemId)
-    if (!item) {
-      console.error(`未找到剪贴板项: ${itemId}`)
-      return
+    // 如果后端已经传递了 item 数据，直接使用；否则查询数据库
+    let item: ClipboardItem
+    if (itemFromEvent) {
+      console.log(`使用后端传递的 item 数据`)
+      // 使用 ClipboardItem.createFrom 转换数据
+      item = common.ClipboardItem.createFrom(itemFromEvent)
+      
+      // 如果 item 是图片类型且没有 ImageData，延迟加载
+      if (item.ContentType === 'Image' && (!item.ImageData || item.ImageData.length === 0)) {
+        console.log(`延迟加载图片数据...`)
+        const fullItem = await GetClipboardItemByID(itemId)
+        if (fullItem && fullItem.ImageData) {
+          item.ImageData = fullItem.ImageData
+        }
+      }
+    } else {
+      // 兼容旧逻辑：如果没有传递 item，查询数据库
+      console.log(`查询 item 数据...`)
+      const queriedItem = await GetClipboardItemByID(itemId)
+      if (!queriedItem) {
+        console.error(`未找到剪贴板项: ${itemId}`)
+        return
+      }
+      item = queriedItem
     }
 
-    // 根据 trigger 获取启用的脚本
-    const scripts = await GetEnabledUserScriptsByTrigger(trigger)
-    const matchedScripts = scripts.filter(
-      (script) => shouldTriggerScript(script, item)
-    )
+    let scriptsToExecute: UserScript[] = []
 
-    if (matchedScripts.length === 0) {
+    // 如果后端已经提供了匹配的脚本ID列表，直接使用
+    if (scriptIds && scriptIds.length > 0) {
+      console.log(`后端已匹配 ${scriptIds.length} 个脚本，批量获取执行...`)
+      
+      // 使用批量查询接口获取脚本
+      try {
+        scriptsToExecute = await GetUserScriptsByIDs(scriptIds)
+        
+        if (scriptsToExecute.length === 0) {
+          console.log(`无法获取匹配的脚本`)
+          return
+        }
+      } catch (error) {
+        console.error(`批量获取脚本失败:`, error)
+        return
+      }
+    } else {
+      // 兼容旧逻辑：如果没有提供脚本ID，使用原有方式（用于其他trigger类型）
+      console.log(`使用原有方式获取 ${trigger} 脚本...`)
+      const scripts = await GetEnabledUserScriptsByTrigger(trigger)
+      scriptsToExecute = scripts.filter(
+        (script) => shouldTriggerScript(script, item)
+      )
+    }
+
+    if (scriptsToExecute.length === 0) {
       console.log(`没有匹配的 ${trigger} 脚本`)
       return
     }
 
-    console.log(`找到 ${matchedScripts.length} 个匹配的脚本，开始执行...`)
+    console.log(`找到 ${scriptsToExecute.length} 个匹配的脚本，开始执行...`)
 
     // 执行每个脚本
-    for (const script of matchedScripts) {
+    for (const script of scriptsToExecute) {
       console.log(`执行脚本: ${script.Name}`)
       await executeScriptInBrowser(script, item)
     }

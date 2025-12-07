@@ -821,6 +821,11 @@ func (a *App) GetUserScriptByID(id string) (*common.UserScript, error) {
 	return common.GetUserScriptByID(id)
 }
 
+// GetUserScriptsByIDs 根据 ID 列表批量获取脚本
+func (a *App) GetUserScriptsByIDs(ids []string) ([]common.UserScript, error) {
+	return common.GetUserScriptsByIDs(ids)
+}
+
 // SaveUserScript 保存用户脚本
 func (a *App) SaveUserScript(scriptJSON string) error {
 	var script common.UserScript

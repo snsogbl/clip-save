@@ -50,6 +50,8 @@ export function GetSupportedLanguages():Promise<Array<string>>;
 
 export function GetUserScriptByID(arg1:string):Promise<common.UserScript>;
 
+export function GetUserScriptsByIDs(arg1:Array<string>):Promise<Array<common.UserScript>>;
+
 export function HideWindow():Promise<void>;
 
 export function HideWindowAndQuit():Promise<void>;
