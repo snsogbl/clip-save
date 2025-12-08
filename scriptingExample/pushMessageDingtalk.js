@@ -7,6 +7,8 @@
  * @returns {object} - 错误信息
  */
 
+import { csRequest } from "@clipsave/api";
+
 const access_token = "your-access-token";
 
 // 从剪贴板项获取消息内容
@@ -30,13 +32,6 @@ const webhookUrl =
 
 // ===== 发送消息 =====
 try {
-  // 检查 httpRequest 函数是否可用
-  if (typeof httpRequest === "undefined" || !httpRequest) {
-    return {
-      error: "无法访问 httpRequest 函数，请确保应用已更新到最新版本",
-    };
-  }
-
   // 如果设置了加签密钥，生成签名并添加到 URL
   let finalUrl = webhookUrl;
 
@@ -48,8 +43,8 @@ try {
     },
   };
 
-  // 使用通用 httpRequest 函数发送请求
-  const responseJson = await httpRequest(
+  // 使用通用 csRequest 函数发送请求
+  const responseJson = await csRequest(
     "POST",
     finalUrl,
     JSON.stringify({ "Content-Type": "application/json" }),

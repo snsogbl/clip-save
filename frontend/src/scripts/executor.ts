@@ -2,8 +2,8 @@
  * 脚本执行器 - 在浏览器环境中执行用户脚本
  */
 
-import { EventsOn, EventsEmit } from '../../wailsjs/runtime/runtime'
-import { GetEnabledUserScriptsByTrigger, GetClipboardItemByID, HttpRequest, GetUserScriptsByIDs } from '../../wailsjs/go/main/App'
+import { EventsOn } from '../../wailsjs/runtime/runtime'
+import { GetEnabledUserScriptsByTrigger, GetClipboardItemByID, HttpRequest, GetUserScriptsByIDs, CopyTextToClipboard } from '../../wailsjs/go/main/App'
 import { common } from '../../wailsjs/go/models'
 import { ElMessageBox } from 'element-plus'
 
@@ -90,6 +90,38 @@ export function shouldTriggerScript(script: UserScript, item: ClipboardItem): bo
 }
 
 /**
+ * 解析脚本中的 ES6 格式导入语句
+ * 支持格式：import { httpRequest, copyTextToClipboard } from '@clipsave/api'
+ */
+function parseImports(scriptCode: string): Set<string> {
+  const imports = new Set<string>()
+  
+  // 解析 ES6 格式的导入
+  // import { httpRequest, copyTextToClipboard } from '@clipsave/api'
+  const es6ImportRegex = /import\s*\{([^}]+)\}\s*from\s*['"]@clipsave\/api['"]/g
+  let match
+  while ((match = es6ImportRegex.exec(scriptCode)) !== null) {
+    const importsList = match[1].split(',').map(s => s.trim())
+    importsList.forEach(imp => imports.add(imp))
+  }
+  
+  return imports
+}
+
+/**
+ * 移除脚本中的导入语句，返回纯净的脚本代码
+ */
+function removeImports(scriptCode: string): string {
+  // 移除 ES6 格式的导入
+  let cleanCode = scriptCode.replace(
+    /import\s*\{[^}]+\}\s*from\s*['"]@clipsave\/api['"];?\s*\n?/g,
+    ''
+  )
+  
+  return cleanCode
+}
+
+/**
  * 在浏览器环境中执行脚本
  * 导出供外部使用（如脚本编辑器测试功能）
  */
@@ -100,6 +132,9 @@ export async function executeScriptInBrowser(
   const result: ScriptResult = {}
 
   try {
+    // 解析脚本中的导入语句
+    const imports = parseImports(script.Script)
+    
     // 创建脚本执行上下文
     // 将 item 转换为普通对象，确保 JSON.stringify 能正常工作
     const itemData = {
@@ -117,7 +152,7 @@ export async function executeScriptInBrowser(
       IsFavorite: item.IsFavorite,
     }
     
-    const context = {
+    const context: any = {
       item: itemData, // 使用转换后的对象
       // 注入 alert 函数，使用 Element Plus 的消息框
       alert: async (message: string) => {
@@ -126,9 +161,45 @@ export async function executeScriptInBrowser(
           type: 'info',
         })
       },
-      // 注入通用 HTTP 请求函数，用于绕过 CORS 限制
-      httpRequest: HttpRequest,
     }
+    
+    // 定义可用的 API 函数映射
+    const availableAPIs: Array<{
+      name: string
+      func: any
+    }> = [
+      {
+        name: 'csRequest',
+        func: HttpRequest,
+      },
+      {
+        name: 'csCopyText',
+        func: CopyTextToClipboard,
+      },
+    ]
+    
+    // 根据导入语句注入函数
+    const injectedFunctions: string[] = []
+    for (const api of availableAPIs) {
+      if (imports.has(api.name)) {
+        context[api.name] = api.func
+        injectedFunctions.push(api.name)
+      }
+    }
+
+    // 移除导入语句，生成纯净的脚本代码
+    const cleanScript = removeImports(script.Script)
+
+    // 生成函数注入代码（基于 injectedFunctions）
+    const functionInjections = injectedFunctions
+      .map(
+        (name) => `
+        const ${name} = typeof __context !== 'undefined' && __context.${name} 
+          ? __context.${name} 
+          : null;
+      `
+      )
+      .join('\n')
 
     // 在浏览器环境中执行脚本
     // 使用异步立即执行函数，注入剪贴板项对象和 API 函数
@@ -145,14 +216,11 @@ export async function executeScriptInBrowser(
           }
         };
         
-        // 注入通用 HTTP 请求函数
-        const httpRequest = typeof __context !== 'undefined' && __context.httpRequest 
-          ? __context.httpRequest 
-          : null;
+        ${functionInjections}
         
         // 用户脚本代码（在真正的浏览器环境中执行）
         // 脚本可以直接使用 return 语句返回结果，支持 async/await
-        ${script.Script}
+        ${cleanScript}
       })();
     `
 

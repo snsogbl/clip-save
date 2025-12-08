@@ -10,11 +10,12 @@
     :close-on-click-modal="false"
     @close="handleClose"
   >
-    <el-form :model="form" label-width="120px" label-position="left">
+    <el-form :model="form" label-width="120px" label-position="left" spellcheck="false">
       <el-form-item :label="$t('settings.scripts.name')" required>
         <el-input
           v-model="form.name"
           :placeholder="$t('settings.scripts.namePlaceholder')"
+          autocomplete="off"
         />
       </el-form-item>
 

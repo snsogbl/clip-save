@@ -159,7 +159,7 @@ return process();
 
 **功能特点：**
 - 支持钉钉机器人 Webhook API
-- 使用通用 `httpRequest` 函数绕过 CORS 限制
+- 使用通用 `csRequest` 函数绕过 CORS 限制
 - 自动处理响应和错误信息
 - 配置简单，只需填写 access_token
 
@@ -265,19 +265,23 @@ return await fetchData();
 - `Date` - 日期时间处理
 - 等等...
 
-### 7. 使用 httpRequest 函数绕过 CORS
-当需要调用外部 API 时，如果遇到 CORS 限制，可以使用内置的 `httpRequest` 函数：
+### 7. 使用 API 函数
+
+#### 7.1 使用 csRequest 函数绕过 CORS
+当需要调用外部 API 时，如果遇到 CORS 限制，可以使用内置的 `csRequest` 函数：
 
 ```javascript
-// httpRequest 函数签名
-// httpRequest(method, url, headersJson, bodyJson)
+import { csRequest } from '@clipsave/api';
+
+// csRequest 函数签名
+// csRequest(method, url, headersJson, bodyJson)
 // - method: HTTP 方法（GET, POST, PUT, DELETE 等）
 // - url: 请求 URL
 // - headersJson: 请求头 JSON 字符串，如 '{"Content-Type": "application/json"}'
 // - bodyJson: 请求体 JSON 字符串（GET 请求可为空字符串）
 
 // 示例：发送 POST 请求
-const responseJson = await httpRequest(
+const responseJson = await csRequest(
   'POST',
   'https://api.example.com/endpoint',
   JSON.stringify({ 'Content-Type': 'application/json' }),
@@ -289,7 +293,17 @@ console.log(response.status);    // HTTP 状态码
 console.log(response.body);      // 响应体（可能是对象或字符串）
 ```
 
-**注意：** `httpRequest` 函数由脚本执行器自动注入，无需手动导入。
+#### 7.2 使用 csCopyText 函数复制到剪贴板
+使用后端 Go 实现的剪贴板 API，绕过浏览器安全策略：
+
+```javascript
+import { csCopyText } from '@clipsave/api';
+
+// 复制文本到剪贴板
+await csCopyText('要复制的文本内容');
+```
+
+**注意：** 这些 API 函数需要通过 `import` 语句导入后才能使用。
 
 ### 8. 关键词过滤的正则表达式
 在脚本配置中，关键词字段支持正则表达式，可以更精确地匹配内容：
