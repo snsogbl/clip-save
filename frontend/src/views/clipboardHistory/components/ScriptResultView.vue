@@ -9,11 +9,21 @@
         </span>
       </div>
       <div v-else>
-        {{
-          lastResult.error
-            ? $t("scripts.executeError")
-            : $t("scripts.executeSuccess")
-        }}
+        <span>
+          {{
+            lastResult.error
+              ? $t("scripts.executeError")
+              : $t("scripts.executeSuccess")
+          }}
+        </span>
+        <el-button
+          style="margin-left: 10px"
+          class="me-button"
+          @click="copyResult"
+          size="small"
+        >
+          <span>{{ $t("main.copy") }}</span>
+        </el-button>
       </div>
       <span class="result-time">{{ formatTime(lastResult.timestamp) }}</span>
     </div>
@@ -50,6 +60,7 @@
 import { computed } from "vue";
 import { Warning, Loading } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
+import { ElMessage } from "element-plus";
 
 const { t } = useI18n();
 
@@ -98,6 +109,11 @@ function formatReturnValue(value: any): string {
     }
   }
   return String(value);
+}
+
+function copyResult() {
+  navigator.clipboard.writeText(formatReturnValue(props.result.returnValue));
+  ElMessage.success(t("message.copySuccess"));
 }
 </script>
 

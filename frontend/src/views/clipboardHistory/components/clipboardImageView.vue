@@ -111,7 +111,7 @@ function copyQRResult() {
     navigator.clipboard
       .writeText(qrCodeResult.value)
       .then(() => {
-        ElMessage.success(t("components.image.qrCopied"));
+        ElMessage.success(t("message.copySuccess"));
       })
       .catch(() => {
         ElMessage.error(t("components.image.qrCopyFailed"));

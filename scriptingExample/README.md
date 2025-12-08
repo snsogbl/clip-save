@@ -5,7 +5,7 @@
 ## 📖 快速开始
 
 ### 已有脚本
-快速访问：[钉钉消息推送](pushMessageDingtalk.js) | [Pushover 消息推送](pushMessagePushover.js) | [JWT Token 生成](jwt.js) | [文本信息提取](textExtract.js) | [URL 短链接生成](urlShortener.js) | [Base64 编码](base64Encode.js) | [Base64 解码](base64Decode.js) | [时间戳转换](timestampConverter.js) | 等等...
+快速访问：[钉钉消息推送](pushMessageDingtalk.js) | [Pushover 消息推送](pushMessagePushover.js) | [JWT Token 生成](jwt.js) | [文本信息提取](textExtract.js) | [URL 短链接生成](urlShortener.js) | [Base64 编码](base64Encode.js) | [Base64 解码](base64Decode.js) | [时间戳转换](timestampConverter.js) | [数据Mock生成器](mock.js) | 等等...
 
 ### 1. 创建脚本
 
