@@ -618,7 +618,7 @@ try {
     if (Number.isInteger(value)) {
       // 如果是整数，保持相似的数值范围
       const absValue = Math.abs(value);
-      if (absValue === 0) return 0;
+      if (absValue === 0) return Math.floor(Math.random() * 100);
       // 处理负数
       const isNegative = value < 0;
       const magnitude = Math.pow(10, Math.floor(Math.log10(absValue)));
