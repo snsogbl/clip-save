@@ -42,7 +42,7 @@
             value="manual"
           />
           <el-option
-            :label="$t('settings.scripts.triggerAfterSave')"
+            :label="$t('settings.scripts.triggerAfterSave') + $t('settings.scripts.triggerAfterSaveDesc')"
             value="after_save"
           />
         </el-select>

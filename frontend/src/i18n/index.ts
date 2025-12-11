@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { GetCurrentLanguage } from '../../wailsjs/go/main/App'
 
-const AppVersion = '2.1.1'
+const AppVersion = '2.1.2'
 
 // 中文语言包
 const zhCN = {
@@ -89,6 +89,7 @@ const zhCN = {
       trigger: '触发时机',
       triggerPlaceholder: '选择触发时机',
       triggerAfterSave: '保存后',
+      triggerAfterSaveDesc: '（复制内容记录到数据库后触发）',
       triggerManual: '手动执行',
       contentTypes: '内容类型',
       contentTypesPlaceholder: '选择触发的内容类型（留空表示所有类型）',
@@ -349,6 +350,7 @@ const enUS = {
       trigger: 'Trigger',
       triggerPlaceholder: 'Select trigger',
       triggerAfterSave: 'After Save',
+      triggerAfterSaveDesc: '(Triggered after content is saved to database)',
       triggerManual: 'Manual Execution',
       contentTypes: 'Content Types',
       contentTypesPlaceholder: 'Select content types (empty for all types)',
@@ -647,6 +649,7 @@ const frFR = {
       trigger: 'Déclencheur',
       triggerPlaceholder: 'Sélectionner le déclencheur',
       triggerAfterSave: 'Après Sauvegarde',
+      triggerAfterSaveDesc: '(Déclenché après l\'enregistrement du contenu dans la base de données)',
       triggerManual: 'Exécution Manuelle',
       contentTypes: 'Types de Contenu',
       contentTypesPlaceholder: 'Sélectionner les types de contenu (vide pour tous les types)',
@@ -922,6 +925,7 @@ const arSA = {
       trigger: 'المشغل',
       triggerPlaceholder: 'اختر المشغل',
       triggerAfterSave: 'بعد الحفظ',
+      triggerAfterSaveDesc: '(يتم التشغيل بعد حفظ المحتوى في قاعدة البيانات)',
       triggerManual: 'تنفيذ يدوي',
       contentTypes: 'أنواع المحتوى',
       contentTypesPlaceholder: 'اختر أنواع المحتوى (فارغ لجميع الأنواع)',

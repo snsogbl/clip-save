@@ -8,7 +8,7 @@
           {{ lastResult.scriptName || $t("scripts.executing") }}
         </span>
       </div>
-      <div v-else>
+      <div v-else class="result-header">
         <span>
           {{
             lastResult.error

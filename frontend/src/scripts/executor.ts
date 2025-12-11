@@ -204,10 +204,11 @@ export async function executeScriptInBrowser(
     // 在浏览器环境中执行脚本
     // 使用异步立即执行函数，注入剪贴板项对象和 API 函数
     // 注意：用户的脚本代码会被直接插入，所以如果脚本有 return 语句，会正确返回
+    // 优化：不在字符串模板中序列化大对象，而是通过上下文传递引用，避免内存占用
     const scriptWithContext = `
       (async function() {
-        // 注入剪贴板项对象
-        const item = ${JSON.stringify(context.item)};
+        // 从上下文获取剪贴板项对象（避免序列化大对象如 ImageData）
+        const item = __context.item;
         
         // 注入 alert 函数（使用 Element Plus 的消息框）
         const alert = async function(message) {

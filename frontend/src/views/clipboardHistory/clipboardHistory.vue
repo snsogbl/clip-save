@@ -336,7 +336,7 @@ interface ScriptExecutionResult {
   returnValue?: any; // 脚本的返回值
   timestamp: number;
   scriptName?: string;
-  status?: 'executing' | 'completed' | 'error'; // 执行状态
+  status?: "executing" | "completed" | "error"; // 执行状态
 }
 
 const scriptResults = ref<Record<string, ScriptExecutionResult>>({}); // 只存储最后一次执行结果
@@ -672,6 +672,14 @@ const onSearchChange = () => {
 
 // 处理搜索框键盘按下事件
 function handleSearchKeydown(event: KeyboardEvent) {
+  if (event.shiftKey) return;
+  // 检测 Cmd+Backspace 或 Ctrl+Backspace
+  if ((event.metaKey || event.ctrlKey) && event.key === "Backspace") {
+    event.preventDefault();
+    event.stopPropagation();
+    deleteItem(currentItem.value!.ID);
+    return;
+  }
   // 检测 Cmd+Enter 或 Ctrl+Enter
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
     event.preventDefault();
@@ -707,7 +715,6 @@ function handleSearchKeydown(event: KeyboardEvent) {
     return;
   }
 }
-
 
 // 解析文件信息
 function parseFileInfo(item: ClipboardItem): FileInfo[] {
@@ -875,39 +882,51 @@ onMounted(() => {
       textEditorRef.value?.translateText();
     })
   );
-  
+
   // 监听脚本执行中事件
   eventCleanupFunctions.push(
-    EventsOn("script.executing", (data: { itemId: string; scriptName: string; scriptId: string }) => {
-      const { itemId, scriptName, scriptId } = data;
-      
-      // 记录当前正在执行的脚本ID
-      executingScripts.value[itemId] = scriptId;
-      
-      // 更新执行中状态
-      scriptResults.value[itemId] = {
-        scriptName,
-        timestamp: Date.now(),
-        status: 'executing',
-      };
-    })
+    EventsOn(
+      "script.executing",
+      (data: { itemId: string; scriptName: string; scriptId: string }) => {
+        const { itemId, scriptName, scriptId } = data;
+
+        // 记录当前正在执行的脚本ID
+        executingScripts.value[itemId] = scriptId;
+
+        // 更新执行中状态
+        scriptResults.value[itemId] = {
+          scriptName,
+          timestamp: Date.now(),
+          status: "executing",
+        };
+      }
+    )
   );
-  
+
   // 监听脚本执行完成事件
   eventCleanupFunctions.push(
-    EventsOn("script.executed", (data: { itemId: string; scriptName: string; result: ScriptExecutionResult }) => {
-      const { itemId, result } = data;
-      
-      // 清除执行中状态
-      delete executingScripts.value[itemId];
-      
-      // 更新为完成状态
-      scriptResults.value[itemId] = {
-        ...result,
-        status: (result.error ? 'error' : 'completed') as 'error' | 'completed',
-        timestamp: result.timestamp || Date.now(),
-      };
-    })
+    EventsOn(
+      "script.executed",
+      (data: {
+        itemId: string;
+        scriptName: string;
+        result: ScriptExecutionResult;
+      }) => {
+        const { itemId, result } = data;
+
+        // 清除执行中状态
+        delete executingScripts.value[itemId];
+
+        // 更新为完成状态
+        scriptResults.value[itemId] = {
+          ...result,
+          status: (result.error ? "error" : "completed") as
+            | "error"
+            | "completed",
+          timestamp: result.timestamp || Date.now(),
+        };
+      }
+    )
   );
 });
 

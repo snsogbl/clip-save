@@ -862,10 +862,10 @@ onUnmounted(() => {
 }
 
 .donation-qr-code {
-  width: 400px;
+  width: 240px;
   height: auto;
-  max-width: 400px;
-  max-height: 400px;
+  max-width: 240px;
+  max-height: 240px;
   object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

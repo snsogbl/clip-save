@@ -109,21 +109,7 @@ func run() {
 		// 获取当前活动应用
 		sourceAppName := GetFrontmostAppName()
 
-		// 优先级1: 先检查是否有文件
-		fileJSON, fileCount := ReadFileURLs()
-		if fileCount > 0 && fileJSON != "" {
-			// 使用完整路径集合的稳定哈希，避免前缀相同导致的误判
-			fileHash := calculateFilePathsHash(fileJSON)
-			if fileHash != lastFileHash {
-				lastFileHash = fileHash
-				lastTextContent = ""
-				lastImageHash = ""
-				handleFileClipboard(fileJSON, fileCount, sourceAppName, fileHash)
-			}
-			continue
-		}
-
-		// 优先级2: 检查是否有图片 - 尝试多种格式
+		// 优先级1: 先检测图片（截图场景最常见）
 		imgData := tryReadImage()
 		if len(imgData) > 0 {
 			// 统一转换为PNG格式后计算哈希，确保相同图片内容产生相同哈希值
@@ -142,17 +128,32 @@ func run() {
 
 				handleImageClipboard(imgData, sourceAppName, imageHash)
 			}
-		} else {
-			// 优先级3: 没有图片，检查文本
-			textData := clipboard.Read(clipboard.FmtText)
-			if len(textData) > 0 {
-				content := string(textData)
-				if content != lastTextContent && content != "" {
-					lastTextContent = content
-					lastImageHash = ""
-					lastFileHash = ""
-					handleTextClipboard(content, sourceAppName)
-				}
+			continue
+		}
+
+		// 优先级2: 不是图片，再检测文件
+		fileJSON, fileCount := ReadFileURLs()
+		if fileCount > 0 && fileJSON != "" {
+			// 使用完整路径集合的稳定哈希，避免前缀相同导致的误判
+			fileHash := calculateFilePathsHash(fileJSON)
+			if fileHash != lastFileHash {
+				lastFileHash = fileHash
+				lastTextContent = ""
+				lastImageHash = ""
+				handleFileClipboard(fileJSON, fileCount, sourceAppName, fileHash)
+			}
+			continue
+		}
+
+		// 优先级3: 没有图片和文件，检查文本
+		textData := clipboard.Read(clipboard.FmtText)
+		if len(textData) > 0 {
+			content := string(textData)
+			if content != lastTextContent && content != "" {
+				lastTextContent = content
+				lastImageHash = ""
+				lastFileHash = ""
+				handleTextClipboard(content, sourceAppName)
 			}
 		}
 	}
