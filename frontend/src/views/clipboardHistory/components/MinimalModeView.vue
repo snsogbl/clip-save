@@ -26,7 +26,7 @@
     </div>
 
     <!-- 极简模式标签页和搜索 -->
-    <div class="minimal-tab-buttons">
+    <div class="minimal-tab-buttons" :style="{ paddingTop: isMacOS ? '0' : '8px' }">
       <el-button
         round
         class="me-button"
