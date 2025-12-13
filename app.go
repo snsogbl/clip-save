@@ -74,13 +74,7 @@ func (a *App) startup(ctx context.Context) {
 	log.Println("Wails 应用启动成功")
 
 	// 初始化应用切换监听器（macOS 和 Windows）
-	if gRuntime.GOOS == "darwin" || gRuntime.GOOS == "windows" {
-		log.Printf("🔄 正在初始化应用切换监听器，平台: %s", gRuntime.GOOS)
-		common.InitAppSwitchListener()
-		log.Println("✅ 应用切换监听器已初始化")
-	} else {
-		log.Printf("⚠️ 当前平台 %s 不支持应用切换监听器", gRuntime.GOOS)
-	}
+	common.InitAppSwitchListener()
 
 	// 初始化统计模块
 	if err := common.InitAnalytics(); err != nil {
