@@ -666,6 +666,15 @@ func (a *App) TestWindowsKeyboardOnly() {
 	}
 }
 
+// TestWindowsWindowMonitoring 测试 Windows 窗口监听功能
+func (a *App) TestWindowsWindowMonitoring() {
+	if gRuntime.GOOS == "windows" {
+		go common.TestWindowMonitoring()
+	} else {
+		log.Println("此功能仅在 Windows 平台可用")
+	}
+}
+
 // SaveImagePNG 通过系统对话框将 Base64 PNG 保存到本地（供前端调用）
 func (a *App) SaveImagePNG(base64Data string, suggestedName string) (string, error) {
 	if a.ctx == nil {

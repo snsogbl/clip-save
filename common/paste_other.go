@@ -43,3 +43,7 @@ func TestLogWriting() {
 // TestKeyboardOnly 其他平台空实现
 func TestKeyboardOnly() {
 }
+
+// TestWindowMonitoring 其他平台空实现
+func TestWindowMonitoring() {
+}

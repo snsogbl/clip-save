@@ -224,3 +224,8 @@ func TestLogWriting() {
 func TestKeyboardOnly() {
 	// macOS 不需要特殊的调试功能
 }
+
+// TestWindowMonitoring macOS 平台空实现
+func TestWindowMonitoring() {
+	// macOS 不需要特殊的调试功能
+}
