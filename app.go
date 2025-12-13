@@ -73,10 +73,13 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	log.Println("Wails 应用启动成功")
 
-	// 初始化应用切换监听器（仅 macOS）
-	if gRuntime.GOOS == "darwin" {
+	// 初始化应用切换监听器（macOS 和 Windows）
+	if gRuntime.GOOS == "darwin" || gRuntime.GOOS == "windows" {
+		log.Printf("🔄 正在初始化应用切换监听器，平台: %s", gRuntime.GOOS)
 		common.InitAppSwitchListener()
 		log.Println("✅ 应用切换监听器已初始化")
+	} else {
+		log.Printf("⚠️ 当前平台 %s 不支持应用切换监听器", gRuntime.GOOS)
 	}
 
 	// 初始化统计模块
@@ -624,6 +627,15 @@ func (a *App) ActivatePreviousApp() {
 func (a *App) AutoPasteCurrentItemToPreviousApp() {
 	if a.ctx != nil {
 		go common.PasteCmdVToPreviousApp()
+	}
+}
+
+// TestWindowsPasteFunction 测试 Windows 粘贴功能（供调试使用）
+func (a *App) TestWindowsPasteFunction() {
+	if gRuntime.GOOS == "windows" {
+		go common.TestPasteFunction()
+	} else {
+		log.Println("此功能仅在 Windows 平台可用")
 	}
 }
 

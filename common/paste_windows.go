@@ -61,8 +61,12 @@ var (
 
 // InitAppSwitchListener 初始化应用切换监听器（Windows版本）
 func InitAppSwitchListener() {
-	// 初始化日志文件
+	// 强制初始化日志文件（即使失败也要继续）
 	initPasteLogger()
+
+	// 立即写入启动日志，确认函数被调用
+	logPaste("=== Windows 粘贴功能启动 ===")
+	logPaste("InitAppSwitchListener 函数被调用")
 
 	// 获取当前进程ID
 	pid, _, _ := procGetCurrentProcessId_paste.Call()
@@ -72,29 +76,42 @@ func InitAppSwitchListener() {
 
 	// 记录当前前台窗口（如果不是我们的应用）
 	recordCurrentForegroundWindow()
+
+	logPaste("=== Windows 粘贴功能初始化完成 ===")
 }
 
 // initPasteLogger 初始化粘贴功能的日志记录器
 func initPasteLogger() {
+	// 先设置一个临时的控制台日志器，确保能输出调试信息
+	pasteLogger = log.New(os.Stdout, "[PASTE] ", log.LstdFlags|log.Lshortfile)
+
 	// 获取用户的临时目录
 	tempDir := os.TempDir()
 	logDir := filepath.Join(tempDir, "ClipSave")
 
+	logPaste("尝试创建日志目录: %s", logDir)
+
 	// 创建日志目录
 	err := os.MkdirAll(logDir, 0755)
 	if err != nil {
-		log.Printf("创建日志目录失败: %v", err)
+		logPaste("创建日志目录失败: %v", err)
+		logPaste("将只使用控制台输出")
 		return
 	}
+
+	logPaste("日志目录创建成功: %s", logDir)
 
 	// 创建日志文件（按日期命名）
 	logFileName := fmt.Sprintf("paste_%s.log", time.Now().Format("2006-01-02"))
 	logFilePath := filepath.Join(logDir, logFileName)
 
+	logPaste("尝试创建日志文件: %s", logFilePath)
+
 	// 打开或创建日志文件
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		log.Printf("创建日志文件失败: %v", err)
+		logPaste("创建日志文件失败: %v", err)
+		logPaste("将只使用控制台输出")
 		return
 	}
 
@@ -310,37 +327,50 @@ func ActivatePreviousApp() {
 
 // PasteCmdVToPreviousApp 快速激活应用并发送 Ctrl+V（Windows版本）
 func PasteCmdVToPreviousApp() {
-	logPaste("开始执行 PasteCmdVToPreviousApp, 目标窗口: %x", previousWindow_paste)
+	logPaste("=== 开始执行 PasteCmdVToPreviousApp ===")
+	logPaste("目标窗口: %x", previousWindow_paste)
+	logPaste("当前进程ID: %d", currentProcessId_paste)
 
 	// 方法1：使用记录的窗口句柄
 	if previousWindow_paste != 0 {
+		logPaste("方法1: 使用记录的窗口句柄")
 		success := pasteToWindow_paste(previousWindow_paste)
 		if success {
-			logPaste("成功使用窗口句柄完成粘贴")
+			logPaste("✅ 成功使用窗口句柄完成粘贴")
 			return
 		}
+		logPaste("❌ 窗口句柄方法失败，尝试其他方法")
+	} else {
+		logPaste("⚠️ 没有记录的窗口句柄")
 	}
 
 	// 方法2：尝试查找当前前台窗口
-	logPaste("尝试查找当前前台窗口")
+	logPaste("方法2: 尝试查找当前前台窗口")
 	currentForeground, _, _ := procGetForegroundWindow.Call()
 	if currentForeground != 0 && currentForeground != previousWindow_paste {
 		var processId uint32
 		procGetWindowThreadProcessId.Call(currentForeground, uintptr(unsafe.Pointer(&processId)))
+		logPaste("当前前台窗口: %x, 进程ID: %d", currentForeground, processId)
 
 		if processId != currentProcessId_paste {
 			success := pasteToWindow_paste(currentForeground)
 			if success {
-				logPaste("成功向当前前台窗口完成粘贴")
+				logPaste("✅ 成功向当前前台窗口完成粘贴")
 				return
 			}
+			logPaste("❌ 当前前台窗口方法失败")
+		} else {
+			logPaste("⚠️ 当前前台窗口是我们自己的应用")
 		}
+	} else {
+		logPaste("⚠️ 没有找到有效的前台窗口")
 	}
 
 	// 方法3：全局发送
-	logPaste("使用全局发送作为最后的回退方案")
+	logPaste("方法3: 使用全局发送作为最后的回退方案")
 	time.Sleep(150 * time.Millisecond)
 	sendCtrlV_paste()
+	logPaste("=== PasteCmdVToPreviousApp 执行完成 ===")
 }
 
 // pasteToWindow_paste 向指定窗口发送粘贴命令
@@ -364,4 +394,44 @@ func pasteToWindow_paste(hwnd uintptr) bool {
 	logPaste("已向窗口 %x 发送 Ctrl+V", hwnd)
 
 	return true
+}
+
+// TestPasteFunction 测试粘贴功能（供调试使用）
+func TestPasteFunction() {
+	logPaste("=== 开始测试粘贴功能 ===")
+
+	// 测试日志功能
+	logPaste("✅ 日志功能正常")
+
+	// 测试进程ID获取
+	logPaste("当前进程ID: %d", currentProcessId_paste)
+
+	// 测试前台窗口获取
+	currentForeground, _, _ := procGetForegroundWindow.Call()
+	if currentForeground != 0 {
+		var processId uint32
+		procGetWindowThreadProcessId.Call(currentForeground, uintptr(unsafe.Pointer(&processId)))
+		logPaste("当前前台窗口: %x, 进程ID: %d", currentForeground, processId)
+	} else {
+		logPaste("❌ 无法获取前台窗口")
+	}
+
+	// 测试记录的窗口
+	if previousWindow_paste != 0 {
+		logPaste("记录的前台窗口: %x", previousWindow_paste)
+		isValid, _, _ := procIsWindow_paste.Call(previousWindow_paste)
+		if isValid != 0 {
+			logPaste("✅ 记录的窗口仍然有效")
+		} else {
+			logPaste("❌ 记录的窗口已无效")
+		}
+	} else {
+		logPaste("⚠️ 没有记录的前台窗口")
+	}
+
+	// 测试键盘输入
+	logPaste("测试发送 Ctrl+V...")
+	sendCtrlV_paste()
+
+	logPaste("=== 粘贴功能测试完成 ===")
 }

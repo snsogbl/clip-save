@@ -204,3 +204,8 @@ func PasteCmdVToPreviousApp() {
 		C.activateSelf()
 	}()
 }
+
+// TestPasteFunction macOS 平台空实现（仅用于 Windows 调试）
+func TestPasteFunction() {
+	// macOS 不需要特殊的调试功能
+}
