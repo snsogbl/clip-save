@@ -657,6 +657,15 @@ func (a *App) TestWindowsLogWriting() {
 	}
 }
 
+// TestWindowsKeyboardOnly 测试 Windows 纯键盘输入
+func (a *App) TestWindowsKeyboardOnly() {
+	if gRuntime.GOOS == "windows" {
+		go common.TestKeyboardOnly()
+	} else {
+		log.Println("此功能仅在 Windows 平台可用")
+	}
+}
+
 // SaveImagePNG 通过系统对话框将 Base64 PNG 保存到本地（供前端调用）
 func (a *App) SaveImagePNG(base64Data string, suggestedName string) (string, error) {
 	if a.ctx == nil {

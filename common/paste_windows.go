@@ -5,7 +5,6 @@ package common
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,6 +25,9 @@ var (
 	procGetCurrentThreadId_paste  = modKernel32.NewProc("GetCurrentThreadId")
 	procSetActiveWindow_paste     = modUser32.NewProc("SetActiveWindow")
 	procGetCurrentProcessId_paste = modKernel32.NewProc("GetCurrentProcessId")
+
+	// Shell32 用于权限检查
+	modShell32 = syscall.NewLazyDLL("shell32.dll")
 )
 
 const (
@@ -56,7 +58,6 @@ type KEYBDINPUT_PASTE struct {
 var (
 	previousWindow_paste   uintptr
 	currentProcessId_paste uint32
-	pasteLogger            *log.Logger
 )
 
 // InitAppSwitchListener 初始化应用切换监听器（Windows版本）
@@ -74,6 +75,9 @@ func InitAppSwitchListener() {
 
 	logPaste("初始化应用切换监听器，当前进程ID: %d", currentProcessId_paste)
 
+	// 检查管理员权限
+	CheckAdminRights()
+
 	// 记录当前前台窗口（如果不是我们的应用）
 	recordCurrentForegroundWindow()
 
@@ -85,81 +89,58 @@ var pasteLogFile *os.File
 
 // initPasteLogger 初始化粘贴功能的日志记录器
 func initPasteLogger() {
-	// 先设置一个临时的控制台日志器，确保能输出调试信息
-	pasteLogger = log.New(os.Stdout, "[PASTE] ", log.LstdFlags|log.Lshortfile)
-
 	// 获取用户的临时目录
 	tempDir := os.TempDir()
 	logDir := filepath.Join(tempDir, "ClipSave")
 
-	logPaste("尝试创建日志目录: %s", logDir)
+	log.Printf("[PASTE] 尝试创建日志目录: %s", logDir)
 
 	// 创建日志目录
 	err := os.MkdirAll(logDir, 0755)
 	if err != nil {
-		logPaste("创建日志目录失败: %v", err)
-		logPaste("将只使用控制台输出")
+		log.Printf("[PASTE] 创建日志目录失败: %v", err)
+		log.Printf("[PASTE] 将只使用控制台输出")
 		return
 	}
 
-	logPaste("日志目录创建成功: %s", logDir)
+	log.Printf("[PASTE] 日志目录创建成功: %s", logDir)
 
 	// 创建日志文件（按日期命名）
 	logFileName := fmt.Sprintf("paste_%s.log", time.Now().Format("2006-01-02"))
 	logFilePath := filepath.Join(logDir, logFileName)
 
-	logPaste("尝试创建日志文件: %s", logFilePath)
+	log.Printf("[PASTE] 尝试创建日志文件: %s", logFilePath)
 
 	// 打开或创建日志文件
 	pasteLogFile, err = os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		logPaste("创建日志文件失败: %v", err)
-		logPaste("将只使用控制台输出")
+		log.Printf("[PASTE] 创建日志文件失败: %v", err)
+		log.Printf("[PASTE] 将只使用控制台输出")
 		return
 	}
 
-	// 创建一个带缓冲的写入器，确保立即写入
-	fileWriter := &flushWriter{pasteLogFile}
-
-	// 创建多重输出：同时输出到控制台和文件
-	multiWriter := io.MultiWriter(os.Stdout, fileWriter)
-	pasteLogger = log.New(multiWriter, "[PASTE] ", log.LstdFlags|log.Lshortfile)
-
+	// 写入初始化日志
 	logPaste("=== 粘贴功能日志初始化完成 ===")
 	logPaste("日志文件位置: %s", logFilePath)
 	logPaste("提示: 可以在文件资源管理器中输入 %%TEMP%%\\ClipSave 查看日志文件")
 
-	// 强制刷新一次，确保初始化日志被写入
-	if pasteLogFile != nil {
-		pasteLogFile.Sync()
-	}
-}
-
-// flushWriter 包装 os.File，每次写入后立即刷新
-type flushWriter struct {
-	*os.File
-}
-
-func (fw *flushWriter) Write(p []byte) (n int, err error) {
-	n, err = fw.File.Write(p)
-	if err == nil {
-		// 立即刷新到磁盘
-		fw.File.Sync()
-	}
-	return n, err
+	log.Printf("[PASTE] ✅ 日志文件初始化成功")
 }
 
 // logPaste 记录粘贴相关的日志
 func logPaste(format string, args ...any) {
-	if pasteLogger != nil {
-		pasteLogger.Printf(format, args...)
-		// 强制刷新到磁盘
-		if pasteLogFile != nil {
-			pasteLogFile.Sync()
-		}
-	} else {
-		// 如果日志器未初始化，回退到标准日志
-		log.Printf("[PASTE] "+format, args...)
+	message := fmt.Sprintf("[PASTE] "+format, args...)
+
+	// 总是输出到控制台
+	log.Print(message)
+
+	// 如果日志文件可用，直接写入文件
+	if pasteLogFile != nil {
+		timestamp := time.Now().Format("2006/01/02 15:04:05")
+		fileMessage := fmt.Sprintf("%s %s\n", timestamp, message)
+
+		pasteLogFile.WriteString(fileMessage)
+		pasteLogFile.Sync() // 立即刷新
 	}
 }
 
@@ -319,8 +300,18 @@ func forceActivateWindow_paste(hwnd uintptr) bool {
 func PasteCmdV() {
 	log.Printf("[PASTE-FORCE] PasteCmdV 被调用！")
 	logPaste("=== 开始执行 PasteCmdV ===")
-	logPaste("等待 120ms 确保窗口激活完成")
-	time.Sleep(120 * time.Millisecond)
+
+	// Windows 需要更长的延迟确保窗口激活
+	logPaste("等待 500ms 确保窗口激活完成")
+	time.Sleep(500 * time.Millisecond)
+
+	// 检查当前前台窗口
+	hwnd, _, _ := procGetForegroundWindow.Call()
+	if hwnd != 0 {
+		windowTitle := getWindowTitle(hwnd)
+		logPaste("当前前台窗口: %s", windowTitle)
+	}
+
 	logPaste("发送 Ctrl+V 到当前前台窗口")
 	sendCtrlV_paste()
 	logPaste("=== PasteCmdV 执行完成 ===")
@@ -330,18 +321,20 @@ func PasteCmdV() {
 func sendCtrlV_paste() {
 	logPaste("开始发送 Ctrl+V 组合键")
 
-	// 方法1：使用 SendInput
-	logPaste("尝试方法1: SendInput")
-	if sendCtrlVWithSendInput_paste() {
-		logPaste("✅ SendInput 方法成功")
-		return
-	}
-
-	// 方法2：回退到 keybd_event
-	logPaste("⚠️ SendInput 失败，尝试方法2: keybd_event")
+	// 方法1：使用 keybd_event (最兼容)
+	logPaste("尝试方法1: keybd_event (最兼容)")
 	sendCtrlVWithKeybdEvent_paste()
 
-	// 方法3：使用 PostMessage (新增)
+	// 短暂延迟后尝试其他方法作为备份
+	time.Sleep(100 * time.Millisecond)
+
+	// 方法2：使用 SendInput
+	logPaste("尝试方法2: SendInput")
+	if sendCtrlVWithSendInput_paste() {
+		logPaste("✅ SendInput 方法成功")
+	}
+
+	// 方法3：使用 PostMessage
 	logPaste("尝试方法3: PostMessage")
 	sendCtrlVWithPostMessage_paste()
 }
@@ -428,22 +421,28 @@ func sendCtrlVWithSendInput_paste() bool {
 func sendCtrlVWithKeybdEvent_paste() {
 	procKeybdEvent := modUser32.NewProc("keybd_event")
 
+	logPaste("使用 keybd_event 发送 Ctrl+V")
+
 	// Ctrl 按下
-	procKeybdEvent.Call(VK_CONTROL_PASTE, 0, 0, 0)
-	time.Sleep(10 * time.Millisecond)
+	result1, _, _ := procKeybdEvent.Call(VK_CONTROL_PASTE, 0, 0, 0)
+	logPaste("Ctrl 按下结果: %d", result1)
+	time.Sleep(50 * time.Millisecond)
 
 	// V 按下
-	procKeybdEvent.Call(VK_V_PASTE, 0, 0, 0)
-	time.Sleep(10 * time.Millisecond)
+	result2, _, _ := procKeybdEvent.Call(VK_V_PASTE, 0, 0, 0)
+	logPaste("V 按下结果: %d", result2)
+	time.Sleep(50 * time.Millisecond)
 
 	// V 释放
-	procKeybdEvent.Call(VK_V_PASTE, 0, KEYEVENTF_KEYUP_PASTE, 0)
-	time.Sleep(10 * time.Millisecond)
+	result3, _, _ := procKeybdEvent.Call(VK_V_PASTE, 0, KEYEVENTF_KEYUP_PASTE, 0)
+	logPaste("V 释放结果: %d", result3)
+	time.Sleep(50 * time.Millisecond)
 
 	// Ctrl 释放
-	procKeybdEvent.Call(VK_CONTROL_PASTE, 0, KEYEVENTF_KEYUP_PASTE, 0)
+	result4, _, _ := procKeybdEvent.Call(VK_CONTROL_PASTE, 0, KEYEVENTF_KEYUP_PASTE, 0)
+	logPaste("Ctrl 释放结果: %d", result4)
 
-	logPaste("已使用 keybd_event 发送 Ctrl+V")
+	logPaste("✅ keybd_event 序列完成")
 }
 
 // sendCtrlVWithPostMessage_paste 使用 PostMessage 发送 Ctrl+V (新增方法)
@@ -493,12 +492,23 @@ func ActivatePreviousApp() {
 		logPaste("检查记录的窗口: %x", previousWindow_paste)
 		isValid, _, _ := procIsWindow_paste.Call(previousWindow_paste)
 		if isValid != 0 {
-			logPaste("窗口有效，尝试激活")
-			success := activateWindow_paste(previousWindow_paste)
-			if success {
-				logPaste("✅ 成功激活之前的应用")
-			} else {
-				logPaste("❌ 激活之前的应用失败")
+			windowTitle := getWindowTitle(previousWindow_paste)
+			logPaste("窗口有效，标题: %s，尝试激活", windowTitle)
+
+			// 多次尝试激活
+			success := false
+			for i := 0; i < 3; i++ {
+				success = activateWindow_paste(previousWindow_paste)
+				if success {
+					logPaste("✅ 第 %d 次尝试激活成功", i+1)
+					break
+				}
+				logPaste("⚠️ 第 %d 次激活失败，重试", i+1)
+				time.Sleep(200 * time.Millisecond)
+			}
+
+			if !success {
+				logPaste("❌ 多次尝试后仍然激活失败")
 			}
 		} else {
 			logPaste("❌ 记录的窗口已无效，清除记录")
@@ -652,10 +662,25 @@ func TestLogWriting() {
 	logPaste("测试消息2: 日志文件应该能看到这些内容")
 	logPaste("测试消息3: 如果看到这些，说明日志写入正常")
 
-	// 强制刷新
+	// 检查日志文件状态
 	if pasteLogFile != nil {
+		// 获取文件信息
+		fileInfo, err := pasteLogFile.Stat()
+		if err == nil {
+			logPaste("✅ 日志文件状态正常，大小: %d 字节", fileInfo.Size())
+		} else {
+			logPaste("❌ 获取日志文件状态失败: %v", err)
+		}
+
+		// 强制刷新
 		pasteLogFile.Sync()
 		logPaste("✅ 已强制刷新日志文件")
+
+		// 再次检查文件大小
+		fileInfo2, err := pasteLogFile.Stat()
+		if err == nil {
+			logPaste("✅ 刷新后文件大小: %d 字节", fileInfo2.Size())
+		}
 	} else {
 		logPaste("❌ 日志文件句柄为空")
 	}
@@ -663,4 +688,65 @@ func TestLogWriting() {
 	logPaste("=== 日志写入测试完成 ===")
 
 	log.Printf("[PASTE-FORCE] TestLogWriting 完成")
+}
+
+// TestKeyboardOnly 只测试键盘输入，不涉及窗口操作
+func TestKeyboardOnly() {
+	log.Printf("[PASTE-FORCE] 开始测试纯键盘输入")
+
+	logPaste("=== 纯键盘输入测试 ===")
+	logPaste("请确保有文本编辑器在前台（如记事本）")
+	logPaste("3秒后将发送 Ctrl+V")
+
+	// 倒计时
+	for i := 3; i > 0; i-- {
+		logPaste("倒计时: %d", i)
+		time.Sleep(1 * time.Second)
+	}
+
+	logPaste("开始发送键盘事件...")
+
+	// 直接使用 keybd_event，最简单的方式
+	procKeybdEvent := modUser32.NewProc("keybd_event")
+
+	// Ctrl 按下
+	procKeybdEvent.Call(VK_CONTROL_PASTE, 0, 0, 0)
+	time.Sleep(100 * time.Millisecond)
+
+	// V 按下
+	procKeybdEvent.Call(VK_V_PASTE, 0, 0, 0)
+	time.Sleep(100 * time.Millisecond)
+
+	// V 释放
+	procKeybdEvent.Call(VK_V_PASTE, 0, KEYEVENTF_KEYUP_PASTE, 0)
+	time.Sleep(100 * time.Millisecond)
+
+	// Ctrl 释放
+	procKeybdEvent.Call(VK_CONTROL_PASTE, 0, KEYEVENTF_KEYUP_PASTE, 0)
+
+	logPaste("✅ 键盘事件发送完成")
+	logPaste("=== 测试结束 ===")
+
+	log.Printf("[PASTE-FORCE] 纯键盘输入测试完成")
+}
+
+// CheckAdminRights 检查是否以管理员身份运行
+func CheckAdminRights() bool {
+	procIsUserAnAdmin := modShell32.NewProc("IsUserAnAdmin")
+	if procIsUserAnAdmin.Find() != nil {
+		logPaste("⚠️ 无法检查管理员权限")
+		return false
+	}
+
+	result, _, _ := procIsUserAnAdmin.Call()
+	isAdmin := result != 0
+
+	if isAdmin {
+		logPaste("✅ 当前以管理员身份运行")
+	} else {
+		logPaste("⚠️ 当前未以管理员身份运行，可能影响粘贴功能")
+		logPaste("建议：右键点击应用 → 以管理员身份运行")
+	}
+
+	return isAdmin
 }

@@ -219,3 +219,8 @@ func SimpleTestPaste() {
 func TestLogWriting() {
 	// macOS 不需要特殊的调试功能
 }
+
+// TestKeyboardOnly macOS 平台空实现
+func TestKeyboardOnly() {
+	// macOS 不需要特殊的调试功能
+}

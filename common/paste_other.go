@@ -39,3 +39,7 @@ func SimpleTestPaste() {
 // TestLogWriting 其他平台空实现
 func TestLogWriting() {
 }
+
+// TestKeyboardOnly 其他平台空实现
+func TestKeyboardOnly() {
+}
