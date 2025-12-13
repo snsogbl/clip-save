@@ -31,3 +31,11 @@ func PasteCmdVToPreviousApp() {
 // TestPasteFunction 其他平台空实现
 func TestPasteFunction() {
 }
+
+// SimpleTestPaste 其他平台空实现
+func SimpleTestPaste() {
+}
+
+// TestLogWriting 其他平台空实现
+func TestLogWriting() {
+}

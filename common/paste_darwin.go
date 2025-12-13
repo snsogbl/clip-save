@@ -209,3 +209,13 @@ func PasteCmdVToPreviousApp() {
 func TestPasteFunction() {
 	// macOS 不需要特殊的调试功能
 }
+
+// SimpleTestPaste macOS 平台空实现
+func SimpleTestPaste() {
+	// macOS 不需要特殊的调试功能
+}
+
+// TestLogWriting macOS 平台空实现
+func TestLogWriting() {
+	// macOS 不需要特殊的调试功能
+}
