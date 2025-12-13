@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 	"unsafe"
@@ -55,6 +56,7 @@ type KEYBDINPUT_PASTE struct {
 var (
 	previousWindow_paste   uintptr
 	currentProcessId_paste uint32
+	windowMutex            sync.Mutex // 保护 previousWindow_paste 的并发访问
 )
 
 // InitAppSwitchListener 初始化应用切换监听器（Windows版本）
@@ -77,6 +79,9 @@ func InitAppSwitchListener() {
 
 	// 记录当前前台窗口（如果不是我们的应用）
 	recordCurrentForegroundWindow()
+
+	// 启动后台窗口监听器（类似 Mac 的应用切换监听）
+	startWindowMonitor()
 
 	logPaste("=== Windows 粘贴功能初始化完成 ===")
 }
@@ -485,17 +490,22 @@ func ActivatePreviousApp() {
 	log.Printf("[PASTE-FORCE] ActivatePreviousApp 被调用！")
 	logPaste("=== 开始激活之前的应用 ===")
 
-	if previousWindow_paste != 0 {
-		logPaste("检查记录的窗口: %x", previousWindow_paste)
-		isValid, _, _ := procIsWindow_paste.Call(previousWindow_paste)
+	// 线程安全地读取窗口句柄
+	windowMutex.Lock()
+	targetWindow := previousWindow_paste
+	windowMutex.Unlock()
+
+	if targetWindow != 0 {
+		logPaste("检查记录的窗口: %x", targetWindow)
+		isValid, _, _ := procIsWindow_paste.Call(targetWindow)
 		if isValid != 0 {
-			windowTitle := getWindowTitle(previousWindow_paste)
+			windowTitle := getWindowTitle(targetWindow)
 			logPaste("窗口有效，标题: %s，尝试激活", windowTitle)
 
 			// 多次尝试激活
 			success := false
 			for i := 0; i < 3; i++ {
-				success = activateWindow_paste(previousWindow_paste)
+				success = activateWindow_paste(targetWindow)
 				if success {
 					logPaste("✅ 第 %d 次尝试激活成功", i+1)
 					break
@@ -509,7 +519,9 @@ func ActivatePreviousApp() {
 			}
 		} else {
 			logPaste("❌ 记录的窗口已无效，清除记录")
+			windowMutex.Lock()
 			previousWindow_paste = 0
+			windowMutex.Unlock()
 		}
 	} else {
 		logPaste("⚠️ 没有记录的前台窗口")
@@ -524,13 +536,19 @@ func PasteCmdVToPreviousApp() {
 	log.Printf("[PASTE-FORCE] PasteCmdVToPreviousApp 被调用！")
 
 	logPaste("=== 开始执行 PasteCmdVToPreviousApp ===")
-	logPaste("目标窗口: %x", previousWindow_paste)
+
+	// 线程安全地读取目标窗口
+	windowMutex.Lock()
+	targetWindow := previousWindow_paste
+	windowMutex.Unlock()
+
+	logPaste("目标窗口: %x", targetWindow)
 	logPaste("当前进程ID: %d", currentProcessId_paste)
 
 	// 方法1：使用记录的窗口句柄
-	if previousWindow_paste != 0 {
+	if targetWindow != 0 {
 		logPaste("方法1: 使用记录的窗口句柄")
-		success := pasteToWindow_paste(previousWindow_paste)
+		success := pasteToWindow_paste(targetWindow)
 		if success {
 			logPaste("✅ 成功使用窗口句柄完成粘贴")
 			return
@@ -540,10 +558,21 @@ func PasteCmdVToPreviousApp() {
 		logPaste("⚠️ 没有记录的窗口句柄")
 	}
 
-	// 方法2：尝试查找当前前台窗口
-	logPaste("方法2: 尝试查找当前前台窗口")
+	// 方法2：查找最近使用的任何其他窗口
+	logPaste("方法2: 查找最近使用的其他窗口")
+	otherWindow := findAnyOtherWindow()
+	if otherWindow != 0 {
+		success := pasteToWindow_paste(otherWindow)
+		if success {
+			logPaste("✅ 成功向其他窗口完成粘贴")
+			return
+		}
+	}
+
+	// 方法3：尝试查找当前前台窗口
+	logPaste("方法3: 尝试查找当前前台窗口")
 	currentForeground, _, _ := procGetForegroundWindow.Call()
-	if currentForeground != 0 && currentForeground != previousWindow_paste {
+	if currentForeground != 0 && currentForeground != targetWindow {
 		var processId uint32
 		procGetWindowThreadProcessId.Call(currentForeground, uintptr(unsafe.Pointer(&processId)))
 		logPaste("当前前台窗口: %x, 进程ID: %d", currentForeground, processId)
@@ -562,8 +591,8 @@ func PasteCmdVToPreviousApp() {
 		logPaste("⚠️ 没有找到有效的前台窗口")
 	}
 
-	// 方法3：全局发送
-	logPaste("方法3: 使用全局发送作为最后的回退方案")
+	// 方法4：全局发送（类似 Mac 的回退机制）
+	logPaste("方法4: 使用全局发送作为最后的回退方案")
 	time.Sleep(150 * time.Millisecond)
 	sendCtrlV_paste()
 	logPaste("=== PasteCmdVToPreviousApp 执行完成 ===")
@@ -746,4 +775,116 @@ func CheckAdminRights() bool {
 	}
 
 	return isAdmin
+}
+
+// findAnyOtherWindow 查找任何其他可见的窗口（类似 Mac 的简单回退）
+func findAnyOtherWindow() uintptr {
+	logPaste("查找任何其他可见窗口")
+
+	var foundWindow uintptr
+
+	// 枚举所有窗口，找到第一个不是我们进程的可见窗口
+	enumProc := syscall.NewCallback(func(hwnd uintptr, lParam uintptr) uintptr {
+		// 检查窗口是否可见
+		procIsWindowVisible := modUser32.NewProc("IsWindowVisible")
+		visible, _, _ := procIsWindowVisible.Call(hwnd)
+		if visible == 0 {
+			return 1 // 继续枚举
+		}
+
+		// 获取窗口进程ID
+		var processId uint32
+		procGetWindowThreadProcessId.Call(hwnd, uintptr(unsafe.Pointer(&processId)))
+
+		// 跳过自己的进程
+		if processId == currentProcessId_paste {
+			return 1
+		}
+
+		// 检查窗口是否有标题（过滤掉系统窗口）
+		windowTitle := getWindowTitle(hwnd)
+		if len(windowTitle) > 0 {
+			logPaste("找到其他窗口: %s (句柄: %x)", windowTitle, hwnd)
+			foundWindow = hwnd
+			return 0 // 停止枚举，使用第一个找到的
+		}
+
+		return 1 // 继续枚举
+	})
+
+	procEnumWindows_paste.Call(enumProc, 0)
+
+	if foundWindow == 0 {
+		logPaste("未找到其他可见窗口")
+	}
+
+	return foundWindow
+}
+
+// startWindowMonitor 启动窗口监听器（使用 Windows 事件钩子）
+func startWindowMonitor() {
+	logPaste("启动窗口切换监听器（事件驱动）")
+
+	// 使用 SetWinEventHook 监听前台窗口变化事件
+	procSetWinEventHook := modUser32.NewProc("SetWinEventHook")
+
+	// 创建事件回调函数
+	hookProc := syscall.NewCallback(func(hWinEventHook, event, hwnd, idObject, idChild, dwEventThread, dwmsEventTime uintptr) uintptr {
+		// 只处理前台窗口变化事件
+		if event == 0x0003 { // EVENT_SYSTEM_FOREGROUND
+			if hwnd != 0 {
+				var processId uint32
+				procGetWindowThreadProcessId.Call(hwnd, uintptr(unsafe.Pointer(&processId)))
+
+				// 如果不是我们的进程，记录这个窗口
+				if processId != currentProcessId_paste {
+					windowTitle := getWindowTitle(hwnd)
+					logPaste("事件监听到窗口切换: %s (句柄: %x)", windowTitle, hwnd)
+
+					// 线程安全地更新记录的前台窗口
+					windowMutex.Lock()
+					previousWindow_paste = hwnd
+					windowMutex.Unlock()
+				}
+			}
+		}
+		return 0
+	})
+
+	// 设置事件钩子
+	// EVENT_SYSTEM_FOREGROUND = 0x0003
+	hook, _, _ := procSetWinEventHook.Call(
+		0x0003,   // eventMin (EVENT_SYSTEM_FOREGROUND)
+		0x0003,   // eventMax (EVENT_SYSTEM_FOREGROUND)
+		0,        // hmodWinEventProc
+		hookProc, // lpfnWinEventProc
+		0,        // idProcess (所有进程)
+		0,        // idThread (所有线程)
+		0,        // dwFlags (WINEVENT_OUTOFCONTEXT)
+	)
+
+	if hook != 0 {
+		logPaste("✅ 窗口事件钩子设置成功")
+	} else {
+		logPaste("❌ 窗口事件钩子设置失败，启用轮询备用方案")
+		// 备用方案：轻量级轮询
+		go func() {
+			var lastWindow uintptr
+			for {
+				current, _, _ := procGetForegroundWindow.Call()
+				if current != 0 && current != lastWindow {
+					var processId uint32
+					procGetWindowThreadProcessId.Call(current, uintptr(unsafe.Pointer(&processId)))
+					if processId != currentProcessId_paste {
+						windowMutex.Lock()
+						previousWindow_paste = current
+						windowMutex.Unlock()
+						logPaste("轮询检测到窗口切换: %x", current)
+					}
+					lastWindow = current
+				}
+				time.Sleep(1 * time.Second) // 较低频率的轮询
+			}
+		}()
+	}
 }
