@@ -25,9 +25,6 @@ var (
 	procGetCurrentThreadId_paste  = modKernel32.NewProc("GetCurrentThreadId")
 	procSetActiveWindow_paste     = modUser32.NewProc("SetActiveWindow")
 	procGetCurrentProcessId_paste = modKernel32.NewProc("GetCurrentProcessId")
-
-	// Shell32 用于权限检查
-	modShell32 = syscall.NewLazyDLL("shell32.dll")
 )
 
 const (
