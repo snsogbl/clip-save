@@ -10,21 +10,16 @@ import (
 )
 
 var (
-	user32                       = syscall.NewLazyDLL("user32.dll")
-	kernel32                     = syscall.NewLazyDLL("kernel32.dll")
-	procGetForegroundWindow      = user32.NewProc("GetForegroundWindow")
-	procSetForegroundWindow      = user32.NewProc("SetForegroundWindow")
-	procGetWindowThreadProcessId = user32.NewProc("GetWindowThreadProcessId")
-	procFindWindowW              = user32.NewProc("FindWindowW")
-	procSendInput                = user32.NewProc("SendInput")
-	procGetCurrentProcessId      = kernel32.NewProc("GetCurrentProcessId")
-	procOpenProcess              = kernel32.NewProc("OpenProcess")
-	procCloseHandle              = kernel32.NewProc("CloseHandle")
-	procIsWindow                 = user32.NewProc("IsWindow")
-	procGetWindowTextW           = user32.NewProc("GetWindowTextW")
-	procEnumWindows              = user32.NewProc("EnumWindows")
-	procShowWindow               = user32.NewProc("ShowWindow")
-	procBringWindowToTop         = user32.NewProc("BringWindowToTop")
+	// 重用已有的 DLL 引用，只声明新需要的 proc
+	procSetForegroundWindow = modUser32.NewProc("SetForegroundWindow")
+	procFindWindowW         = modUser32.NewProc("FindWindowW")
+	procSendInput           = modUser32.NewProc("SendInput")
+	procGetCurrentProcessId = modKernel32.NewProc("GetCurrentProcessId")
+	procIsWindow            = modUser32.NewProc("IsWindow")
+	procGetWindowTextW      = modUser32.NewProc("GetWindowTextW")
+	procEnumWindows         = modUser32.NewProc("EnumWindows")
+	procShowWindow          = modUser32.NewProc("ShowWindow")
+	procBringWindowToTop    = modUser32.NewProc("BringWindowToTop")
 )
 
 const (
@@ -58,7 +53,8 @@ var currentProcessId uint32
 // InitAppSwitchListener 初始化应用切换监听器（Windows版本）
 func InitAppSwitchListener() {
 	// 获取当前进程ID
-	currentProcessId, _, _ = procGetCurrentProcessId.Call()
+	pid, _, _ := procGetCurrentProcessId.Call()
+	currentProcessId = uint32(pid)
 
 	// 记录当前前台窗口（如果不是我们的应用）
 	recordCurrentForegroundWindow()
