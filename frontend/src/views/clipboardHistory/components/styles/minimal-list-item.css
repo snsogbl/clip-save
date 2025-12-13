@@ -1,0 +1,182 @@
+/* 极简模式列表项 */
+.minimal-list-item {
+  padding: 14px 16px;
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid #e8e8e8;
+  background: #ffffff;
+  font-size: 14px;
+  color: #333333;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.minimal-list-item:hover {
+  background: #FAFAFA;
+}
+
+.minimal-list-item.active {
+  color: #5c6e70;
+  background-color: #f8f9fa;
+  border-left: 3px solid #6c757d;
+  padding-left: 13px;
+}
+
+.minimal-list-item.active:hover {
+  background-color: #FAFAFA;
+  padding-left: 15px;
+}
+
+/* 文本内容容器 */
+.minimal-text-content {
+  display: flex;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0;
+  padding-right: 0;
+  align-items: center;
+}
+
+
+.minimal-text-content .item-content {
+  font-size: 14px;
+  font-weight: normal;
+  color: #333333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 图片缩略图 */
+.minimal-image-wrapper {
+  flex: 1;
+}
+
+.minimal-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #f5f5f5;
+  margin: 0;
+}
+
+.minimal-image-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.minimal-favorite-badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f5a623;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* 操作按钮容器：默认隐藏，hover显示 */
+.minimal-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  position: absolute;
+  height: 100%;
+  right: 0px;
+  top: 0px;
+  padding: 8px;
+  justify-content: flex-end;
+  /* 图标右对齐 */
+  align-items: center;
+  pointer-events: none;
+  /* 未hover时不可点击，避免误触 */
+  background: linear-gradient(to right, #FAFAFA, #E6F2FF);
+}
+
+/* 列表项hover时显示图标 */
+.minimal-list-item:hover .minimal-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.action-icon {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  color: #666;
+  padding: 0;
+}
+
+/* 图标hover/active样式（区分功能色） */
+.icon-copy:hover {
+  background: rgba(64, 158, 255, 0.1);
+  color: #409eff;
+  transform: scale(1.1);
+}
+
+.icon-delete:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  transform: scale(1.1);
+}
+
+.icon-favorite:hover {
+  background: rgba(243, 156, 18, 0.1);
+  color: #f39c12;
+  transform: scale(1.1);
+}
+
+/* 收藏选中状态 */
+.icon-favorite.active {
+  color: #f39c12;
+}
+
+/* 颜色显示样式 - 仅保留小圆圈样式（列表中使用） */
+.color-circle-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* 快捷键标签 */
+.quick-access-badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 14px;
+  height: 14px;
+  background: rgba(153, 153, 153, 0.6);
+  color: #fff;
+  border-top-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 10;
+}

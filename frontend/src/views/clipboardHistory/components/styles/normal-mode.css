@@ -1,0 +1,141 @@
+/* 正常模式容器 */
+.normal-mode-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* 顶部工具栏 */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-left-text {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.search-input {
+  width: 300px;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 20px;
+}
+
+.search-input :deep(.el-input__clear) {
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* 过滤选择器 */
+.filter-select {
+  width: 80px;
+  color: #000;
+}
+
+.filter-select :deep(.el-select__wrapper) {
+  border: none;
+  box-shadow: none;
+  color: #000;
+  padding: 0 !important;
+}
+
+.filter-select :deep(.el-select__wrapper):hover {
+  border: none;
+  box-shadow: none;
+}
+
+.filter-select :deep(.el-select__placeholder.is-transparent) {
+  color: #000;
+}
+
+.filter-select :deep(.el-select__placeholder) {
+  color: #000;
+  text-align: right;
+}
+
+.filter-select :deep(.el-select__caret) {
+  color: #000;
+}
+
+/* 主内容区域 */
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  background-color: #fafafa;
+}
+
+/* 左侧面板 */
+.left-panel {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+  background-color: #fff;
+  margin: 12px;
+  border-radius: 12px;
+}
+
+/* 标签按钮 */
+.tab-buttons {
+  padding: 16px 16px 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 列表容器 */
+.item-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* 去除程序化聚焦后的蓝色边框 */
+.item-list:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* 加载和空状态 */
+.loading,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+  color: #86868b;
+  gap: 10px;
+}
+
+/* 右侧面板 */
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+}

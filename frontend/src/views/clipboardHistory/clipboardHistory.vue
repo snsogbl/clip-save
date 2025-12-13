@@ -1,170 +1,80 @@
 <template>
   <!-- 设置页面 Drawer -->
   <el-drawer
-    v-model="showSetting"
+    :model-value="showSetting"
+    @update:model-value="showSetting = $event"
     :title="$t('settings.title')"
     direction="rtl"
-    size="600px"
+    :size="showRightPanel ? '600px' : '100%'"
     @close="handleSettingBack"
     class="settings-drawer"
     destroy-on-close
   >
     <SettingView />
   </el-drawer>
+
   <!-- 脚本选择器 -->
   <ScriptSelector
     v-if="currentItem"
-    v-model="showScriptSelector"
+    :model-value="showScriptSelector"
+    :show-right-panel="showRightPanel"
+    @update:model-value="showScriptSelector = $event"
     :item="currentItem"
   />
-  <div class="clipboard-container" style="--wails-draggable: no-drag">
-    <!-- 顶部工具栏 -->
-    <div class="toolbar" style="--wails-draggable: drag">
-      <div class="toolbar-left">
-        <div class="title-bg">
-          <el-icon :size="20" class="iconfont icon-shandian"> </el-icon>
-          <span class="toolbar-left-text">
-            {{ $t("app.title") }}
-          </span>
-        </div>
-      </div>
-      <div class="toolbar-right">
-        <el-dropdown placement="bottom">
-          <el-icon :size="20" class="iconfont icon-duoyuyan"> </el-icon>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item @click="changeLanguage('zh-CN')"
-                >中文</el-dropdown-item
-              >
-              <el-dropdown-item @click="changeLanguage('en-US')"
-                >English</el-dropdown-item
-              >
-              <el-dropdown-item @click="changeLanguage('fr-FR')"
-                >Français</el-dropdown-item
-              >
-              <el-dropdown-item @click="changeLanguage('ar-SA')"
-                >العربية</el-dropdown-item
-              >
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <el-select
-          v-model="filterType"
-          class="filter-select"
-          @change="onSearchChange"
-          size="large"
-          :placeholder="$t('main.filterAll')"
-        >
-          <el-option :label="$t('main.filterAll')" value="" />
-          <el-option :label="$t('main.filterText')" value="Text" />
-          <el-option :label="$t('main.filterImage')" value="Image" />
-          <el-option :label="$t('main.filterFile')" value="File" />
-          <el-option :label="$t('main.filterUrl')" value="URL" />
-          <el-option :label="$t('main.filterColor')" value="Color" />
-          <el-option :label="$t('main.filterJSON')" value="JSON" />
-        </el-select>
-        <el-input
-          ref="searchInputRef"
-          v-model="searchKeyword"
-          type="text"
-          class="search-input"
-          :prefix-icon="Search"
-          :placeholder="$t('main.searchPlaceholder')"
-          @keydown="handleSearchKeydown"
-          @input="onSearchChange"
-          clearable
-          style="--wails-draggable: no-drag"
-        />
-        <el-button class="me-button" circle @click="showSetting = true">
-          <el-icon :size="20">
-            <Setting />
-          </el-icon>
-        </el-button>
-      </div>
-    </div>
 
-    <!-- 主内容区域 -->
-    <div class="main-content">
-      <!-- 左侧列表 -->
-      <div class="left-panel">
-        <div class="tab-buttons">
-          <el-button
-            round
-            class="me-button"
-            :class="{ active: leftTab === 'all' }"
-            @click="switchLeftTab('all')"
-          >
-            <el-icon :size="20" class="iconfont icon-liebiao"> </el-icon>
-            <span>{{ $t("main.listTitle") }}</span>
-          </el-button>
-          <el-button
-            round
-            class="me-button"
-            :class="{ active: leftTab === 'fav' }"
-            @click="switchLeftTab('fav')"
-          >
-            <el-icon><Star /></el-icon>
-            <span>{{ $t("main.favorite") }}</span>
-          </el-button>
-        </div>
-        <div class="item-list" ref="itemListRef" tabindex="-1">
-          <div v-if="loading" class="loading">{{ $t("main.loading") }}</div>
-          <div v-else-if="items.length === 0" class="empty-state">
-            <el-icon :size="48" class="iconfont icon-kongyemian"> </el-icon>
-            <div class="empty-text">{{ $t("main.emptyState") }}</div>
-          </div>
-          <div
-            v-else
-            v-for="(item, index) in items"
-            :key="item.ID"
-            class="list-item"
-            :class="{ active: currentItem?.ID === item.ID }"
-            @click="selectItem(item)"
-            @dblclick="handleDoubleClick(item)"
-          >
-            <!-- 数字标签（按住 Command 时显示前 9 个） -->
-            <div
-              v-if="isCommandPressed && index < 9"
-              class="quick-access-badge"
-            >
-              {{ index + 1 }}
-            </div>
-            <div class="item-header">
-              <el-icon class="item-icon" :size="18">
-                <Document v-if="item.ContentType === 'Text'" />
-                <Link v-else-if="item.ContentType === 'URL'" />
-                <Folder v-else-if="item.ContentType === 'File'" />
-                <Brush v-else-if="item.ContentType === 'Color'" />
-                <Picture v-else-if="item.ContentType === 'Image'" />
-                <Document v-else-if="item.ContentType === 'JSON'" />
-                <Document v-else />
-              </el-icon>
-              <span class="item-content">{{ getPreview(item) }}</span>
-              <div
-                v-if="item.ContentType === 'Color'"
-                class="color-circle-small"
-                :style="{ backgroundColor: item.Content }"
-              ></div>
-              <el-icon
-                v-if="item.IsFavorite === 1"
-                :size="16"
-                style="color: #f5a623"
-              >
-                <Star />
-              </el-icon>
-            </div>
-            <div class="item-footer">
-              <span class="item-type" style="width: 40px">{{
-                item.ContentType
-              }}</span>
-              <span class="item-time">{{ formatTime(item.Timestamp) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div
+    ref="containerRef"
+    class="clipboard-container"
+    style="--wails-draggable: no-drag"
+  >
+    <!-- 极简模式 -->
+    <MinimalModeView
+      v-if="!showRightPanel"
+      :items="items"
+      :current-item="currentItem"
+      :loading="loading"
+      :left-tab="leftTab"
+      :search-keyword="searchKeyword"
+      :is-always-on-top="isAlwaysOnTop"
+      :is-command-pressed="isCommandPressed"
+      @toggle-always-on-top="toggleAlwaysOnTop"
+      @show-setting="showSetting = true"
+      @switch-tab="switchLeftTab"
+      @update:search-keyword="searchKeyword = $event"
+      @search-keydown="handleSearchKeydown"
+      @search-change="onSearchChange"
+      @select-item="selectItem"
+      @double-click="handleDoubleClick"
+      @copy-item="copyItem"
+      @delete-item="deleteItem"
+      @collect-item="collectItem"
+      @send-item="sendItem"
+      ref="minimalModeRef"
+    />
 
-      <!-- 右侧详情 -->
-      <div class="right-panel" style="--wails-draggable: no-drag">
+    <!-- 正常模式 -->
+    <NormalModeView
+      v-else
+      :items="items"
+      :current-item="currentItem"
+      :loading="loading"
+      :left-tab="leftTab"
+      :search-keyword="searchKeyword"
+      :filter-type="filterType"
+      :is-always-on-top="isAlwaysOnTop"
+      :is-command-pressed="isCommandPressed"
+      @toggle-always-on-top="toggleAlwaysOnTop"
+      @show-setting="showSetting = true"
+      @change-language="changeLanguage"
+      @filter-change="handleFilterChange"
+      @search-keydown="handleSearchKeydown"
+      @search-change="handleSearchInputChange"
+      @switch-tab="switchLeftTab"
+      @select-item="selectItem"
+      @double-click="handleDoubleClick"
+      ref="normalModeRef"
+    >
+      <template #content-area>
         <div class="content-area" ref="contentAreaRef">
           <ClipboardTitleView
             v-if="currentItem"
@@ -228,6 +138,9 @@
           :item-id="currentItem.ID"
           :result="scriptResults[currentItem.ID]"
         />
+      </template>
+
+      <template #info-panel>
         <div v-if="currentItem" class="info-panel">
           <el-descriptions title="">
             <el-descriptions-item :label="$t('main.source')">
@@ -254,14 +167,14 @@
             </el-descriptions-item>
           </el-descriptions>
         </div>
-      </div>
-    </div>
+      </template>
+    </NormalModeView>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
-import { EventsOn } from "../../../wailsjs/runtime/runtime";
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from "vue";
+import { EventsOn, WindowGetSize } from "../../../wailsjs/runtime/runtime";
 import { useI18n } from "vue-i18n";
 import { useCommandNumberShortcut } from "../../composables/useCommandNumberShortcut";
 import {
@@ -272,25 +185,19 @@ import {
   OpenURL,
   ClearItemsOlderThanDays,
   GetAppSettings,
-  HideWindow,
   ToggleFavorite,
   HideWindowAndQuit,
   SetLanguage,
   AutoPasteCurrentItem,
   GetClipboardItemByID,
+  AutoPasteCurrentItemToPreviousApp,
+  SetWindowAlwaysOnTop,
+  ActivatePreviousApp,
 } from "../../../wailsjs/go/main/App";
 
-const { t, locale } = useI18n();
-import {
-  Document,
-  Link,
-  Folder,
-  Brush,
-  Picture,
-  Setting,
-  Star,
-  Search,
-} from "@element-plus/icons-vue";
+// 组件导入
+import MinimalModeView from "./components/MinimalModeView.vue";
+import NormalModeView from "./components/NormalModeView.vue";
 import ClipboardUrlView from "./components/clipboardUrlView.vue";
 import ClipboardColorView from "./components/clipboardColorView.vue";
 import ClipboardFileView from "./components/clipboardFileView.vue";
@@ -304,6 +211,8 @@ import SettingView from "../setting/setting.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
 import { common } from "../../../wailsjs/go/models";
 
+const { t, locale } = useI18n();
+
 // 使用 Wails 生成的类型
 type ClipboardItem = common.ClipboardItem;
 
@@ -316,40 +225,45 @@ interface FileInfo {
   extension: string;
 }
 
+// 响应式数据
 const items = ref<ClipboardItem[]>([]);
 const currentItem = ref<ClipboardItem | null>(null);
-const itemListRef = ref<HTMLElement | null>(null);
+const containerRef = ref<HTMLElement | null>(null);
 const contentAreaRef = ref<HTMLElement | null>(null);
-const searchInputRef = ref<HTMLInputElement | null>(null);
 const textEditorRef = ref<InstanceType<typeof ClipboardTextView> | null>(null);
+const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
+const minimalModeRef = ref<InstanceType<typeof MinimalModeView> | null>(null);
+const normalModeRef = ref<InstanceType<typeof NormalModeView> | null>(null);
+
 const searchKeyword = ref("");
 const filterType = ref("");
 const loading = ref(false);
 const showSetting = ref(false);
 const showScriptSelector = ref(false);
 const leftTab = ref<"all" | "fav">("all");
-const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
 
 // 脚本执行结果存储
 interface ScriptExecutionResult {
   error?: string;
-  returnValue?: any; // 脚本的返回值
+  returnValue?: any;
   timestamp: number;
   scriptName?: string;
-  status?: "executing" | "completed" | "error"; // 执行状态
+  status?: "executing" | "completed" | "error";
 }
 
-const scriptResults = ref<Record<string, ScriptExecutionResult>>({}); // 只存储最后一次执行结果
-const executingScripts = ref<Record<string, string>>({}); // 正在执行的脚本：itemId -> scriptId
+const scriptResults = ref<Record<string, ScriptExecutionResult>>({});
+const executingScripts = ref<Record<string, string>>({});
 
-// 定时器引用，用于清理
-let autoCleanInterval: ReturnType<typeof setInterval> | null = null;
-// 事件监听器清理函数
-const eventCleanupFunctions: (() => void)[] = [];
+// 窗口大小相关
+const windowWidth = ref(1280);
+const showRightPanel = computed(() => windowWidth.value >= 800);
+
+// 窗口置顶状态
+const isAlwaysOnTop = ref(false);
 
 // 使用 Command+数字键快捷键
 const { isCommandPressed } = useCommandNumberShortcut({
-  enabled: () => !showScriptSelector.value, // ScriptSelector 打开时不启用
+  enabled: () => !showScriptSelector.value,
   itemCount: () => items.value.length,
   onSelect: (index: number) => {
     if (items.value[index]) {
@@ -358,7 +272,7 @@ const { isCommandPressed } = useCommandNumberShortcut({
   },
 });
 
-// 缓存的设置数据，避免频繁查询数据库
+// 缓存的设置数据
 let cachedSettings: {
   pageSize: number;
   autoClean: boolean;
@@ -366,9 +280,53 @@ let cachedSettings: {
   doubleClickPaste?: boolean;
 } | null = null;
 
+// 定时器和事件清理
+let autoCleanInterval: ReturnType<typeof setInterval> | null = null;
+let resizeObserver: ResizeObserver | null = null;
+const eventCleanupFunctions: (() => void)[] = [];
+const isFirstWatch = ref(true);
+
+// 监听showRightPanel变化
+watch(showRightPanel, (newVal) => {
+  if (isFirstWatch.value) {
+    isFirstWatch.value = false;
+    return;
+  }
+  loadItems();
+});
+
+// 获取当前搜索输入框引用
+const getSearchInputRef = () => {
+  if (showRightPanel.value) {
+    return normalModeRef.value?.searchInputRef;
+  } else {
+    return minimalModeRef.value?.searchInputRef;
+  }
+};
+
+// 获取当前列表容器引用
+const getItemListRef = () => {
+  if (showRightPanel.value) {
+    return normalModeRef.value?.itemListRef;
+  } else {
+    return minimalModeRef.value?.itemListRef;
+  }
+};
+
+// 切换窗口置顶状态
+function toggleAlwaysOnTop() {
+  isAlwaysOnTop.value = !isAlwaysOnTop.value;
+  SetWindowAlwaysOnTop(isAlwaysOnTop.value);
+  ElMessage.success({
+    placement: showRightPanel.value ? "top-right" : "top",
+    message: isAlwaysOnTop.value
+      ? t("message.windowTopped")
+      : t("message.windowUnTopped"),
+  });
+}
+
 // 从数据库获取设置（带缓存）
 async function getSettings(forceRefresh = false) {
-  // 如果已有缓存且不需要强制刷新，直接返回缓存
   if (cachedSettings && !forceRefresh) {
     return cachedSettings;
   }
@@ -391,7 +349,7 @@ async function getSettings(forceRefresh = false) {
   } catch (e) {
     console.error("❌ 读取设置失败:", e);
   }
-  // 返回默认值（数据库初始化时应该已经创建了默认设置）
+
   cachedSettings = {
     pageSize: 50,
     autoClean: true,
@@ -407,13 +365,13 @@ async function loadItems() {
     loading.value = true;
     const settings = await getSettings();
     const pageSize = settings?.pageSize || 50;
-    console.log("📊 使用页面大小:", pageSize);
 
     const result = await SearchClipboardItems(
       leftTab.value === "fav",
       searchKeyword.value,
       filterType.value,
-      pageSize
+      pageSize,
+      !showRightPanel.value
     );
     items.value = result || [];
 
@@ -429,10 +387,9 @@ async function loadItems() {
   }
 }
 
-// 静默检查更新（不显示加载状态）
+// 静默检查更新
 async function checkForUpdates() {
   try {
-    // 使用缓存的设置，避免频繁查询数据库
     const settings = await getSettings();
     const pageSize = settings?.pageSize || 50;
 
@@ -440,11 +397,11 @@ async function checkForUpdates() {
       leftTab.value === "fav",
       searchKeyword.value,
       filterType.value,
-      pageSize
+      pageSize,
+      !showRightPanel.value
     );
     const newItems = result || [];
 
-    // 只在数据真正变化时才更新（比较第一个项目的ID和总数）
     if (
       newItems.length !== items.value.length ||
       (newItems.length > 0 &&
@@ -453,12 +410,9 @@ async function checkForUpdates() {
     ) {
       items.value = newItems;
 
-      // 如果没有选中项，自动选中第一项
       if (!currentItem.value && newItems.length > 0) {
         selectItem(newItems[0]);
       }
-
-      console.log("✨ 检测到剪贴板更新");
     }
   } catch (error) {
     console.error("检查更新失败:", error);
@@ -467,24 +421,21 @@ async function checkForUpdates() {
 
 // 选择项目
 async function selectItem(item: ClipboardItem) {
-  // 清理之前项目的图片数据，释放内存（如果之前是图片类型）
   if (
     currentItem.value?.ContentType === "Image" &&
-    currentItem.value.ImageData
+    currentItem.value.ImageData &&
+    showRightPanel.value
   ) {
-    // 只有当切换到不同项目时才清理
     if (currentItem.value.ID !== item.ID) {
       currentItem.value.ImageData = null as any;
     }
   }
 
-  // 切换项目时清空之前的脚本执行结果
   if (currentItem.value && currentItem.value.ID !== item.ID) {
     delete scriptResults.value[currentItem.value.ID];
   }
 
-  // 如果是图片类型且没有图片数据，需要重新加载完整数据
-  if (item.ContentType === "Image" && !item.ImageData) {
+  if (item.ContentType === "Image" && !item.ImageData && showRightPanel.value) {
     try {
       const fullItem = await GetClipboardItemByID(item.ID);
       if (fullItem) {
@@ -501,18 +452,34 @@ async function selectItem(item: ClipboardItem) {
   }
 
   await nextTick();
-  // 确保当前选中项进入可视区域
-  const container = itemListRef.value;
+  const container = getItemListRef();
   if (!container) return;
   const activeEl = container.querySelector(
-    ".list-item.active"
+    ".list-item.active, .minimal-list-item.active, .normal-list-item.active"
   ) as HTMLElement | null;
   if (activeEl) {
     activeEl.scrollIntoView({ block: "nearest" });
   }
-  // 将内容区域滚动到顶部
+
   if (contentAreaRef.value) {
     contentAreaRef.value.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+// 发送项目
+async function sendItem(item: ClipboardItem) {
+  if (currentItem.value?.ID !== item.ID) {
+    await selectItem(item);
+    await nextTick();
+  }
+
+  await copyItem(item.ID);
+
+  if (isAlwaysOnTop.value) {
+    AutoPasteCurrentItemToPreviousApp();
+  } else {
+    ActivatePreviousApp();
+    AutoPasteCurrentItem();
   }
 }
 
@@ -527,17 +494,20 @@ async function handleDoubleClick(item: ClipboardItem) {
 
 // 自动粘贴当前项目
 async function autoPasteCurrentItem(item: ClipboardItem) {
-  // 如果双击的项目不是当前选中的，先选中它
+  if (!currentItem.value) return;
   if (currentItem.value?.ID !== item.ID) {
     await selectItem(item);
-    // 等待 DOM 更新，特别是 JSON 编辑器
     await nextTick();
   }
-  // 复制当前项
+
   await copyItem(item.ID);
 
-  HideWindowAndQuit();
-  AutoPasteCurrentItem();
+  if (isAlwaysOnTop.value) {
+    AutoPasteCurrentItemToPreviousApp();
+  } else {
+    HideWindowAndQuit();
+    AutoPasteCurrentItem();
+  }
 }
 
 // 复制项目
@@ -548,7 +518,6 @@ async function copyItem(id: string) {
     try {
       await CopyToClipboard(id);
       ElMessage.success(t("message.copySuccess"));
-      console.log("已复制到剪贴板");
     } catch (error) {
       console.error("复制失败:", error);
       ElMessage.error(t("message.copyError", [error]));
@@ -587,10 +556,9 @@ async function collectItem(id: string) {
     if (currentItem.value && currentItem.value.ID === id) {
       currentItem.value.IsFavorite = newVal;
     }
-    // 就地更新左侧 items
+
     const index = items.value.findIndex((i) => i.ID === id);
     if (index !== -1) {
-      // 在收藏页签下，取消收藏需要从列表移除
       if (leftTab.value === "fav" && newVal === 0) {
         const isCurrent = currentItem.value?.ID === id;
         const nextItem =
@@ -604,7 +572,6 @@ async function collectItem(id: string) {
           }
         }
       } else {
-        // 其他情况仅更新该项的收藏状态
         items.value[index].IsFavorite = newVal;
       }
     }
@@ -617,12 +584,13 @@ async function collectItem(id: string) {
   }
 }
 
+// 切换左侧标签页
 async function switchLeftTab(tab: "all" | "fav") {
   if (leftTab.value === tab) return;
   leftTab.value = tab;
   await loadItems();
   await nextTick();
-  itemListRef.value?.focus();
+  getItemListRef()?.focus();
 }
 
 // 处理运行脚本按钮点击
@@ -632,84 +600,63 @@ function handleRunScript() {
   }
 }
 
-function formatTime(timestamp: string): string {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 60) {
-    return `${minutes}分钟前`;
-  } else if (hours < 24) {
-    return `${hours}小时前`;
-  } else if (days < 7) {
-    return `${days}天前`;
-  } else {
-    return date.toLocaleString("zh-CN", {
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-}
-
-// 获取预览文本
-function getPreview(item: ClipboardItem): string {
-  let preview = item.Content || "空内容";
-  if (preview.length > 30) {
-    preview = preview.substring(0, 27) + "...";
-  }
-  return preview;
-}
-
 // 搜索和过滤变化时重新加载
 const onSearchChange = () => {
   loadItems();
 };
 
+// 处理过滤器变化
+const handleFilterChange = (type: string) => {
+  filterType.value = type;
+  onSearchChange();
+};
+
+// 处理搜索输入变化
+const handleSearchInputChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  searchKeyword.value = target.value;
+  onSearchChange();
+};
+
 // 处理搜索框键盘按下事件
 function handleSearchKeydown(event: KeyboardEvent) {
   if (event.shiftKey) return;
-  // 检测 Cmd+Backspace 或 Ctrl+Backspace
+
   if ((event.metaKey || event.ctrlKey) && event.key === "Backspace") {
     event.preventDefault();
     event.stopPropagation();
-    deleteItem(currentItem.value!.ID);
+    if (currentItem.value) {
+      deleteItem(currentItem.value.ID);
+    }
     return;
   }
-  // 检测 Cmd+Enter 或 Ctrl+Enter
+
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
     event.preventDefault();
     event.stopPropagation();
-    // 直接执行复制并退出功能
     if (currentItem.value) {
       autoPasteCurrentItem(currentItem.value);
     }
     return;
   }
-  // 检测 Cmd+Left 或 Ctrl+Left（切换到列表页签）
+
   if ((event.metaKey || event.ctrlKey) && event.key === "ArrowLeft") {
     event.preventDefault();
     event.stopPropagation();
     switchLeftTab("all").then(() => {
-      // 切换后恢复搜索框焦点
       nextTick(() => {
-        searchInputRef.value?.focus();
+        getSearchInputRef()?.focus();
       });
     });
     return;
   }
-  // 检测 Cmd+Right 或 Ctrl+Right（切换到收藏页签）
+
   if ((event.metaKey || event.ctrlKey) && event.key === "ArrowRight") {
     event.preventDefault();
     event.stopPropagation();
     switchLeftTab("fav").then(() => {
-      // 切换后恢复搜索框焦点
       nextTick(() => {
-        searchInputRef.value?.focus();
+        getSearchInputRef()?.focus();
       });
     });
     return;
@@ -732,7 +679,6 @@ async function openInFinder(filePath: string) {
   try {
     await OpenFileInFinder(filePath);
     ElMessage.success(t("message.openFinderSuccess"));
-    console.log("已在 Finder 中打开文件");
   } catch (error) {
     console.error("在 Finder 中打开文件失败:", error);
     ElMessage.error(t("message.openFinderError", [error]));
@@ -744,7 +690,6 @@ async function openURL(url: string) {
   try {
     await OpenURL(url);
     ElMessage.success(t("message.openUrlSuccess"));
-    console.log("已在浏览器中打开 URL");
   } catch (error) {
     console.error("在浏览器中打开 URL 失败:", error);
     ElMessage.error(t("message.openUrlError", [error]));
@@ -753,44 +698,58 @@ async function openURL(url: string) {
 
 // 处理设置页面返回
 async function handleSettingBack() {
-  console.log("handleSettingBack");
   showSetting.value = false;
   await getSettings(true);
 }
 
 // 自动清理超过指定天数的历史记录
 async function autoCleanOldItems() {
-  // 使用缓存的设置，避免频繁查询数据库
   const settings = await getSettings();
 
   if (!settings?.autoClean) {
-    return; // 未启用自动清理
+    return;
   }
 
   const retentionDays = settings.retentionDays || 30;
 
   try {
-    console.log(`🗑️ 执行自动清理: 删除超过 ${retentionDays} 天的记录`);
     await ClearItemsOlderThanDays(retentionDays);
-    console.log(`✅ 自动清理完成`);
   } catch (error) {
     console.error("❌ 自动清理失败:", error);
   }
 }
 
+// 检查并更新窗口大小
+async function updateWindowSize() {
+  try {
+    const size = await WindowGetSize();
+    if (size) {
+      windowWidth.value = size.w;
+    }
+  } catch (error) {
+    console.error("获取窗口大小失败:", error);
+  }
+}
+
+// 切换语言
+function changeLanguage(lang: string) {
+  SetLanguage(lang);
+  locale.value = lang as any;
+}
+
 // 初始化和定时刷新
 onMounted(() => {
-  // 初始化设置缓存
   getSettings().then(() => {
     loadItems();
-    // 启动时执行一次自动清理
     autoCleanOldItems();
+    nextTick(() => {
+      isFirstWatch.value = false;
+    });
   });
 
-  // 监听剪贴板更新事件（事件驱动）
+  // 监听剪贴板更新事件
   eventCleanupFunctions.push(
     EventsOn("clipboard.updated", () => {
-      // 收到剪贴板更新事件时，静默刷新列表
       checkForUpdates();
     })
   );
@@ -798,24 +757,47 @@ onMounted(() => {
   // 每小时执行一次自动清理
   autoCleanInterval = setInterval(() => {
     autoCleanOldItems();
-  }, 60 * 60 * 1000); // 1小时 = 60分钟 * 60秒 * 1000毫秒
+  }, 60 * 60 * 1000);
 
-  // 监听窗口显示事件：从后台切换到前台时，选中第一个列表项
+  // 初始化窗口大小
+  updateWindowSize();
+
+  // 使用 ResizeObserver 监听容器大小变化
+  nextTick(() => {
+    if (containerRef.value) {
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const width = entry.contentRect.width;
+          windowWidth.value = width;
+        }
+      });
+      resizeObserver.observe(containerRef.value);
+
+      eventCleanupFunctions.push(() => {
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+          resizeObserver = null;
+        }
+      });
+    }
+  });
+
+  // 监听各种事件
   eventCleanupFunctions.push(
     EventsOn("window.show", () => {
-      // 重置 Command 键状态，避免标签一直显示
       isCommandPressed.value = false;
       setTimeout(() => {
         checkForUpdates();
+        updateWindowSize();
         if (items.value.length > 0) {
           selectItem(items.value[0]);
         }
-        searchInputRef.value?.focus();
+        getSearchInputRef()?.focus();
       }, 100);
     })
   );
 
-  // 监听菜单事件：上一条/下一条
+  // 其他事件监听...
   eventCleanupFunctions.push(
     EventsOn("nav.prev", () => {
       if (items.value.length === 0) return;
@@ -828,6 +810,7 @@ onMounted(() => {
       selectItem(items.value[nextIdx]);
     })
   );
+
   eventCleanupFunctions.push(
     EventsOn("nav.next", () => {
       if (items.value.length === 0) return;
@@ -840,16 +823,19 @@ onMounted(() => {
       selectItem(items.value[nextIdx]);
     })
   );
+
   eventCleanupFunctions.push(
     EventsOn("nav.switch", (tab: "all" | "fav") => {
       switchLeftTab(tab);
     })
   );
+
   eventCleanupFunctions.push(
     EventsOn("nav.setting", () => {
       showSetting.value = true;
     })
   );
+
   eventCleanupFunctions.push(
     EventsOn("nav.runScript", () => {
       if (currentItem.value) {
@@ -857,43 +843,56 @@ onMounted(() => {
       }
     })
   );
+
   eventCleanupFunctions.push(
     EventsOn("copy.current", () => {
-      copyItem(currentItem.value!.ID);
+      if (currentItem.value) {
+        copyItem(currentItem.value.ID);
+      }
     })
   );
+
   eventCleanupFunctions.push(
     EventsOn("delete.current", () => {
-      deleteItem(currentItem.value!.ID);
+      if (currentItem.value) {
+        deleteItem(currentItem.value.ID);
+      }
     })
   );
+
   eventCleanupFunctions.push(
     EventsOn("collect.current", () => {
-      collectItem(currentItem.value!.ID);
+      if (currentItem.value) {
+        collectItem(currentItem.value.ID);
+      }
     })
   );
+
   eventCleanupFunctions.push(
     EventsOn("search.item", () => {
-      searchInputRef.value?.focus();
+      getSearchInputRef()?.focus();
     })
   );
+
+  eventCleanupFunctions.push(
+    EventsOn("enter.item", () => {
+      autoPasteCurrentItem(currentItem.value || {} as ClipboardItem);
+    })
+  );
+
   eventCleanupFunctions.push(
     EventsOn("translate.current", () => {
       textEditorRef.value?.translateText();
     })
   );
 
-  // 监听脚本执行中事件
+  // 监听脚本执行事件
   eventCleanupFunctions.push(
     EventsOn(
       "script.executing",
       (data: { itemId: string; scriptName: string; scriptId: string }) => {
         const { itemId, scriptName, scriptId } = data;
-
-        // 记录当前正在执行的脚本ID
         executingScripts.value[itemId] = scriptId;
-
-        // 更新执行中状态
         scriptResults.value[itemId] = {
           scriptName,
           timestamp: Date.now(),
@@ -903,7 +902,6 @@ onMounted(() => {
     )
   );
 
-  // 监听脚本执行完成事件
   eventCleanupFunctions.push(
     EventsOn(
       "script.executed",
@@ -913,11 +911,7 @@ onMounted(() => {
         result: ScriptExecutionResult;
       }) => {
         const { itemId, result } = data;
-
-        // 清除执行中状态
         delete executingScripts.value[itemId];
-
-        // 更新为完成状态
         scriptResults.value[itemId] = {
           ...result,
           status: (result.error ? "error" : "completed") as
@@ -930,24 +924,16 @@ onMounted(() => {
   );
 });
 
-function changeLanguage(lang: string) {
-  SetLanguage(lang);
-  locale.value = lang as any;
-}
-
-// 组件卸载时清理事件监听器和定时器
+// 组件卸载时清理
 onUnmounted(() => {
-  // 清理定时器
   if (autoCleanInterval) {
     clearInterval(autoCleanInterval);
     autoCleanInterval = null;
   }
 
-  // 清理事件监听器
   eventCleanupFunctions.forEach((cleanup) => cleanup());
   eventCleanupFunctions.length = 0;
 
-  // 清理图片数据缓存，释放内存
   if (
     currentItem.value?.ContentType === "Image" &&
     currentItem.value.ImageData
@@ -964,222 +950,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-}
-
-.toolbar {
-  display: flex;
-  gap: 12px;
-  padding: 8px 14px;
-  border-bottom: 1px solid #e0e0e0;
-  /* align-items: center; */
-
-  .toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .title-bg {
-      margin-left: 60px;
-      .toolbar-left-text {
-        font-size: 16px;
-        font-weight: 600;
-      }
-    }
-  }
-  .toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-    .search-input {
-      width: 300px;
-    }
-  }
-}
-.search-input :deep(.el-input__wrapper) {
-  border-radius: 20px;
-}
-
-.search-input :deep(.el-input__clear) {
-  padding: 8px;
-  margin: -8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  min-height: 32px;
-}
-
-.filter-select {
-  width: 80px;
-  color: #000;
-}
-
-.filter-select :deep(.el-select__wrapper) {
-  border: none;
-  box-shadow: none;
-  color: #000;
-  padding: 0 !important;
-}
-.filter-select :deep(.el-select__wrapper):hover {
-  border: none;
-  box-shadow: none;
-}
-.filter-select :deep(.el-select__placeholder.is-transparent) {
-  color: #000;
-}
-.filter-select :deep(.el-select__placeholder) {
-  color: #000;
-  text-align: right;
-}
-.filter-select :deep(.el-select__caret) {
-  color: #000;
-}
-
-.setting-btn {
-  border: 1px solid #e0e0e0;
-  color: #666;
-  transition: all 0.2s ease;
-  width: 30px !important;
-  height: 30px !important;
-}
-
-.setting-btn:hover {
-  background-color: #f8f8f8;
-  border-color: #007aff;
-  color: #007aff;
-  transform: scale(1.05);
-}
-
-.setting-btn:active {
-  transform: scale(0.98);
-}
-
-.layout-btn {
-  color: #888;
-}
-
-.main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  background-color: #fafafa;
-}
-
-.left-panel {
-  width: 280px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
-  background-color: #fff;
-  margin: 12px;
-  border-radius: 12px;
-}
-
-.item-list {
-  flex: 1;
-  overflow-y: auto;
-}
-
-/* 去除程序化聚焦后的蓝色边框 */
-.item-list:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-.loading,
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 40px 20px;
-  color: #86868b;
-  gap: 10px;
-}
-
-.list-item {
-  padding: 10px;
-  margin: 0 12px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid #e8e8e8;
-  position: relative;
-  overflow: hidden;
-}
-
-.list-item.active {
-  border: 1px solid #999;
-  background-color: #fafafa;
-}
-
-.list-item:hover {
-  background-color: #fafafa;
-}
-
-.item-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.item-icon {
-  color: #666;
-  display: flex;
-  align-items: center;
-}
-
-.item-content {
-  flex: 1;
-  font-size: 15px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #2c2c2e;
-  text-align: left;
-  line-height: 1.4;
-}
-
-.item-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  color: #8e8e93;
-  margin-top: 6px;
-}
-
-.item-type {
-  background-color: #f2f2f7;
-  color: #6d6d70;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 500;
-  min-width: 40px;
-  text-align: center;
-}
-
-.panel-footer {
-  padding: 16px;
-  border-top: 1px solid #f0f0f0;
-  color: #000;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 600;
-  margin-top: auto;
-  border-radius: 0 0 0 0;
-}
-
-.right-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: transparent;
 }
 
 .content-area {
@@ -1201,75 +971,12 @@ onUnmounted(() => {
   font-size: 16px;
 }
 
-.content-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
 .info-panel {
   margin: 12px 20px 12px 8px;
   padding: 8px 12px 0px 12px;
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.info-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.info-row:last-child {
-  margin-bottom: 0;
-}
-
-.info-label {
-  font-weight: 600;
-  color: #333;
-  min-width: 90px;
-  font-size: 14px;
-}
-
-.info-value {
-  color: #1a1a1a;
-  font-size: 14px;
-}
-
-/* 颜色显示样式 - 仅保留小圆圈样式（列表中使用） */
-.color-circle-small {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.tab-buttons {
-  padding: 16px 16px 12px 20px;
-  display: inline-flex;
-  gap: 4px;
-}
-
-.quick-access-badge {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  width: 14px;
-  height: 14px;
-  background: rgba(153, 153, 153, 0.6);
-  color: #fff;
-  border-top-right-radius: 4px;
-  border-bottom-left-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 500;
-  z-index: 10;
 }
 </style>
 
@@ -1280,5 +987,8 @@ onUnmounted(() => {
 .el-drawer__body {
   background-color: #fafafa !important;
   padding: 0 !important;
+}
+.el-drawer__header{
+  margin-bottom: 10px !important;
 }
 </style>

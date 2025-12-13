@@ -1,0 +1,97 @@
+/* 正常模式列表项 */
+.normal-list-item {
+  padding: 10px;
+  margin: 0 12px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e8e8e8;
+  position: relative;
+  overflow: hidden;
+}
+
+.normal-list-item.active {
+  border: 1px solid #999;
+  background-color: #fafafa;
+}
+
+.normal-list-item:hover {
+  background-color: #fafafa;
+}
+
+/* 项目头部 */
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.item-icon {
+  color: #666;
+  display: flex;
+  align-items: center;
+}
+
+.item-content {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #2c2c2e;
+  text-align: left;
+  line-height: 1.4;
+}
+
+/* 项目底部 */
+.item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #8e8e93;
+  margin-top: 6px;
+}
+
+.item-type {
+  background-color: #f2f2f7;
+  color: #6d6d70;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* 颜色显示样式 */
+.color-circle-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* 快捷键标签 */
+.quick-access-badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 14px;
+  height: 14px;
+  background: rgba(153, 153, 153, 0.6);
+  color: #fff;
+  border-top-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 10;
+}

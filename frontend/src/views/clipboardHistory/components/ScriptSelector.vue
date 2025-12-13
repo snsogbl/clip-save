@@ -29,6 +29,7 @@
           v-for="(script, index) in scripts"
           :key="script.ID"
           class="script-item"
+          :style="{ width: showRightPanel ? 'calc(100% / 6 - 6px)' : '100%' }"
           @click="handleSelectScript(script)"
         >
           <!-- 数字标签（按住 Command 时显示前 9 个） -->
@@ -70,6 +71,7 @@ const { t } = useI18n();
 
 const props = defineProps<{
   modelValue: boolean;
+  showRightPanel: boolean;
   item: common.ClipboardItem | null;
 }>();
 
@@ -215,7 +217,6 @@ const { isCommandPressed } = useCommandNumberShortcut({
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
-  width: calc(100% / 6 - 6px);
   position: relative;
   overflow: hidden;
 }

@@ -309,9 +309,9 @@ async function handleScriptExecution(data: {
       console.log(`查询 item 数据...`)
       const queriedItem = await GetClipboardItemByID(itemId)
       if (!queriedItem) {
-        console.error(`未找到剪贴板项: ${itemId}`)
-        return
-      }
+      console.error(`未找到剪贴板项: ${itemId}`)
+      return
+    }
       item = queriedItem
     }
 
@@ -336,10 +336,10 @@ async function handleScriptExecution(data: {
     } else {
       // 兼容旧逻辑：如果没有提供脚本ID，使用原有方式（用于其他trigger类型）
       console.log(`使用原有方式获取 ${trigger} 脚本...`)
-      const scripts = await GetEnabledUserScriptsByTrigger(trigger)
+    const scripts = await GetEnabledUserScriptsByTrigger(trigger)
       scriptsToExecute = scripts.filter(
-        (script) => shouldTriggerScript(script, item)
-      )
+      (script) => shouldTriggerScript(script, item)
+    )
     }
 
     if (scriptsToExecute.length === 0) {

@@ -31,8 +31,9 @@ import (
 
 // App struct
 type App struct {
-	ctx            context.Context
-	isWindowHidden bool
+	ctx                  context.Context
+	isWindowHidden       bool
+	isUserSetAlwaysOnTop bool // 用户是否设置了置顶
 }
 
 // ShowAbout 显示关于对话框
@@ -71,6 +72,12 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	log.Println("Wails 应用启动成功")
+
+	// 初始化应用切换监听器（仅 macOS）
+	if gRuntime.GOOS == "darwin" {
+		common.InitAppSwitchListener()
+		log.Println("✅ 应用切换监听器已初始化")
+	}
 
 	// 初始化统计模块
 	if err := common.InitAnalytics(); err != nil {
@@ -128,8 +135,9 @@ func (a *App) shutdown(ctx context.Context) {
 }
 
 // SearchClipboardItems 搜索剪贴板项目（供前端调用）
-func (a *App) SearchClipboardItems(isFavorite bool, keyword string, filterType string, limit int) ([]common.ClipboardItem, error) {
-	items, err := common.SearchClipboardItems(isFavorite, keyword, filterType, limit)
+// loadImageData: 是否加载图片数据（极简模式下需要显示图片缩略图）
+func (a *App) SearchClipboardItems(isFavorite bool, keyword string, filterType string, limit int, loadImageData bool) ([]common.ClipboardItem, error) {
+	items, err := common.SearchClipboardItems(isFavorite, keyword, filterType, limit, loadImageData)
 	if err != nil {
 		log.Printf("搜索剪贴板项目失败: %v", err)
 		return []common.ClipboardItem{}, err
@@ -458,6 +466,9 @@ func (a *App) OpenURL(urlStr string) error {
 // ShowWindow 显示并聚焦窗口（供快捷键调用）
 func (a *App) ShowWindow() {
 	if a.ctx != nil {
+		// 在激活本应用之前，记录当前前台应用
+		common.RecordPreviousAppPID()
+
 		// 如果窗口之前是隐藏状态，需要移动到当前活动的桌面空间
 		runtime.WindowShow(a.ctx)
 		common.EnsureWindowOnCurrentScreen(a.ctx)
@@ -479,15 +490,29 @@ func (a *App) ShowWindow() {
 		// 清除隐藏标记
 		a.isWindowHidden = false
 
+		// 临时设置置顶，确保窗口获得焦点
 		runtime.WindowSetAlwaysOnTop(a.ctx, true)
-		// 延迟取消置顶，确保窗口获得焦点
-		go func() {
-			time.Sleep(100 * time.Millisecond)
-			runtime.WindowSetAlwaysOnTop(a.ctx, false)
 
-		}()
-		log.Println("🪟 窗口已显示并聚焦")
+		// 如果用户没有设置置顶，延迟取消置顶
+		if !a.isUserSetAlwaysOnTop {
+			go func() {
+				time.Sleep(100 * time.Millisecond)
+				if a.ctx != nil {
+					runtime.WindowSetAlwaysOnTop(a.ctx, false)
+				}
+			}()
+		}
 	}
+}
+
+// SetWindowAlwaysOnTop 设置窗口置顶状态（供前端调用，同时更新全局变量）
+func (a *App) SetWindowAlwaysOnTop(alwaysOnTop bool) error {
+	if a.ctx != nil {
+		a.isUserSetAlwaysOnTop = alwaysOnTop
+		runtime.WindowSetAlwaysOnTop(a.ctx, alwaysOnTop)
+		return nil
+	}
+	return fmt.Errorf("窗口上下文不存在")
 }
 
 // PrevItem 菜单：上一条
@@ -548,6 +573,13 @@ func (a *App) SearchItem() {
 	}
 }
 
+// EnterItem
+func (a *App) EnterItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "enter.item")
+	}
+}
+
 // HideWindow 隐藏窗口
 func (a *App) HideWindow() {
 	if a.ctx != nil {
@@ -578,6 +610,20 @@ func (a *App) HideWindowAndQuit() {
 func (a *App) AutoPasteCurrentItem() {
 	if a.ctx != nil {
 		go common.PasteCmdV()
+	}
+}
+
+// 激活应用
+func (a *App) ActivatePreviousApp() {
+	if a.ctx != nil {
+		go common.ActivatePreviousApp()
+	}
+}
+
+// AutoPasteCurrentItemToPreviousApp 自动粘贴到之前的前台应用（直接发送到进程）
+func (a *App) AutoPasteCurrentItemToPreviousApp() {
+	if a.ctx != nil {
+		go common.PasteCmdVToPreviousApp()
 	}
 }
 

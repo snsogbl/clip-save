@@ -255,7 +255,9 @@ const zhCN = {
     removePasswordSuccess: '密码已移除',
     favoriteAdded: '已收藏',
     favoriteRemoved: '已取消收藏',
-    favoriteError: '收藏操作失败'
+    favoriteError: '收藏操作失败',
+    windowTopped: '窗口已置顶',
+    windowUnTopped: '窗口已取消置顶'
   },
 
   // 通用文本
@@ -535,7 +537,9 @@ const enUS = {
     removePasswordSuccess: 'Password removed',
     favoriteAdded: 'Added to favorites',
     favoriteRemoved: 'Removed from favorites',
-    favoriteError: 'Favorite action failed'
+    favoriteError: 'Favorite action failed',
+    windowTopped: 'Window pinned to top',
+    windowUnTopped: 'Window unpinned from top'
   },
 
   // 通用文本
@@ -815,7 +819,9 @@ const frFR = {
     removePasswordSuccess: 'Mot de passe supprimé',
     favoriteAdded: 'Ajouté aux favoris',
     favoriteRemoved: 'Retiré des favoris',
-    favoriteError: 'Échec de l\'action des favoris'
+    favoriteError: 'Échec de l\'action des favoris',
+    windowTopped: 'Fenêtre épinglée en haut',
+    windowUnTopped: 'Fenêtre désépinglée du haut'
   },
 
   // 脚本相关
@@ -1091,7 +1097,9 @@ const arSA = {
     removePasswordSuccess: 'تم إزالة كلمة المرور',
     favoriteAdded: 'تمت الإضافة إلى المفضلة',
     favoriteRemoved: 'تمت الإزالة من المفضلة',
-    favoriteError: 'فشل إجراء المفضلة'
+    favoriteError: 'فشل إجراء المفضلة',
+    windowTopped: 'تم تثبيت النافذة في الأعلى',
+    windowUnTopped: 'تم إلغاء تثبيت النافذة من الأعلى'
   },
 
   // 脚本相关

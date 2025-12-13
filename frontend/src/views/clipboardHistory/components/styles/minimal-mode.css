@@ -1,0 +1,84 @@
+/* 极简模式容器 */
+.minimal-mode-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #ffffff;
+  padding: 0 6px;
+}
+
+/* 极简模式顶部设置按钮 */
+.minimal-setting-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  width: 100%;
+  padding: 16px 0 10px 0;
+  gap: 8px;
+}
+
+/* 极简模式标签页和搜索 */
+.minimal-tab-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 0 8px 0;
+}
+
+.minimal-tab-buttons .tab-buttons {
+  padding: 0;
+  justify-content: end;
+  gap: 0;
+}
+
+.minimal-tab-buttons :deep(.el-button) {
+  margin-left: 0px;
+  margin-right: 4px;
+}
+
+.minimal-tab-buttons .search-input {
+  margin-left: 8px;
+  width: 100%;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 20px;
+}
+
+.search-input :deep(.el-input__clear) {
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* 极简模式列表 */
+.minimal-item-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+/* 去除程序化聚焦后的蓝色边框 */
+.minimal-item-list:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* 加载和空状态 */
+.loading,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+  color: #86868b;
+  gap: 10px;
+}

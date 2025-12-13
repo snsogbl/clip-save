@@ -48,7 +48,7 @@ const parsedKeys = computed(() => {
 .hotkey-display-container {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .hotkey-key {

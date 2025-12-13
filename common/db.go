@@ -345,18 +345,26 @@ func ToggleFavorite(id string) (int, error) {
 	return newVal, nil
 }
 
-// SearchClipboardItems 搜索剪贴板项目（不加载图片数据以节省内存）
-func SearchClipboardItems(isFavorite bool, keyword string, filterType string, limit int) ([]ClipboardItem, error) {
+// SearchClipboardItems 搜索剪贴板项目
+// loadImageData: 是否加载图片数据（极简模式下需要显示图片缩略图）
+func SearchClipboardItems(isFavorite bool, keyword string, filterType string, limit int, loadImageData bool) ([]ClipboardItem, error) {
 	if DB == nil {
 		return nil, fmt.Errorf("数据库未初始化")
 	}
 
-	// 列表查询时不加载 image_data，节省内存
-	query := `
-    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, NULL as image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
+	// 根据 loadImageData 参数决定是否加载图片数据
+	var imageDataField string
+	if loadImageData {
+		imageDataField = "image_data"
+	} else {
+		imageDataField = "NULL as image_data"
+	}
+
+	query := fmt.Sprintf(`
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, %s, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
 	FROM clipboard_items
 	WHERE 1=1
-	`
+	`, imageDataField)
 	args := []interface{}{}
 
 	// 关键词搜索（不区分大小写）

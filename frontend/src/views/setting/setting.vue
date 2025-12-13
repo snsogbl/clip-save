@@ -16,7 +16,7 @@
               </div>
             </div>
           </div>
-          <el-button class="me-button" @click="showPasswordDialog = true">
+          <el-button size="small" class="me-button" @click="showPasswordDialog = true">
             {{ settings.password ? $t('settings.changePassword') : $t('settings.setPassword') }}
           </el-button>
         </div>
@@ -31,10 +31,10 @@
               <div class="setting-item-desc">{{ $t('settings.removePasswordDesc') }}</div>
             </div>
           </div>
-          <el-button class="me-button" @click="removePassword" type="danger">
+          <el-button size="small" class="me-button" @click="removePassword" type="danger">
             {{ $t('settings.removePassword') }}
           </el-button>
-          <el-button class="me-button" @click="lockPassword">{{ $t('settings.lock') }}</el-button>
+          <el-button size="small" class="me-button" @click="lockPassword">{{ $t('settings.lock') }}</el-button>
         </div>
       </div>
 
@@ -66,6 +66,7 @@
             </div>
           </div>
           <el-input-number
+            size="small"
             v-model="settings.retentionDays"
             :min="1"
             :max="365"
@@ -105,7 +106,7 @@
               :disabled="isRecording"
               size="small"
               type="primary"
-              style="margin-left: 12px"
+              style="margin-left: 0px"
             >
               {{ isRecording ? $t('settings.recording') : $t('settings.record') }}
             </el-button>
@@ -139,7 +140,7 @@
               </div>
             </div>
           </div>
-          <el-button @click="clearAllItems" type="danger">
+          <el-button size="small" @click="clearAllItems" type="danger">
             {{ $t('settings.clearAllButton') }}
           </el-button>
         </div>
@@ -158,6 +159,7 @@
             </div>
           </div>
           <el-input-number
+            size="small"
             v-model="settings.pageSize"
             :min="10"
             :max="200"
@@ -176,7 +178,7 @@
               <div class="setting-item-desc">{{ $t('settings.languageDesc') }}</div>
             </div>
           </div>
-          <el-select style="width: 120px;" v-model="currentLanguage" @change="changeLanguage">
+          <el-select size="small" style="width: 120px;" v-model="currentLanguage" @change="changeLanguage">
             <el-option label="中文" value="zh-CN" />
             <el-option label="English" value="en-US" />
             <el-option label="Français" value="fr-FR" />
@@ -213,7 +215,7 @@
               </div>
             </div>
           </div>
-          <el-button class="me-button" @click="showScriptManager = true">
+          <el-button size="small" class="me-button" @click="showScriptManager = true">
             {{ $t('settings.scripts.manageButton') }}
           </el-button>
         </div>
@@ -287,8 +289,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showPasswordDialog = false">{{ $t('passwordDialog.cancel') }}</el-button>
-        <el-button type="primary" @click="savePassword">{{ $t('passwordDialog.confirm') }}</el-button>
+        <el-button size="small" @click="showPasswordDialog = false">{{ $t('passwordDialog.cancel') }}</el-button>
+        <el-button size="small" type="primary" @click="savePassword">{{ $t('passwordDialog.confirm') }}</el-button>
       </template>
     </el-dialog>
 
@@ -638,7 +640,7 @@ onUnmounted(() => {
 .setting-content {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 10px 12px;
   max-width: 100%;
   margin: 0;
   width: 100%;
@@ -647,14 +649,14 @@ onUnmounted(() => {
 .setting-section {
   background-color: #ffffff;
   border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 8px;
+  margin-bottom: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .setting-section h3 {
-  margin: 0 0 20px 0;
-  font-size: 18px;
+  margin: 0;
+  font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
 }
@@ -663,7 +665,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -674,7 +676,7 @@ onUnmounted(() => {
 .setting-item-left {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 4px;
   flex: 1;
 }
 
@@ -688,7 +690,7 @@ onUnmounted(() => {
 }
 
 .setting-item-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: #000;
   margin-bottom: 4px;
@@ -723,12 +725,12 @@ onUnmounted(() => {
   font-weight: 600;
   color: #000;
   min-width: 100px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .about-value {
   color: #333;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .setting-actions {
@@ -743,7 +745,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   color: #8e8e93;
-  font-size: 14px;
+  font-size: 12px;
   padding: 0 0 24px;
 }
 
@@ -752,7 +754,6 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 200px;
   justify-content: end;
 }
 
@@ -781,7 +782,7 @@ onUnmounted(() => {
 }
 
 .donation-heart {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .donation-content {
@@ -792,7 +793,7 @@ onUnmounted(() => {
 }
 
 .donation-text {
-  font-size: 15px;
+  font-size: 14px;
   color: #333;
   line-height: 1.6;
   margin: 0;
@@ -830,7 +831,7 @@ onUnmounted(() => {
   color: #fff;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
@@ -856,7 +857,7 @@ onUnmounted(() => {
 }
 
 .donation-qr-label {
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
   font-weight: 500;
 }
@@ -872,7 +873,7 @@ onUnmounted(() => {
 }
 
 .donation-coffee-text {
-  font-size: 14px;
+  font-size: 12px;
   color: #999;
   font-style: italic;
 }
