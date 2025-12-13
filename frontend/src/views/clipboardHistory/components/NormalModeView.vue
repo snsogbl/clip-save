@@ -58,6 +58,7 @@
         <el-input
           ref="searchInputRef"
           :model-value="searchKeyword"
+          @update:model-value="$emit('update:search-keyword', $event)"
           type="text"
           class="search-input"
           :prefix-icon="Search"
@@ -158,6 +159,7 @@ defineEmits<{
   "search-keydown": [event: KeyboardEvent];
   "search-change": [event: Event];
   "switch-tab": [tab: "all" | "fav"];
+  "update:search-keyword": [value: string];
   "select-item": [item: ClipboardItem];
   "double-click": [item: ClipboardItem];
 }>();

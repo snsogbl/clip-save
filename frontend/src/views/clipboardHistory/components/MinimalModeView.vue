@@ -51,7 +51,7 @@
         :prefix-icon="Search"
         :placeholder="$t('main.searchPlaceholder')"
         @keydown="$emit('search-keydown', $event)"
-        @input="$emit('search-change')"
+        @input="$emit('search-change', $event)"
         clearable
         style="--wails-draggable: no-drag"
       />
@@ -110,7 +110,7 @@ defineEmits<{
   "switch-tab": [tab: "all" | "fav"];
   "update:search-keyword": [value: string];
   "search-keydown": [event: KeyboardEvent];
-  "search-change": [];
+  "search-change": [event: Event];
   "select-item": [item: ClipboardItem];
   "double-click": [item: ClipboardItem];
   "copy-item": [id: string];

@@ -198,8 +198,28 @@ export function ShowWindow() {
   return window['go']['main']['App']['ShowWindow']();
 }
 
+export function SimpleTestWindowsPaste() {
+  return window['go']['main']['App']['SimpleTestWindowsPaste']();
+}
+
 export function SwitchLeftTab(arg1) {
   return window['go']['main']['App']['SwitchLeftTab'](arg1);
+}
+
+export function TestWindowsKeyboardOnly() {
+  return window['go']['main']['App']['TestWindowsKeyboardOnly']();
+}
+
+export function TestWindowsLogWriting() {
+  return window['go']['main']['App']['TestWindowsLogWriting']();
+}
+
+export function TestWindowsPasteFunction() {
+  return window['go']['main']['App']['TestWindowsPasteFunction']();
+}
+
+export function TestWindowsWindowMonitoring() {
+  return window['go']['main']['App']['TestWindowsWindowMonitoring']();
 }
 
 export function ToggleFavorite(arg1) {

@@ -60,6 +60,7 @@
       :loading="loading"
       :left-tab="leftTab"
       :search-keyword="searchKeyword"
+      @update:search-keyword="searchKeyword = $event"
       :filter-type="filterType"
       :is-always-on-top="isAlwaysOnTop"
       :is-command-pressed="isCommandPressed"
@@ -68,7 +69,7 @@
       @change-language="changeLanguage"
       @filter-change="handleFilterChange"
       @search-keydown="handleSearchKeydown"
-      @search-change="handleSearchInputChange"
+      @search-change="onSearchChange"
       @switch-tab="switchLeftTab"
       @select-item="selectItem"
       @double-click="handleDoubleClick"
@@ -619,13 +620,6 @@ const onSearchChange = () => {
 // 处理过滤器变化
 const handleFilterChange = (type: string) => {
   filterType.value = type;
-  onSearchChange();
-};
-
-// 处理搜索输入变化
-const handleSearchInputChange = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  searchKeyword.value = target.value;
   onSearchChange();
 };
 

@@ -100,7 +100,17 @@ export function ShowSetting():Promise<void>;
 
 export function ShowWindow():Promise<void>;
 
+export function SimpleTestWindowsPaste():Promise<void>;
+
 export function SwitchLeftTab(arg1:string):Promise<void>;
+
+export function TestWindowsKeyboardOnly():Promise<void>;
+
+export function TestWindowsLogWriting():Promise<void>;
+
+export function TestWindowsPasteFunction():Promise<void>;
+
+export function TestWindowsWindowMonitoring():Promise<void>;
 
 export function ToggleFavorite(arg1:string):Promise<number>;
 
