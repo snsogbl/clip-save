@@ -506,7 +506,13 @@ async function autoPasteCurrentItem(item: ClipboardItem) {
   if (isAlwaysOnTop.value) {
     AutoPasteCurrentItemToPreviousApp();
   } else {
-    HideWindowAndQuit();
+    // 是否mac系统
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+    if (isMac){
+      HideWindowAndQuit();
+    }else{
+      ActivatePreviousApp();
+    }
     AutoPasteCurrentItem();
   }
 }

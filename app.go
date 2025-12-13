@@ -630,51 +630,6 @@ func (a *App) AutoPasteCurrentItemToPreviousApp() {
 	}
 }
 
-// TestWindowsPasteFunction 测试 Windows 粘贴功能（供调试使用）
-func (a *App) TestWindowsPasteFunction() {
-	if gRuntime.GOOS == "windows" {
-		go common.TestPasteFunction()
-	} else {
-		log.Println("此功能仅在 Windows 平台可用")
-	}
-}
-
-// SimpleTestWindowsPaste 简单测试 Windows 粘贴功能（直接发送到前台窗口）
-func (a *App) SimpleTestWindowsPaste() {
-	if gRuntime.GOOS == "windows" {
-		go common.SimpleTestPaste()
-	} else {
-		log.Println("此功能仅在 Windows 平台可用")
-	}
-}
-
-// TestWindowsLogWriting 测试 Windows 日志写入功能
-func (a *App) TestWindowsLogWriting() {
-	if gRuntime.GOOS == "windows" {
-		go common.TestLogWriting()
-	} else {
-		log.Println("此功能仅在 Windows 平台可用")
-	}
-}
-
-// TestWindowsKeyboardOnly 测试 Windows 纯键盘输入
-func (a *App) TestWindowsKeyboardOnly() {
-	if gRuntime.GOOS == "windows" {
-		go common.TestKeyboardOnly()
-	} else {
-		log.Println("此功能仅在 Windows 平台可用")
-	}
-}
-
-// TestWindowsWindowMonitoring 测试 Windows 窗口监听功能
-func (a *App) TestWindowsWindowMonitoring() {
-	if gRuntime.GOOS == "windows" {
-		go common.TestWindowMonitoring()
-	} else {
-		log.Println("此功能仅在 Windows 平台可用")
-	}
-}
-
 // SaveImagePNG 通过系统对话框将 Base64 PNG 保存到本地（供前端调用）
 func (a *App) SaveImagePNG(base64Data string, suggestedName string) (string, error) {
 	if a.ctx == nil {
