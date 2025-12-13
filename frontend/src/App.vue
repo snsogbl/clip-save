@@ -12,6 +12,9 @@ import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
 import "highlight.js/styles/github.css";
 
+// 检测是否为 macOS
+const isMacOS = ref(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
+
 const { t } = useI18n();
 
 const isLocked = ref(true);
@@ -84,8 +87,9 @@ const addKeyListener = () => {
       HideWindow();
     }
 
-    // 拦截 ⌘+↑ / ⌘+↓，避免列表滚动，并触发上一条/下一条
+    // mac环境 拦截 ⌘+↑ / ⌘+↓，避免列表滚动，并触发上一条/下一条
     if (
+      isMacOS.value &&
       (event.metaKey || event.ctrlKey) &&
       (event.key === "ArrowUp" || event.key === "ArrowDown")
     ) {
