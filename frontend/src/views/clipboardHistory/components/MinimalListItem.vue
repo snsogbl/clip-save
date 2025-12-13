@@ -26,7 +26,7 @@
     <!-- 其他类型：显示文本内容 -->
     <div v-else class="minimal-text-content">
       <span class="item-content">{{ item.Content }}</span>
-      <div style="display: flex; margin-left: auto; align-items: center">
+      <div style="display: flex; margin-left: auto; align-items: center;gap: 4px">
         <el-icon v-if="item.IsFavorite === 1" :size="16" style="color: #f5a623">
           <Star />
         </el-icon>

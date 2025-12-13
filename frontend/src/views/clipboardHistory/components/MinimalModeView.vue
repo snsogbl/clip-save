@@ -1,7 +1,11 @@
 <template>
   <div class="minimal-mode-container">
     <!-- 极简模式顶部设置按钮 -->
-    <div class="minimal-setting-buttons" style="--wails-draggable: drag">
+    <div
+      class="minimal-setting-buttons"
+      style="--wails-draggable: drag"
+      v-if="isMacOS"
+    >
       <el-icon
         :size="18"
         class="iconfont icon-chuangti-zhiding"
@@ -23,24 +27,24 @@
 
     <!-- 极简模式标签页和搜索 -->
     <div class="minimal-tab-buttons">
-        <el-button
-          round
-          class="me-button"
-          size="small"
-          :class="{ active: leftTab === 'all' }"
-          @click="$emit('switch-tab', 'all')"
-        >
-          <span>{{ $t("main.listTitle") }}</span>
-        </el-button>
-        <el-button
-          round
-          class="me-button"
-          size="small"
-          :class="{ active: leftTab === 'fav' }"
-          @click="$emit('switch-tab', 'fav')"
-        >
-          <span>{{ $t("main.favorite") }}</span>
-        </el-button>
+      <el-button
+        round
+        class="me-button"
+        size="small"
+        :class="{ active: leftTab === 'all' }"
+        @click="$emit('switch-tab', 'all')"
+      >
+        <span>{{ $t("main.listTitle") }}</span>
+      </el-button>
+      <el-button
+        round
+        class="me-button"
+        size="small"
+        :class="{ active: leftTab === 'fav' }"
+        @click="$emit('switch-tab', 'fav')"
+      >
+        <span>{{ $t("main.favorite") }}</span>
+      </el-button>
       <el-input
         ref="searchInputRef"
         :model-value="searchKeyword"
@@ -55,6 +59,25 @@
         clearable
         style="--wails-draggable: no-drag"
       />
+      <template v-if="!isMacOS">
+        <el-icon
+          :size="18"
+          class="iconfont icon-chuangti-zhiding"
+          :style="{
+            color: isAlwaysOnTop ? '#000' : '#bebebe',
+            transform: isAlwaysOnTop ? 'rotate(0deg)' : 'rotate(45deg)',
+          }"
+          @click="$emit('toggle-always-on-top')"
+          title="置顶"
+        ></el-icon>
+        <el-icon
+          :size="18"
+          class="iconfont setting-icon"
+          @click="$emit('show-setting')"
+        >
+          <Setting />
+        </el-icon>
+      </template>
     </div>
 
     <!-- 极简模式列表 -->
@@ -93,6 +116,9 @@ import { common } from "../../../../wailsjs/go/models";
 type ClipboardItem = common.ClipboardItem;
 
 const { t } = useI18n();
+
+// 检测是否为 macOS
+const isMacOS = ref(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
 
 defineProps<{
   items: ClipboardItem[];
