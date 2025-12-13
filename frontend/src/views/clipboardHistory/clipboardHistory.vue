@@ -506,19 +506,8 @@ async function autoPasteCurrentItem(item: ClipboardItem) {
   if (isAlwaysOnTop.value) {
     AutoPasteCurrentItemToPreviousApp();
   } else {
-    // HideWindowAndQuit();
-    // AutoPasteCurrentItem();
-
-    // 添加短暂延迟确保窗口隐藏完成
-    setTimeout(() => {
-      console.log('[DEBUG] 调用 ActivatePreviousApp');
-      ActivatePreviousApp();
-      // 再添加延迟确保窗口激活完成
-      setTimeout(() => {
-        console.log('[DEBUG] 调用 AutoPasteCurrentItem');
-        AutoPasteCurrentItem();
-      }, 200);
-    }, 100);
+    HideWindowAndQuit();
+    AutoPasteCurrentItem();
   }
 }
 

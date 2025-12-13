@@ -325,22 +325,17 @@ func PasteCmdV() {
 func sendCtrlV_paste() {
 	logPaste("开始发送 Ctrl+V 组合键")
 
-	// 方法1：使用 keybd_event (最兼容)
-	logPaste("尝试方法1: keybd_event (最兼容)")
-	sendCtrlVWithKeybdEvent_paste()
-
-	// 短暂延迟后尝试其他方法作为备份
-	time.Sleep(100 * time.Millisecond)
-
-	// 方法2：使用 SendInput
-	logPaste("尝试方法2: SendInput")
+	// 优先使用 SendInput（最可靠），如果失败再尝试其他方法
+	logPaste("尝试方法1: SendInput")
 	if sendCtrlVWithSendInput_paste() {
-		logPaste("✅ SendInput 方法成功")
+		logPaste("✅ SendInput 方法成功，跳过其他方法")
+		return
 	}
 
-	// 方法3：使用 PostMessage
-	logPaste("尝试方法3: PostMessage")
-	sendCtrlVWithPostMessage_paste()
+	// SendInput 失败，尝试 keybd_event
+	logPaste("SendInput 失败，尝试方法2: keybd_event")
+	sendCtrlVWithKeybdEvent_paste()
+	logPaste("✅ keybd_event 方法完成")
 }
 
 // sendCtrlVWithSendInput_paste 使用 SendInput API 发送 Ctrl+V
