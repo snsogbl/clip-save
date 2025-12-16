@@ -170,7 +170,12 @@ int writeFileURLs(const char* jsonPaths) {
 
 // 获取当前活动应用程序的名称
 char* getFrontmostAppName() {
-    NSRunningApplication *frontApp = [[NSWorkspace sharedWorkspace] frontmostApplication];
+    NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
+    if (workspace == nil) {
+        return strdup("Unknown");
+    }
+    
+    NSRunningApplication *frontApp = [workspace frontmostApplication];
     if (frontApp == nil) {
         return strdup("Unknown");
     }

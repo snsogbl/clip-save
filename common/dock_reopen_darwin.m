@@ -16,14 +16,26 @@ extern void goSetForceQuit(void);
 static id dockReopenObserverInstance = nil;
 
 void RegisterReopenObserver(void) {
+    // 检查 NSApplication 是否已初始化
+    NSApplication *app = [NSApplication sharedApplication];
+    if (app == nil) {
+        return;
+    }
+    
     if (dockReopenObserverInstance != nil) {
         return;
     }
+    
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    if (center == nil) {
+        return;
+    }
+    
     dockReopenObserverInstance = [DockReopenObserver new];
-    [[NSNotificationCenter defaultCenter] addObserver:dockReopenObserverInstance
-                                             selector:@selector(handleActive:)
-                                                 name:NSApplicationDidBecomeActiveNotification
-                                               object:nil];
+    [center addObserver:dockReopenObserverInstance
+             selector:@selector(handleActive:)
+                 name:NSApplicationDidBecomeActiveNotification
+               object:nil];
 
     // Dynamically add applicationShouldHandleReopen to Wails' AppDelegate at runtime
     Class delegateClass = NSClassFromString(@"AppDelegate");

@@ -22,10 +22,10 @@ var (
 
 // InitAnalytics 初始化统计模块
 func InitAnalytics() error {
-	// 添加 panic 恢复机制
+	// 在沙盒环境下，统计功能可能受限，添加错误处理
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("应用崩溃恢复: %v", r)
+			log.Printf("统计模块初始化崩溃，但继续运行: %v", r)
 		}
 	}()
 
@@ -34,8 +34,9 @@ func InitAnalytics() error {
 		Endpoint: postHogEndpoint,
 	})
 	if err != nil {
-		log.Printf("初始化 PostHog 客户端失败: %v", err)
-		return err
+		log.Printf("初始化 PostHog 客户端失败: %v，统计功能将被禁用", err)
+		// 不返回错误，让应用继续运行
+		return nil
 	}
 
 	posthogClient = client
@@ -43,8 +44,10 @@ func InitAnalytics() error {
 	// 获取或生成用户唯一ID
 	userID, err = GetOrCreateUserID()
 	if err != nil {
-		log.Printf("获取用户ID失败: %v", err)
-		return err
+		log.Printf("获取用户ID失败: %v，统计功能将被禁用", err)
+		// 不返回错误，让应用继续运行，只是统计功能不工作
+		posthogClient = nil // 确保客户端为 nil，避免后续调用
+		return nil
 	}
 
 	// 发送应用启动事件
