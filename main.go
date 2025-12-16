@@ -15,7 +15,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
-	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 //go:embed all:frontend/dist
@@ -31,6 +30,14 @@ func main() {
 
 	// 判断是否是 macOS
 	isMac := runtime.GOOS == "darwin"
+
+	// 初始化数据库（在应用启动最早阶段，移到 main 函数确保最早初始化）
+	if err := common.InitDB(); err != nil {
+		log.Printf("数据库初始化失败: %v", err)
+		// 数据库初始化失败不应该导致应用无法启动，继续运行
+	} else {
+		log.Println("数据库初始化成功")
+	}
 
 	// 初始化国际化（添加错误处理）
 	if err := common.InitI18n(); err != nil {
@@ -116,19 +123,26 @@ func main() {
 		app.TranslateCurrentItem()
 	})
 
-	// 注册剪贴板（后台持续运行）
-	clipboardListener := common.RegisterClipboardListener()
-	go func() {
-		for range clipboardListener {
-			// 向前端发送剪贴板更新事件，触发前端刷新
-			if app.ctx != nil {
-				wailsRuntime.EventsEmit(app.ctx, "clipboard.updated")
+	// 注册剪贴板（后台持续运行）- 添加错误处理
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("剪贴板监听器初始化崩溃: %v", r)
 			}
-		}
+		}()
+
+		common.RegisterClipboardListener()
 	}()
 
-	// 注册全局快捷键
-	go app.RestartRegisterHotkey()
+	// 注册全局快捷键（添加错误处理）
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("热键注册协程崩溃: %v", r)
+			}
+		}()
+		app.RestartRegisterHotkey()
+	}()
 
 	// Create application with options
 	err := wails.Run(&options.App{

@@ -53,10 +53,7 @@ func init() {
 		return
 	}
 
-	// 初始化数据库
-	if err := InitDB(); err != nil {
-		log.Printf("数据库初始化失败: %v", err)
-	}
+	// 数据库已在应用启动时初始化，这里不再重复初始化
 
 	// 启动剪贴板
 	go run()

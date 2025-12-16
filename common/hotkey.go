@@ -173,6 +173,13 @@ func parseKey(keyStr string) hotkey.Key {
 
 // RegisterHotkey 注册全局快捷键
 func RegisterHotkey(hotkeyStr string, callback HotkeyCallback) error {
+	// 添加沙盒环境检测和错误处理
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("热键注册崩溃，但继续运行: %v", r)
+		}
+	}()
+
 	// 先取消之前注册的热键
 	UnregisterHotkey()
 
@@ -188,6 +195,12 @@ func RegisterHotkey(hotkeyStr string, callback HotkeyCallback) error {
 	hotkeyCancel = cancel
 
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("热键监听协程崩溃: %v", r)
+			}
+		}()
+
 		err := listenHotkeyWithContext(ctx, key, mods, callback)
 		if err != nil {
 			log.Printf("热键监听失败: %v", err)
