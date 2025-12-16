@@ -22,12 +22,19 @@ import (
 var assets embed.FS
 
 func main() {
+	// 添加 panic 恢复机制
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("应用崩溃恢复: %v", r)
+		}
+	}()
+
 	// 判断是否是 macOS
 	isMac := runtime.GOOS == "darwin"
 
-	// 初始化国际化
+	// 初始化国际化（添加错误处理）
 	if err := common.InitI18n(); err != nil {
-		log.Fatal("初始化国际化失败:", err)
+		log.Printf("初始化国际化失败: %v，使用默认配置", err)
 	}
 
 	// 确保程序退出时关闭数据库

@@ -70,21 +70,52 @@ func NewApp() *App {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
+	// 添加 panic 恢复机制
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("startup 函数崩溃恢复: %v", r)
+		}
+	}()
+
 	a.ctx = ctx
 	log.Println("Wails 应用启动成功")
 
-	// 初始化应用切换监听器（macOS 和 Windows）
-	common.InitAppSwitchListener()
+	// 延迟初始化应用切换监听器，确保 NSApplication 已完全初始化
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("初始化应用切换监听器失败: %v", r)
+			}
+		}()
+		common.InitAppSwitchListener()
+	}()
 
-	// 初始化统计模块
-	if err := common.InitAnalytics(); err != nil {
-		log.Printf("初始化统计模块失败: %v", err)
-	}
+	// 初始化统计模块 - 添加错误处理
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("初始化统计模块崩溃: %v", r)
+			}
+		}()
+		if err := common.InitAnalytics(); err != nil {
+			log.Printf("初始化统计模块失败: %v", err)
+		}
+	}()
 
-	// 注册 Dock 点击激活时的自动恢复与强退标记（仅 macOS 生效，其他平台为 no-op）
-	common.InitDockReopen(func() {
-		a.ShowWindow()
-	})
+	// 延迟注册 Dock 点击激活时的自动恢复与强退标记（仅 macOS 生效，其他平台为 no-op）
+	// 确保 NSApplication 已完全初始化后再注册
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("注册 Dock 重新打开监听失败: %v", r)
+			}
+		}()
+		common.InitDockReopen(func() {
+			a.ShowWindow()
+		})
+	}()
 	common.SetForceQuitCallback(func() { common.SetForceQuit() })
 
 	// 根据设置调整 Dock 图标可见性（仅 macOS 生效）

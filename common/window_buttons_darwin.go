@@ -57,12 +57,18 @@ static void updateButtonPositions(NSWindow *window) {
 
 void AdjustWindowButtons() {
     dispatch_async(dispatch_get_main_queue(), ^{
+        // 检查 NSApplication 是否已初始化
+        NSApplication *app = [NSApplication sharedApplication];
+        if (app == nil) {
+            return;
+        }
+
         // 获取主窗口
-        NSWindow *window = [NSApplication sharedApplication].mainWindow;
+        NSWindow *window = app.mainWindow;
         if (window == nil) {
             // 如果没有主窗口，尝试获取所有窗口的第一个
-            NSArray *windows = [NSApplication sharedApplication].windows;
-            if (windows.count > 0) {
+            NSArray *windows = app.windows;
+            if (windows != nil && windows.count > 0) {
                 window = [windows objectAtIndex:0];
             }
         }
@@ -110,10 +116,14 @@ void AdjustWindowButtons() {
             positionTimer = [NSTimer scheduledTimerWithTimeInterval:0.05
                                                               repeats:YES
                                                                 block:^(NSTimer *timer) {
-                NSWindow *currentWindow = [NSApplication sharedApplication].mainWindow;
+                NSApplication *app = [NSApplication sharedApplication];
+                if (app == nil) {
+                    return;
+                }
+                NSWindow *currentWindow = app.mainWindow;
                 if (currentWindow == nil) {
-                    NSArray *windows = [NSApplication sharedApplication].windows;
-                    if (windows.count > 0) {
+                    NSArray *windows = app.windows;
+                    if (windows != nil && windows.count > 0) {
                         currentWindow = [windows objectAtIndex:0];
                     }
                 }

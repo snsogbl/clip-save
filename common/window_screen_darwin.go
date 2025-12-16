@@ -11,12 +11,18 @@ package common
 void EnsureWindowOnCurrentScreen() {
     // 使用同步方式执行，确保在显示窗口之前完成移动
     if ([NSThread isMainThread]) {
+        // 检查 NSApplication 是否已初始化
+        NSApplication *app = [NSApplication sharedApplication];
+        if (app == nil) {
+            return;
+        }
+
         // 如果已经在主线程，直接执行
-        NSWindow *mainWindow = [NSApplication sharedApplication].mainWindow;
+        NSWindow *mainWindow = app.mainWindow;
         if (mainWindow == nil) {
             // 如果没有主窗口，尝试获取所有窗口的第一个
-            NSArray *windows = [NSApplication sharedApplication].windows;
-            if (windows.count > 0) {
+            NSArray *windows = app.windows;
+            if (windows != nil && windows.count > 0) {
                 mainWindow = [windows objectAtIndex:0];
             }
         }
@@ -46,7 +52,7 @@ void EnsureWindowOnCurrentScreen() {
                 NSScreen *currentScreen = nil;
 
                 // 优先使用包含键盘焦点的窗口所在的屏幕
-                NSWindow *keyWindow = [NSApplication sharedApplication].keyWindow;
+                NSWindow *keyWindow = app.keyWindow;
                 if (keyWindow != nil && keyWindow != mainWindow) {
                     currentScreen = [keyWindow screen];
                 }
@@ -88,10 +94,16 @@ void EnsureWindowOnCurrentScreen() {
     } else {
         // 如果不在主线程，同步调度到主线程执行
         dispatch_sync(dispatch_get_main_queue(), ^{
-            NSWindow *mainWindow = [NSApplication sharedApplication].mainWindow;
+            // 检查 NSApplication 是否已初始化
+            NSApplication *app = [NSApplication sharedApplication];
+            if (app == nil) {
+                return;
+            }
+
+            NSWindow *mainWindow = app.mainWindow;
             if (mainWindow == nil) {
-                NSArray *windows = [NSApplication sharedApplication].windows;
-                if (windows.count > 0) {
+                NSArray *windows = app.windows;
+                if (windows != nil && windows.count > 0) {
                     mainWindow = [windows objectAtIndex:0];
                 }
             }
@@ -116,7 +128,7 @@ void EnsureWindowOnCurrentScreen() {
                 } else {
                     NSScreen *currentScreen = nil;
 
-                    NSWindow *keyWindow = [NSApplication sharedApplication].keyWindow;
+                    NSWindow *keyWindow = app.keyWindow;
                     if (keyWindow != nil && keyWindow != mainWindow) {
                         currentScreen = [keyWindow screen];
                     }

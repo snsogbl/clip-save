@@ -22,6 +22,13 @@ var (
 
 // InitAnalytics 初始化统计模块
 func InitAnalytics() error {
+	// 添加 panic 恢复机制
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("应用崩溃恢复: %v", r)
+		}
+	}()
+
 	// 初始化 PostHog 客户端
 	client, err := posthog.NewWithConfig(postHogAPIKey, posthog.Config{
 		Endpoint: postHogEndpoint,

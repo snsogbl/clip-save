@@ -16,9 +16,16 @@ static pid_t previousAppPID = 0;
 // 记录当前前台应用（在激活本应用之前调用）
 static void recordPreviousAppPID() {
     NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
-    NSRunningApplication *currentApp = [NSRunningApplication currentApplication];
-    NSRunningApplication *frontmostApp = [workspace frontmostApplication];
+    if (workspace == nil) {
+        return;
+    }
 
+    NSRunningApplication *currentApp = [NSRunningApplication currentApplication];
+    if (currentApp == nil) {
+        return;
+    }
+
+    NSRunningApplication *frontmostApp = [workspace frontmostApplication];
     if (frontmostApp != nil &&
         [frontmostApp processIdentifier] != [currentApp processIdentifier]) {
         previousAppPID = [frontmostApp processIdentifier];
@@ -27,9 +34,26 @@ static void recordPreviousAppPID() {
 
 // 初始化应用切换监听器
 static void setupAppSwitchListener() {
+    // 检查 NSApplication 是否已初始化
+    NSApplication *app = [NSApplication sharedApplication];
+    if (app == nil) {
+        return;
+    }
+
     NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
+    if (workspace == nil) {
+        return;
+    }
+
     NSNotificationCenter *center = [workspace notificationCenter];
+    if (center == nil) {
+        return;
+    }
+
     NSRunningApplication *currentApp = [NSRunningApplication currentApplication];
+    if (currentApp == nil) {
+        return;
+    }
 
     // 初始化：记录当前前台应用（如果不是我们的应用）
     NSRunningApplication *frontmostApp = [workspace frontmostApplication];
@@ -43,11 +67,14 @@ static void setupAppSwitchListener() {
                         object:nil
                          queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *note) {
+        if (note == nil) {
+            return;
+        }
         NSRunningApplication *app = [[note userInfo] objectForKey:NSWorkspaceApplicationKey];
         if (app != nil) {
             NSRunningApplication *currentApp = [NSRunningApplication currentApplication];
-            // 如果不是我们的应用，记录为之前的前台应用
-            if ([app processIdentifier] != [currentApp processIdentifier]) {
+            if (currentApp != nil &&
+                [app processIdentifier] != [currentApp processIdentifier]) {
                 previousAppPID = [app processIdentifier];
             }
         }
@@ -89,34 +116,6 @@ static pid_t getPreviousAppPID() {
     return 0;
 }
 
-// 发送 Cmd+V 到指定进程
-static int sendCmdVToPID(pid_t pid) {
-    if (pid == 0) {
-        return 0;
-    }
-
-    const CGKeyCode keyV = (CGKeyCode)9;
-
-    CGEventRef vdown = CGEventCreateKeyboardEvent(NULL, keyV, true);
-    if (vdown != NULL) {
-        CGEventSetFlags(vdown, kCGEventFlagMaskCommand);
-        CGEventPostToPid(pid, vdown);
-        CFRelease(vdown);
-    }
-
-    // 稍作延迟，确保按下事件被处理
-    usleep(15000); // 15ms
-
-    CGEventRef vup = CGEventCreateKeyboardEvent(NULL, keyV, false);
-    if (vup != NULL) {
-        CGEventSetFlags(vup, kCGEventFlagMaskCommand);
-        CGEventPostToPid(pid, vup);
-        CFRelease(vup);
-    }
-
-    return 1;
-}
-
 // 通过 PID 激活指定应用
 static int activateAppByPID(pid_t pid) {
     if (pid == 0) {
@@ -134,7 +133,10 @@ static int activateAppByPID(pid_t pid) {
 
 // 激活自己的应用
 static void activateSelf() {
-    [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+    NSApplication *app = [NSApplication sharedApplication];
+    if (app != nil) {
+        [app activateIgnoringOtherApps:YES];
+    }
 }
 */
 import "C"
@@ -189,12 +191,7 @@ func PasteCmdVToPreviousApp() {
 	}
 
 	// 先激活应用（必需，否则某些应用无法接收键盘事件）
-	success := ActivateAppByPID(int(pid))
-	if !success {
-		// 如果激活失败，尝试直接发送到进程
-		C.sendCmdVToPID(pid)
-		return
-	}
+	ActivateAppByPID(int(pid))
 
 	// 发送 Cmd+V
 	C.sendCmdV()
