@@ -255,8 +255,8 @@ export async function executeScriptInBrowser(
       }),
       new Promise<any>((_, reject) => {
         setTimeout(() => {
-          reject(new Error('脚本执行超时（超过10秒）'))
-        }, 10000)
+          reject(new Error('脚本执行超时（超过12秒）'))
+        }, 20000)
       }),
     ])
 

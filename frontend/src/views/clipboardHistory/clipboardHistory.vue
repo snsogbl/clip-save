@@ -249,11 +249,13 @@ interface ScriptExecutionResult {
   returnValue?: any;
   timestamp: number;
   scriptName?: string;
-  status?: "executing" | "completed" | "error";
+  status?: "executing" | "completed" | "error" | "streaming";
 }
 
 const scriptResults = ref<Record<string, ScriptExecutionResult>>({});
 const executingScripts = ref<Record<string, string>>({});
+// 流式内容存储（用于实时更新）
+const streamContents = ref<Record<string, string>>({});
 
 // 窗口大小相关
 const windowWidth = ref(1280);
@@ -912,16 +914,77 @@ onMounted(() => {
       }) => {
         const { itemId, result } = data;
         delete executingScripts.value[itemId];
-        scriptResults.value[itemId] = {
-          ...result,
-          status: (result.error ? "error" : "completed") as
-            | "error"
-            | "completed",
-          timestamp: result.timestamp || Date.now(),
-        };
+        // 如果有流式内容，使用流式内容作为返回值
+        if (streamContents.value[itemId]) {
+          scriptResults.value[itemId] = {
+            ...result,
+            returnValue: streamContents.value[itemId],
+            status: (result.error ? "error" : "completed") as
+              | "error"
+              | "completed",
+            timestamp: result.timestamp || Date.now(),
+          };
+          // 清理流式内容
+          delete streamContents.value[itemId];
+        } else {
+          scriptResults.value[itemId] = {
+            ...result,
+            status: (result.error ? "error" : "completed") as
+              | "error"
+              | "completed",
+            timestamp: result.timestamp || Date.now(),
+          };
+        }
       }
     )
   );
+
+  // 监听浏览器原生流式事件（性能最好，无 IPC 开销）
+  const handleStreamStart = (e: CustomEvent) => {
+    const { itemId } = e.detail;
+    // 初始化流式内容
+    streamContents.value[itemId] = "";
+    // 更新状态为流式
+    if (scriptResults.value[itemId]) {
+      scriptResults.value[itemId].status = "streaming";
+    }
+  };
+
+  const handleStreamChunk = (e: CustomEvent) => {
+    const { itemId, chunk } = e.detail;
+    // 实时追加数据块
+    if (streamContents.value[itemId] !== undefined) {
+      streamContents.value[itemId] += chunk;
+      // 实时更新 scriptResults 的 returnValue，触发视图更新
+      if (scriptResults.value[itemId]) {
+        scriptResults.value[itemId].returnValue = streamContents.value[itemId];
+        scriptResults.value[itemId].status = "streaming";
+      }
+    }
+  };
+
+  const handleStreamEnd = (e: CustomEvent) => {
+    const { itemId } = e.detail;
+    // 流结束，状态改为 completed
+    if (scriptResults.value[itemId] && streamContents.value[itemId]) {
+      scriptResults.value[itemId].status = "completed";
+      scriptResults.value[itemId].returnValue = streamContents.value[itemId];
+    }
+    // 清理流式内容（保留在 scriptResults 中）
+    delete streamContents.value[itemId];
+  };
+
+  // 添加浏览器事件监听器
+  window.addEventListener("script-stream-start", handleStreamStart as EventListener);
+  window.addEventListener("script-stream-chunk", handleStreamChunk as EventListener);
+  window.addEventListener("script-stream-end", handleStreamEnd as EventListener);
+
+  // 在清理函数中移除事件监听器
+  eventCleanupFunctions.push(() => {
+    window.removeEventListener("script-stream-start", handleStreamStart as EventListener);
+    window.removeEventListener("script-stream-chunk", handleStreamChunk as EventListener);
+    window.removeEventListener("script-stream-end", handleStreamEnd as EventListener);
+  });
 });
 
 // 组件卸载时清理

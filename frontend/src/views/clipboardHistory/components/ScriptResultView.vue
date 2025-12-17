@@ -40,17 +40,15 @@
       <span>{{ lastResult.error }}</span>
     </div>
 
-    <!-- 显示脚本返回值 -->
-    <div v-else-if="lastResult.returnValue !== undefined" class="result-return">
+    <!-- 显示脚本返回值（包括流式输出） -->
+    <div v-if="lastResult.returnValue !== undefined && (lastResult.status === 'streaming' || lastResult.status === 'completed')" class="result-return">
       <div class="result-content">
-        <pre class="return-value">{{
-          formatReturnValue(lastResult.returnValue)
-        }}</pre>
+        <pre class="return-value">{{formatReturnValue(lastResult.returnValue)}}</pre>
       </div>
     </div>
 
-    <!-- 如果没有返回值也没有错误，显示空状态 -->
-    <div v-else class="result-empty">
+    <!-- 如果没有返回值也没有错误，且不在执行中，显示空状态 -->
+    <div v-else-if="lastResult.status !== 'executing' && lastResult.status !== 'streaming' && !lastResult.error" class="result-empty">
       {{ $t("scripts.noReturnValue") }}
     </div>
   </div>
@@ -69,7 +67,7 @@ interface ScriptExecutionResult {
   returnValue?: any;
   timestamp: number;
   scriptName?: string;
-  status?: "executing" | "completed" | "error";
+  status?: "executing" | "completed" | "error" | "streaming";
 }
 
 const props = defineProps<{
