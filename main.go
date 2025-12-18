@@ -15,6 +15,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
+	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 //go:embed all:frontend/dist
@@ -131,7 +132,16 @@ func main() {
 			}
 		}()
 
-		common.RegisterClipboardListener()
+		// 注册剪贴板（后台持续运行）
+		clipboardListener := common.RegisterClipboardListener()
+		go func() {
+			for range clipboardListener {
+				// 向前端发送剪贴板更新事件，触发前端刷新
+				if app.ctx != nil {
+					wailsRuntime.EventsEmit(app.ctx, "clipboard.updated")
+				}
+			}
+		}()
 	}()
 
 	// 注册全局快捷键（添加错误处理）
