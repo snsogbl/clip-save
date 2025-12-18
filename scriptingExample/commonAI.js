@@ -1,5 +1,5 @@
 /**
- * 调用ModelScope API 通用AI流式请求
+ * 调用ModelScope API 通用AI 流式请求
  * @author ClipSave
  * @param {string} apiKey - API Key
  * @param {string} model - 模型名称
