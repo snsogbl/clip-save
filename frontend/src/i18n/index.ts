@@ -9,7 +9,7 @@ const zhCN = {
   app: {
     title: '剪存 • 剪贴板历史',
     name: '剪存',
-    description: '剪贴板历史管理工具',
+    description: '剪贴板历史管理工具 (所有数据只存本地,隐私安全有保障)',
     version: AppVersion
   },
 
@@ -291,7 +291,7 @@ const enUS = {
   app: {
     title: 'ClipSave • Clipboard History',
     name: 'ClipSave',
-    description: 'Clipboard History Management Tool',
+    description: 'Clipboard History Management Tool (All data is stored locally, privacy and security are guaranteed)',
     version: AppVersion
   },
 
@@ -573,7 +573,7 @@ const frFR = {
   app: {
     title: 'ClipSave • Historique du Presse-papiers',
     name: 'ClipSave',
-    description: 'Outil de Gestion de l\'Historique du Presse-papiers',
+    description: 'Outil de Gestion de l\'Historique du Presse-papiers (Tous les données sont stockées localement, la confidentialité et la sécurité sont garanties)',
     version: AppVersion
   },
 
@@ -851,7 +851,7 @@ const arSA = {
   app: {
     title: 'ClipSave • سجل الحافظة',
     name: 'ClipSave',
-    description: 'أداة إدارة سجل الحافظة',
+    description: 'أداة إدارة سجل الحافظة (جميع البيانات مخزنة محلياً، الخصوصية والأمان مضمونة)',
     version: AppVersion
   },
 

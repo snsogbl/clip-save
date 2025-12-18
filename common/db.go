@@ -507,7 +507,7 @@ func initDefaultTextRecord() error {
 	}
 
 	// 创建默认文本记录
-	defaultText := "剪存：Command+Option+c 唤之即来"
+	defaultText := "剪存：Command+Option+c 唤之即来 (所有数据只存本地,隐私安全有保障)"
 	timestamp := time.Now()
 	item := ClipboardItem{
 		ID:          fmt.Sprintf("%d", timestamp.UnixNano()),
