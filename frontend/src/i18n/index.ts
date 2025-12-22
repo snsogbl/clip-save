@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { GetCurrentLanguage } from '../../wailsjs/go/main/App'
 
-const AppVersion = '2.2.5'
+const AppVersion = '2.2.6'
 
 // 中文语言包
 const zhCN = {
