@@ -33,9 +33,9 @@ void RegisterReopenObserver(void) {
     
     dockReopenObserverInstance = [DockReopenObserver new];
     [center addObserver:dockReopenObserverInstance
-             selector:@selector(handleActive:)
-                 name:NSApplicationDidBecomeActiveNotification
-               object:nil];
+                                             selector:@selector(handleActive:)
+                                                 name:NSApplicationDidBecomeActiveNotification
+                                               object:nil];
 
     // Dynamically add applicationShouldHandleReopen to Wails' AppDelegate at runtime
     Class delegateClass = NSClassFromString(@"AppDelegate");

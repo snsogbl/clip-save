@@ -39,7 +39,8 @@ type ClipboardItem struct {
 	Source      string
 	CharCount   int
 	WordCount   int
-	IsFavorite  int // 0/1
+	IsFavorite  int    // 0/1
+	OCRText     string // OCR识别的文字内容
 }
 
 // 剪贴板更新通知监听器（只发送信号，不传递数据）
@@ -268,6 +269,7 @@ func handleImageClipboard(imgData []byte, appName string, precomputedHash string
 		Source:      appName,
 		CharCount:   len(pngData),
 		WordCount:   0,
+		OCRText:     "", // 初始为空，异步填充
 	}
 
 	// 计算内容哈希（优先使用外部预计算避免重复开销）
@@ -277,16 +279,57 @@ func handleImageClipboard(imgData []byte, appName string, precomputedHash string
 		item.ContentHash = calculateContentHash(&item)
 	}
 
-	// 保存到数据库
+	// 保存到数据库（先保存，OCR异步进行）
 	if err := SaveClipboardItem(&item); err != nil {
 		log.Printf("❌ 保存图片剪贴板失败: %v", err)
-	} else {
-		// 执行 after_save 脚本
-		executeAfterSaveScripts(&item)
-
-		// 通知监听器
-		notifyListeners()
+		return
 	}
+
+	// 检查是否已有 OCR 结果（避免重复识别）
+	// 如果 content_hash 不为空，检查是否有相同哈希的记录已有 OCR 结果
+	if item.ContentHash != "" && DB != nil {
+		var existingOCRText string
+		checkOCRSQL := `SELECT ocr_text FROM clipboard_items WHERE content_hash = ? AND content_type = 'Image' AND (ocr_text IS NOT NULL AND ocr_text != '') LIMIT 1`
+		err := DB.QueryRow(checkOCRSQL, item.ContentHash).Scan(&existingOCRText)
+		if err == nil && existingOCRText != "" {
+			// 已有 OCR 结果，检查当前记录是否需要更新 OCR
+			var currentOCRText string
+			checkCurrentSQL := `SELECT ocr_text FROM clipboard_items WHERE id = ?`
+			if err := DB.QueryRow(checkCurrentSQL, item.ID).Scan(&currentOCRText); err == nil {
+				if currentOCRText == "" {
+					// 当前记录没有 OCR，复用已有的 OCR 结果
+					if err := UpdateOCRText(item.ID, existingOCRText); err != nil {
+						log.Printf("⚠️ 复制OCR文字失败: ID=%s, error=%v", item.ID, err)
+					} else {
+						log.Printf("⏭️ 复用已有OCR结果: ID=%s, 文字长度=%d", item.ID, len(existingOCRText))
+					}
+				}
+			}
+			// 跳过 OCR 识别，直接执行后续流程
+			executeAfterSaveScripts(&item)
+			notifyListeners()
+			return
+		}
+	}
+
+	// 异步进行 OCR 识别（不阻塞保存流程）
+	go func() {
+		ocrText := RecognizeTextInImage(pngData)
+		if ocrText != "" {
+			// 更新数据库中的 OCR 文字
+			if err := UpdateOCRText(item.ID, ocrText); err != nil {
+				log.Printf("⚠️ 更新OCR文字失败: ID=%s, error=%v", item.ID, err)
+			} else {
+				log.Printf("✅ OCR识别完成: ID=%s, 文字长度=%d", item.ID, len(ocrText))
+			}
+		}
+	}()
+
+	// 执行 after_save 脚本
+	executeAfterSaveScripts(&item)
+
+	// 通知监听器
+	notifyListeners()
 }
 
 // truncateString 截断字符串

@@ -196,7 +196,13 @@ const zhCN = {
       qrSaved: '二维码已保存',
       qrSaveFailed: '保存失败',
       qrCopied: '二维码已复制到剪贴板',
-      qrCopyFailed: '复制失败'
+      qrCopyFailed: '复制失败',
+      ocrText: '识别文字',
+      extracting: '提取中...',
+      extractText: '提取文字',
+      noOCRText: '暂无识别文字，OCR 识别可能需要一些时间',
+      ocrGetFailed: '获取识别文字失败',
+      ocrCopyFailed: '复制失败'
     },
     // URL组件
     url: {
@@ -478,7 +484,13 @@ const enUS = {
       qrSaved: 'QR code saved',
       qrSaveFailed: 'Save failed',
       qrCopied: 'QR code copied to clipboard',
-      qrCopyFailed: 'Copy failed'
+      qrCopyFailed: 'Copy failed',
+      ocrText: 'Recognized Text',
+      extracting: 'Extracting...',
+      extractText: 'Extract Text',
+      noOCRText: 'No recognized text available. OCR recognition may take some time',
+      ocrGetFailed: 'Failed to get recognized text',
+      ocrCopyFailed: 'Copy failed'
     },
     // URL组件
     url: {
@@ -760,7 +772,13 @@ const frFR = {
       qrSaved: 'Code QR enregistré',
       qrSaveFailed: 'Échec de l\'enregistrement',
       qrCopied: 'Code QR copié dans le presse-papiers',
-      qrCopyFailed: 'Échec de la copie'
+      qrCopyFailed: 'Échec de la copie',
+      ocrText: 'Texte Reconnu',
+      extracting: 'Extraction...',
+      extractText: 'Extraire le Texte',
+      noOCRText: 'Aucun texte reconnu disponible. La reconnaissance OCR peut prendre un certain temps',
+      ocrGetFailed: 'Échec de la récupération du texte reconnu',
+      ocrCopyFailed: 'Échec de la copie'
     },
     // URL组件
     url: {
@@ -1038,7 +1056,13 @@ const arSA = {
       qrSaved: 'تم حفظ رمز الاستجابة السريعة',
       qrSaveFailed: 'فشل في الحفظ',
       qrCopied: 'تم نسخ رمز الاستجابة السريعة إلى الحافظة',
-      qrCopyFailed: 'فشل في النسخ'
+      qrCopyFailed: 'فشل في النسخ',
+      ocrText: 'النص المعروف',
+      extracting: 'جاري الاستخراج...',
+      extractText: 'استخراج النص',
+      noOCRText: 'لا يوجد نص معروف متاح. قد تستغرق عملية التعرف على النص بعض الوقت',
+      ocrGetFailed: 'فشل في الحصول على النص المعروف',
+      ocrCopyFailed: 'فشل في النسخ'
     },
     // URL组件
     url: {

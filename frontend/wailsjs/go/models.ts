@@ -14,6 +14,7 @@ export namespace common {
 	    CharCount: number;
 	    WordCount: number;
 	    IsFavorite: number;
+	    OCRText: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ClipboardItem(source);
@@ -33,6 +34,7 @@ export namespace common {
 	        this.CharCount = source["CharCount"];
 	        this.WordCount = source["WordCount"];
 	        this.IsFavorite = source["IsFavorite"];
+	        this.OCRText = source["OCRText"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -101,6 +101,8 @@
                     ).join('')
                   : String(currentItem.ImageData)
               "
+              :ocrText="currentItem.OCRText"
+              :itemId="currentItem.ID"
             />
             <!-- 文件内容展示 -->
             <ClipboardFileView
@@ -927,14 +929,14 @@ onMounted(() => {
           // 清理流式内容
           delete streamContents.value[itemId];
         } else {
-          scriptResults.value[itemId] = {
-            ...result,
-            status: (result.error ? "error" : "completed") as
-              | "error"
-              | "completed",
-            timestamp: result.timestamp || Date.now(),
-          };
-        }
+        scriptResults.value[itemId] = {
+          ...result,
+          status: (result.error ? "error" : "completed") as
+            | "error"
+            | "completed",
+          timestamp: result.timestamp || Date.now(),
+        };
+      }
       }
     )
   );

@@ -20,6 +20,18 @@
       </div>
       <div class="qr-result-content">{{ qrCodeResult }}</div>
     </div>
+    <!-- OCR 文字识别结果 -->
+    <div v-if="showOCRText && ocrTextResult" class="ocr-result" ref="ocrResultRef">
+      <div class="ocr-result-header">
+        <span class="ocr-result-title">{{
+          $t("components.image.ocrText")
+        }}</span>
+        <el-button class="me-button" round @click="copyOCRResult">{{
+          $t("components.image.copy")
+        }}</el-button>
+      </div>
+      <div class="ocr-result-content">{{ ocrTextResult }}</div>
+    </div>
     <div class="button-group">
       <el-button class="me-button" round @click="handleSave">
         {{ $t("components.image.saveToLocal") }}
@@ -37,17 +49,30 @@
             : $t("components.image.recognizeQR")
         }}
       </el-button>
+      <el-button
+        class="me-button"
+        round
+        @click="handleExtractText"
+        :disabled="isLoadingOCR"
+      >
+        {{
+          isLoadingOCR
+            ? $t("components.image.extracting")
+            : $t("components.image.extractText")
+        }}
+      </el-button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   SaveImagePNG,
   DetectQRCode,
   RecognizeQRCode,
+  GetClipboardItemByID,
 } from "../../../../wailsjs/go/main/App";
 import { ElMessage } from "element-plus";
 
@@ -55,6 +80,8 @@ const { t } = useI18n();
 
 interface Props {
   imageData: string;
+  ocrText?: string;
+  itemId?: string;
 }
 
 const props = defineProps<Props>();
@@ -65,6 +92,12 @@ const isRecognizing = ref(false);
 const qrCodeResult = ref("");
 const isDetecting = ref(false);
 let detectTimeout: number | null = null;
+
+// OCR 文字相关
+const showOCRText = ref(false);
+const ocrTextResult = ref("");
+const isLoadingOCR = ref(false);
+const ocrResultRef = ref<HTMLElement | null>(null);
 
 // 检测图片中是否包含二维码
 async function detectQRCode() {
@@ -119,6 +152,66 @@ function copyQRResult() {
   }
 }
 
+// 提取文字
+async function handleExtractText() {
+  if (isLoadingOCR.value) return;
+
+  // 如果已有 OCR 文字，直接显示
+  if (props.ocrText && props.ocrText.trim()) {
+    ocrTextResult.value = props.ocrText;
+    showOCRText.value = true;
+    // 滚动到底部
+    await nextTick();
+    scrollToBottom();
+    return;
+  }
+
+  // 如果有 itemId，尝试从数据库获取最新的 OCR 文字
+  if (props.itemId) {
+    isLoadingOCR.value = true;
+    try {
+      const item = await GetClipboardItemByID(props.itemId);
+      if (item && item.OCRText && item.OCRText.trim()) {
+        ocrTextResult.value = item.OCRText;
+        showOCRText.value = true;
+        // 滚动到底部
+        await nextTick();
+        scrollToBottom();
+      } else {
+        ElMessage.warning(t("components.image.noOCRText"));
+      }
+    } catch (error) {
+      console.error("获取 OCR 文字失败:", error);
+      ElMessage.error(t("components.image.ocrGetFailed"));
+    } finally {
+      isLoadingOCR.value = false;
+    }
+  } else {
+        ElMessage.warning(t("components.image.noOCRText"));
+  }
+}
+
+// 滚动到底部
+function scrollToBottom() {
+  if (ocrResultRef.value) {
+    ocrResultRef.value.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+}
+
+// 复制 OCR 文字结果
+function copyOCRResult() {
+  if (ocrTextResult.value) {
+    navigator.clipboard
+      .writeText(ocrTextResult.value)
+      .then(() => {
+        ElMessage.success(t("message.copySuccess"));
+      })
+      .catch(() => {
+        ElMessage.error(t("components.image.ocrCopyFailed"));
+      });
+  }
+}
+
 function handleSave() {
   try {
     const ts = new Date();
@@ -158,6 +251,8 @@ watch(
       // 重置状态
       isQRCode.value = false;
       qrCodeResult.value = "";
+      showOCRText.value = false;
+      ocrTextResult.value = "";
 
       // 清除之前的定时器
       if (detectTimeout) {
@@ -171,6 +266,17 @@ watch(
     }
   },
   { immediate: true }
+);
+
+// 监听 ocrText prop 变化，如果有 OCR 文字自动显示
+watch(
+  () => props.ocrText,
+  (newOCRText) => {
+    if (newOCRText && newOCRText.trim()) {
+      ocrTextResult.value = newOCRText;
+      // 不自动显示，需要用户点击按钮
+    }
+  }
 );
 
 // 组件挂载时检测二维码（作为备用）
@@ -295,6 +401,41 @@ onUnmounted(() => {
   word-break: break-all;
   white-space: pre-wrap;
   max-height: 200px;
+  overflow-y: auto;
+}
+
+/* OCR 文字识别结果样式 */
+.ocr-result {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.ocr-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ocr-result-title {
+  font-weight: 600;
+  color: #0369a1;
+  font-size: 14px;
+}
+
+.ocr-result-content {
+  background-color: #ffffff;
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-all;
+  white-space: pre-wrap;
+  /* max-height: 300px; */
   overflow-y: auto;
 }
 </style>

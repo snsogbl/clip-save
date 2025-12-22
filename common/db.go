@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -93,11 +94,14 @@ func createTables() error {
         word_count INTEGER,
 		content_hash TEXT,
         is_favorite INTEGER DEFAULT 0,
+		ocr_text TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_timestamp ON clipboard_items(timestamp DESC);
 	CREATE INDEX IF NOT EXISTS idx_content_type ON clipboard_items(content_type);
+	-- 移除这行：CREATE INDEX IF NOT EXISTS idx_ocr_text ON clipboard_items(ocr_text);
+	-- ocr_text 索引在 checkAndAddNewFields() 中添加字段时创建
 
 	CREATE TABLE IF NOT EXISTS app_settings (
 		key TEXT PRIMARY KEY,
@@ -139,8 +143,8 @@ func SaveClipboardItem(item *ClipboardItem) error {
 
 	// 插入新记录
 	insertSQL := `
-	INSERT INTO clipboard_items (id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO clipboard_items (id, content, content_type, content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count, ocr_text)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := DB.Exec(insertSQL,
@@ -155,6 +159,7 @@ func SaveClipboardItem(item *ClipboardItem) error {
 		item.Source,
 		item.CharCount,
 		item.WordCount,
+		item.OCRText,
 	)
 
 	if err != nil {
@@ -179,7 +184,7 @@ func GetClipboardItems(limit int) ([]ClipboardItem, error) {
 
 	// 列表查询时不加载 image_data，节省内存
 	query := `
-    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, NULL as image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, NULL as image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite, COALESCE(ocr_text, '') as ocr_text
 	FROM clipboard_items
 	ORDER BY timestamp DESC
 	LIMIT ?
@@ -207,6 +212,7 @@ func GetClipboardItems(limit int) ([]ClipboardItem, error) {
 			&item.CharCount,
 			&item.WordCount,
 			&item.IsFavorite,
+			&item.OCRText,
 		)
 		if err != nil {
 			log.Printf("扫描行失败: %v", err)
@@ -225,7 +231,7 @@ func GetClipboardItemByID(id string) (*ClipboardItem, error) {
 	}
 
 	query := `
-    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, image_data, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite, COALESCE(ocr_text, '') as ocr_text
 	FROM clipboard_items
 	WHERE id = ?
 	`
@@ -244,6 +250,7 @@ func GetClipboardItemByID(id string) (*ClipboardItem, error) {
 		&item.CharCount,
 		&item.WordCount,
 		&item.IsFavorite,
+		&item.OCRText,
 	)
 
 	if err == sql.ErrNoRows {
@@ -321,6 +328,19 @@ func ClearAllItems() error {
 	return nil
 }
 
+// UpdateOCRText 更新图片的 OCR 文字
+func UpdateOCRText(id string, ocrText string) error {
+	if DB == nil {
+		return fmt.Errorf("数据库未初始化")
+	}
+
+	_, err := DB.Exec(`UPDATE clipboard_items SET ocr_text = ? WHERE id = ?`, ocrText, id)
+	if err != nil {
+		return fmt.Errorf("更新OCR文字失败: %v", err)
+	}
+	return nil
+}
+
 // ToggleFavorite 切换收藏状态
 func ToggleFavorite(id string) (int, error) {
 	if DB == nil {
@@ -360,30 +380,40 @@ func SearchClipboardItems(isFavorite bool, keyword string, filterType string, li
 		imageDataField = "NULL as image_data"
 	}
 
-	query := fmt.Sprintf(`
-    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, %s, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite
-	FROM clipboard_items
-	WHERE 1=1
-	`, imageDataField)
+	// 构建 WHERE 子句（优化：先应用可以使用索引的条件，减少后续 LIKE 扫描的数据量）
+	var whereClauses []string
 	args := []interface{}{}
 
-	// 关键词搜索（不区分大小写）
-	if keyword != "" {
-		query += ` AND (content LIKE ? COLLATE NOCASE)`
-		args = append(args, "%"+keyword+"%")
-	}
-
+	// 优先使用索引的过滤条件（先过滤，减少数据量）
 	if isFavorite {
-		query += ` AND is_favorite = 1`
+		whereClauses = append(whereClauses, `is_favorite = 1`)
 	}
 
-	// 类型过滤
 	if filterType != "" {
-		query += ` AND content_type = ?`
+		whereClauses = append(whereClauses, `content_type = ?`)
 		args = append(args, filterType)
 	}
 
-	query += ` ORDER BY timestamp DESC LIMIT ?`
+	// 最后应用无法使用索引的 LIKE 搜索（此时数据量已减少，性能更好）
+	if keyword != "" {
+		whereClauses = append(whereClauses, `(content LIKE ? COLLATE NOCASE OR ocr_text LIKE ? COLLATE NOCASE)`)
+		keywordPattern := "%" + keyword + "%"
+		args = append(args, keywordPattern, keywordPattern)
+	}
+
+	// 构建完整的 WHERE 子句
+	var whereClause string
+	if len(whereClauses) > 0 {
+		whereClause = "WHERE " + strings.Join(whereClauses, " AND ")
+	}
+
+	query := fmt.Sprintf(`
+    SELECT id, content, content_type, COALESCE(content_hash, '') as content_hash, %s, file_paths, file_info, timestamp, source, char_count, word_count, COALESCE(is_favorite, 0) as is_favorite, COALESCE(ocr_text, '') as ocr_text
+	FROM clipboard_items
+	%s
+	ORDER BY timestamp DESC LIMIT ?
+	`, imageDataField, whereClause)
+
 	args = append(args, limit)
 
 	rows, err := DB.Query(query, args...)
@@ -408,6 +438,7 @@ func SearchClipboardItems(isFavorite bool, keyword string, filterType string, li
 			&item.CharCount,
 			&item.WordCount,
 			&item.IsFavorite,
+			&item.OCRText,
 		)
 		if err != nil {
 			log.Printf("扫描行失败: %v", err)
@@ -708,6 +739,37 @@ func checkAndAddNewFields() error {
 		// 	log.Printf("⚠️ 警告: 检查并更新哈希值失败: %v", err)
 		// 	// 不返回错误，允许应用继续运行
 		// }
+	}
+
+	// 检查 ocr_text 字段是否存在
+	checkOCRSQL := `SELECT COUNT(*) FROM pragma_table_info('clipboard_items') WHERE name = 'ocr_text'`
+	var ocrCount int
+	err = DB.QueryRow(checkOCRSQL).Scan(&ocrCount)
+	if err != nil {
+		return fmt.Errorf("检查ocr_text字段是否存在失败: %v", err)
+	}
+
+	if ocrCount == 0 {
+		// 字段不存在，需要添加
+		log.Printf("🔧 检测到老版本数据库，正在添加ocr_text字段...")
+
+		// 添加ocr_text字段
+		alterSQL := `ALTER TABLE clipboard_items ADD COLUMN ocr_text TEXT`
+		_, err := DB.Exec(alterSQL)
+		if err != nil {
+			return fmt.Errorf("添加ocr_text字段失败: %v", err)
+		}
+		log.Printf("✅ 已添加ocr_text字段")
+
+		// 创建索引 前后都有通配符索引不用上
+		// indexSQL := `CREATE INDEX IF NOT EXISTS idx_ocr_text ON clipboard_items(ocr_text)`
+		// _, err = DB.Exec(indexSQL)
+		// if err != nil {
+		// 	return fmt.Errorf("创建ocr_text索引失败: %v", err)
+		// }
+		// log.Printf("✅ 已创建ocr_text索引")
+	} else {
+		log.Printf("✅ ocr_text字段已存在")
 	}
 
 	// 检查 is_favorite 字段是否存在
