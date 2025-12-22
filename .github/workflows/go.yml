@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       CGO_ENABLED: "1"
-      MACOSX_DEPLOYMENT_TARGET: "11.0"
+      MACOSX_DEPLOYMENT_TARGET: "10.15"
     strategy:
       fail-fast: false
       matrix:
@@ -86,16 +86,16 @@ jobs:
           echo "CXX=/Library/Developer/CommandLineTools/usr/bin/clang++" >> $GITHUB_ENV
           echo "PATH=/Library/Developer/CommandLineTools/usr/bin:$PATH" >> $GITHUB_ENV
           
-          # 设置 CGO 标志
-          echo "CGO_CFLAGS=-isysroot $SDK_PATH" >> $GITHUB_ENV
-          echo "CGO_LDFLAGS=-isysroot $SDK_PATH" >> $GITHUB_ENV
+          # 设置 CGO 标志（添加部署目标版本，与 OCR 功能要求一致）
+          echo "CGO_CFLAGS=-isysroot $SDK_PATH -mmacosx-version-min=10.15" >> $GITHUB_ENV
+          echo "CGO_LDFLAGS=-isysroot $SDK_PATH -mmacosx-version-min=10.15" >> $GITHUB_ENV
           
           # 最终验证
           echo "Final environment:"
           echo "CC: /Library/Developer/CommandLineTools/usr/bin/clang"
           echo "SDKROOT: $SDK_PATH"
-          echo "CGO_CFLAGS: -isysroot $SDK_PATH"
-          echo "CGO_LDFLAGS: -isysroot $SDK_PATH"
+          echo "CGO_CFLAGS: -isysroot $SDK_PATH -mmacosx-version-min=10.15"
+          echo "CGO_LDFLAGS: -isysroot $SDK_PATH -mmacosx-version-min=10.15"
           
           # 测试编译器
           /Library/Developer/CommandLineTools/usr/bin/clang --version
@@ -189,7 +189,7 @@ jobs:
           3. 首次启动可能需要在系统偏好设置中允许运行
           
           ## 系统要求
-          - macOS 11.0 或更高版本
+          - macOS 10.15 或更高版本
           - Apple Silicon (M1/M2/M3) 处理器
           
           ## 权限设置
