@@ -21,7 +21,11 @@
       <div class="qr-result-content">{{ qrCodeResult }}</div>
     </div>
     <!-- OCR 文字识别结果 -->
-    <div v-if="showOCRText && ocrTextResult" class="ocr-result" ref="ocrResultRef">
+    <div
+      v-if="showOCRText && ocrTextResult"
+      class="ocr-result"
+      ref="ocrResultRef"
+    >
       <div class="ocr-result-header">
         <span class="ocr-result-title">{{
           $t("components.image.ocrText")
@@ -50,6 +54,7 @@
         }}
       </el-button>
       <el-button
+        v-if="isMacOS"
         class="me-button"
         round
         @click="handleExtractText"
@@ -77,6 +82,9 @@ import {
 import { ElMessage } from "element-plus";
 
 const { t } = useI18n();
+
+// 检测是否为 macOS
+const isMacOS = ref(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
 
 interface Props {
   imageData: string;
@@ -187,14 +195,14 @@ async function handleExtractText() {
       isLoadingOCR.value = false;
     }
   } else {
-        ElMessage.warning(t("components.image.noOCRText"));
+    ElMessage.warning(t("components.image.noOCRText"));
   }
 }
 
 // 滚动到底部
 function scrollToBottom() {
   if (ocrResultRef.value) {
-    ocrResultRef.value.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    ocrResultRef.value.scrollIntoView({ behavior: "smooth", block: "end" });
   }
 }
 

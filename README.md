@@ -1,6 +1,6 @@
 # 剪存 - 剪贴板历史管理工具
 
-一个基于 Wails + Vue 3 + TypeScript 的跨平台剪贴板历史管理工具。
+一个基于 Wails + Vue 3 + TypeScript 的多平台剪贴板历史管理工具。
 
 ## 已上架App Store
 https://apps.apple.com/us/app/剪存/id6754015301
