@@ -256,6 +256,12 @@ func handleImageClipboard(imgData []byte, appName string, precomputedHash string
 	timestamp := time.Now()
 	pngData := buf.Bytes()
 
+	// 内存优化：立即复制数据，释放 buf 的引用，确保 buf 可以被 GC 回收
+	imageDataCopy := make([]byte, len(pngData))
+	copy(imageDataCopy, pngData)
+	// 清空 buf，帮助 GC（虽然已经复制了，但显式清空更明确）
+	buf.Reset()
+
 	// 生成缩略图描述
 	bounds := img.Bounds()
 	imageDesc := fmt.Sprintf("图片 %dx%d (%s)", bounds.Dx(), bounds.Dy(), format)
@@ -264,10 +270,10 @@ func handleImageClipboard(imgData []byte, appName string, precomputedHash string
 		ID:          fmt.Sprintf("%d", timestamp.UnixNano()),
 		Content:     imageDesc,
 		ContentType: "Image",
-		ImageData:   pngData,
+		ImageData:   imageDataCopy, // 使用复制的数据，不持有 buf 的引用
 		Timestamp:   timestamp,
 		Source:      appName,
-		CharCount:   len(pngData),
+		CharCount:   len(imageDataCopy),
 		WordCount:   0,
 		OCRText:     "", // 初始为空，异步填充
 	}
@@ -313,17 +319,27 @@ func handleImageClipboard(imgData []byte, appName string, precomputedHash string
 	}
 
 	// 异步进行 OCR 识别（不阻塞保存流程）
-	go func() {
-		ocrText := RecognizeTextInImage(pngData)
+	// 内存优化：在 goroutine 中复制数据，避免持有 item.ImageData 的引用
+	go func(ocrData []byte, itemID string) {
+		// 复制数据到新的内存空间，避免持有原始数据的引用
+		dataCopy := make([]byte, len(ocrData))
+		copy(dataCopy, ocrData)
+
+		// 执行 OCR 识别
+		ocrText := RecognizeTextInImage(dataCopy)
+
+		// 及时释放复制的数据，帮助 GC 回收内存
+		dataCopy = nil
+
+		// 更新数据库
 		if ocrText != "" {
-			// 更新数据库中的 OCR 文字
-			if err := UpdateOCRText(item.ID, ocrText); err != nil {
-				log.Printf("⚠️ 更新OCR文字失败: ID=%s, error=%v", item.ID, err)
+			if err := UpdateOCRText(itemID, ocrText); err != nil {
+				log.Printf("⚠️ 更新OCR文字失败: ID=%s, error=%v", itemID, err)
 			} else {
-				log.Printf("✅ OCR识别完成: ID=%s, 文字长度=%d", item.ID, len(ocrText))
+				log.Printf("✅ OCR识别完成: ID=%s, 文字长度=%d", itemID, len(ocrText))
 			}
 		}
-	}()
+	}(imageDataCopy, item.ID)
 
 	// 执行 after_save 脚本
 	executeAfterSaveScripts(&item)
