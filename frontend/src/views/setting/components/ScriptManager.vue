@@ -36,9 +36,11 @@
         </el-table-column>
         <el-table-column prop="Enabled" :label="$t('settings.scripts.enabled')" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.Enabled ? 'success' : 'info'">
-              {{ row.Enabled ? $t('common.enabled') : $t('common.disabled') }}
-            </el-tag>
+            <el-switch
+              v-model="row.Enabled"
+              @change="handleEnabledChange(row)"
+              :loading="updatingEnabledMap.get(row.ID) || false"
+            />
           </template>
         </el-table-column>
         <el-table-column :label="$t('common.actions')" width="134" fixed="right">
@@ -66,9 +68,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Link } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
-import { GetAllUserScripts, DeleteUserScript, UpdateUserScriptOrder, OpenURL } from '../../../../wailsjs/go/main/App'
+import { GetAllUserScripts, DeleteUserScript, UpdateUserScriptOrder, OpenURL, GetUserScriptByID, SaveUserScript } from '../../../../wailsjs/go/main/App'
 import { common } from '../../../../wailsjs/go/models'
 import ScriptEditor from './ScriptEditor.vue'
 
@@ -87,6 +88,8 @@ const loading = ref(false)
 const scripts = ref<common.UserScript[]>([])
 const showScriptEditor = ref(false)
 const editingScriptId = ref<string | undefined>()
+// 跟踪每个脚本的更新状态
+const updatingEnabledMap = ref<Map<string, boolean>>(new Map())
 
 watch(
   () => props.modelValue,
@@ -157,8 +160,6 @@ function handleScriptSaved() {
   loadScripts()
 }
 
-let saveTimer: ReturnType<typeof setTimeout> | null = null
-
 async function handleOrderChange(row: common.UserScript) {
   // changedScript.SortOrder 检测不是数字，则不保存
   if (isNaN(parseInt(row.SortOrder.toString()))) {
@@ -177,6 +178,38 @@ async function saveOrder(changedScript: common.UserScript) {
     ElMessage.error(`${t('settings.scripts.orderUpdateError') || '更新顺序失败'}: ${error.message || error}`)
     // 重新加载以恢复原始顺序
     await loadScripts()
+  }
+}
+
+async function handleEnabledChange(row: common.UserScript) {
+  // 设置更新状态，防止重复点击
+  updatingEnabledMap.value.set(row.ID, true)
+  
+  try {
+    // 获取完整的脚本数据
+    const fullScript = await GetUserScriptByID(row.ID)
+    if (!fullScript) {
+      throw new Error('脚本不存在')
+    }
+    
+    // 更新启用状态
+    fullScript.Enabled = row.Enabled
+    
+    // 保存脚本
+    const scriptJSON = JSON.stringify(fullScript)
+    await SaveUserScript(scriptJSON)
+    
+    ElMessage.success(
+      row.Enabled 
+        ? (t('settings.scripts.enabledSuccess') || '脚本已启用')
+        : (t('settings.scripts.disabledSuccess') || '脚本已禁用')
+    )
+  } catch (error: any) {
+    // 恢复原状态
+    row.Enabled = !row.Enabled
+    ElMessage.error(`${t('settings.scripts.enabledUpdateError') || '更新启用状态失败'}: ${error.message || error}`)
+  } finally {
+    updatingEnabledMap.value.set(row.ID, false)
   }
 }
 </script>

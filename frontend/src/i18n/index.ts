@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { GetCurrentLanguage } from '../../wailsjs/go/main/App'
 
-const AppVersion = '2.2.6'
+const AppVersion = '2.2.7'
 
 // 中文语言包
 const zhCN = {
@@ -107,7 +107,10 @@ const zhCN = {
       orderInvalid: '顺序无效',
       orderUpdated: '顺序已更新',
       orderUpdateError: '更新顺序失败',
-      findScripts: '查找脚本'
+      findScripts: '查找脚本',
+      enabledSuccess: '脚本已启用',
+      disabledSuccess: '脚本已禁用',
+      enabledUpdateError: '更新启用状态失败'
     }
   },
 
@@ -376,7 +379,10 @@ const enUS = {
       orderInvalid: 'Invalid order',
       orderUpdated: 'Order updated successfully',
       orderUpdateError: 'Failed to update order',
-      findScripts: 'Find Scripts'
+      findScripts: 'Find Scripts',
+      enabledSuccess: 'Script enabled successfully',
+      disabledSuccess: 'Script disabled successfully',
+      enabledUpdateError: 'Failed to update enabled status'
     },
     interface: 'Interface Settings',
     pageSize: 'Items Per Page',
@@ -683,7 +689,10 @@ const frFR = {
       orderInvalid: 'Ordre invalide',
       orderUpdated: 'Ordre mis à jour avec succès',
       orderUpdateError: 'Échec de la mise à jour de l\'ordre',
-      findScripts: 'Trouver des Scripts'
+      findScripts: 'Trouver des Scripts',
+      enabledSuccess: 'Script activé avec succès',
+      disabledSuccess: 'Script désactivé avec succès',
+      enabledUpdateError: 'Échec de la mise à jour de l\'état d\'activation'
     }
   },
 
@@ -967,7 +976,10 @@ const arSA = {
       orderInvalid: 'ترتيب غير صالح',
       orderUpdated: 'تم تحديث الترتيب بنجاح',
       orderUpdateError: 'فشل تحديث الترتيب',
-      findScripts: 'البحث عن السكريبتات'
+      findScripts: 'البحث عن السكريبتات',
+      enabledSuccess: 'تم تفعيل السكريبت بنجاح',
+      disabledSuccess: 'تم تعطيل السكريبت بنجاح',
+      enabledUpdateError: 'فشل تحديث حالة التفعيل'
     }
   },
 
