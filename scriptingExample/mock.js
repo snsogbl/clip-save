@@ -548,8 +548,9 @@ try {
       lowerFieldName.endsWith("time") ||
       lowerFieldName.endsWith("date")
     ) {
-      // 如果没有原始值，默认返回 ISO 8601 格式
-      return new Date().toISOString();
+      // 如果没有原始值，默认返回 年月日时分秒
+      const time = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate() + " " + new Date().getHours() + ":" + new Date().getMinutes() + ":" + new Date().getSeconds();
+      return generateTimeByFormat(time);
     }
 
     // 识别图片字段（使用精确匹配，避免误判 imgSize、imageWidth 等）

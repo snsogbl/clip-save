@@ -149,10 +149,7 @@ func activateWindow_paste(hwnd uintptr) bool {
 		return false
 	}
 
-	// 标准激活流程
-	procShowWindow_paste.Call(hwnd, SW_RESTORE_PASTE)
-	time.Sleep(50 * time.Millisecond)
-
+	// 显示窗口，保持原有状态（最大化保持最大化，正常保持正常）
 	procShowWindow_paste.Call(hwnd, SW_SHOW_PASTE)
 	time.Sleep(50 * time.Millisecond)
 
