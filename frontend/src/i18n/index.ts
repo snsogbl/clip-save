@@ -108,6 +108,7 @@ const zhCN = {
       orderUpdated: '顺序已更新',
       orderUpdateError: '更新顺序失败',
       findScripts: '查找脚本',
+      scriptMarket: '脚本市场',
       enabledSuccess: '脚本已启用',
       disabledSuccess: '脚本已禁用',
       enabledUpdateError: '更新启用状态失败',
@@ -411,6 +412,7 @@ const enUS = {
       orderUpdated: 'Order updated successfully',
       orderUpdateError: 'Failed to update order',
       findScripts: 'Find Scripts',
+      scriptMarket: 'Script Market',
       enabledSuccess: 'Script enabled successfully',
       disabledSuccess: 'Script disabled successfully',
       enabledUpdateError: 'Failed to update enabled status',
@@ -752,6 +754,7 @@ const frFR = {
       orderUpdated: 'Ordre mis à jour avec succès',
       orderUpdateError: 'Échec de la mise à jour de l\'ordre',
       findScripts: 'Trouver des Scripts',
+      scriptMarket: 'Marché de Scripts',
       enabledSuccess: 'Script activé avec succès',
       disabledSuccess: 'Script désactivé avec succès',
       enabledUpdateError: 'Échec de la mise à jour de l\'état d\'activation',
@@ -960,7 +963,8 @@ const frFR = {
     order: 'Ordre',
     orderUpdated: 'Ordre mis à jour avec succès',
     orderUpdateError: 'Échec de la mise à jour de l\'ordre',
-    findScripts: 'Trouver des Scripts'
+    findScripts: 'Trouver des Scripts',
+    scriptMarket: 'Marché de Scripts'
   }
 }
 
@@ -1069,6 +1073,7 @@ const arSA = {
       orderUpdated: 'تم تحديث الترتيب بنجاح',
       orderUpdateError: 'فشل تحديث الترتيب',
       findScripts: 'البحث عن السكريبتات',
+      scriptMarket: 'سوق السكريبتات',
       enabledSuccess: 'تم تفعيل السكريبت بنجاح',
       disabledSuccess: 'تم تعطيل السكريبت بنجاح',
       enabledUpdateError: 'فشل تحديث حالة التفعيل',

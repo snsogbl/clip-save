@@ -10,7 +10,7 @@
     :close-on-click-modal="false"
     @close="handleClose"
   >
-    <el-form :model="form" label-width="120px" label-position="left" spellcheck="false">
+    <el-form :model="form" style="height: 70vh;overflow: auto;" label-width="120px" label-position="left" spellcheck="false">
       <el-form-item :label="$t('settings.scripts.name')" required>
         <el-input
           v-model="form.name"
@@ -121,6 +121,8 @@ interface Script {
   script: string;
   description: string;
   sortOrder?: number;
+  pluginId: string;
+  pluginVersion: string;
 }
 
 const props = defineProps<{
@@ -146,6 +148,8 @@ const form = ref<Script>({
   keywords: [],
   script: "",
   description: "",
+  pluginId: "",
+  pluginVersion: "",
 });
 
 watch(
@@ -185,6 +189,8 @@ async function loadScript() {
         script: script.Script || "",
         description: script.Description || "",
         sortOrder: script.SortOrder || 0,
+        pluginId: script.PluginID || "",
+        pluginVersion: script.PluginVersion || "",
       };
       isEdit.value = true;
     } else {
@@ -218,6 +224,8 @@ if (item.ContentType === 'Text') {
 }
 `,
     description: "",
+    pluginId: "",
+    pluginVersion: "",
   };
   isEdit.value = false;
 }
@@ -275,6 +283,8 @@ async function handleSave() {
       Script: form.value.script,
       Description: form.value.description,
       SortOrder: form.value.sortOrder || 0,
+      PluginID: form.value.pluginId,
+      PluginVersion: form.value.pluginVersion,
     };
 
     await SaveUserScript(JSON.stringify(scriptData));

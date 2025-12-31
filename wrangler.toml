@@ -1,0 +1,5 @@
+name = "clip-save-plugins"
+compatibility_date = "2025-12-31"
+
+[site]
+bucket = "./scriptingExample"

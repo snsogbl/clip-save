@@ -7,16 +7,29 @@
   >
     <div class="script-manager">
       <div class="script-manager-header">
+        <el-button class="me-button" size="small" @click="showOnlineScriptList = true">
+          {{ $t("settings.scripts.scriptMarket") }}
+        </el-button>
         <el-button class="me-button" size="small" @click="handleFindScripts">
-          {{ $t('settings.scripts.findScripts') }}
+          {{ $t("settings.scripts.findScripts") }}
         </el-button>
         <el-button size="small" type="primary" @click="handleNewScript">
-          {{ $t('settings.scripts.newScript') }}
+          {{ $t("settings.scripts.newScript") }}
         </el-button>
       </div>
 
-      <el-table :data="scripts" height="66vh" style="width: 100%" v-loading="loading" row-key="ID">
-        <el-table-column :label="$t('settings.scripts.order')" width="86" fixed="left">
+      <el-table
+        :data="scripts"
+        height="66vh"
+        style="width: 100%"
+        v-loading="loading"
+        row-key="ID"
+      >
+        <el-table-column
+          :label="$t('settings.scripts.order')"
+          width="86"
+          fixed="left"
+        >
           <template #default="{ row }">
             <el-input
               v-model="row.SortOrder"
@@ -25,16 +38,37 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="Name" :label="$t('settings.scripts.name')" width="120" show-overflow-tooltip/>
-        <el-table-column prop="Description" :label="$t('settings.scripts.description')" show-overflow-tooltip/>
-        <el-table-column prop="Trigger" :label="$t('settings.scripts.trigger')" width="150">
+        <el-table-column
+          prop="Name"
+          :label="$t('settings.scripts.name')"
+          width="120"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="Description"
+          :label="$t('settings.scripts.description')"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="Trigger"
+          :label="$t('settings.scripts.trigger')"
+          width="150"
+        >
           <template #default="{ row }">
-            <span v-if="row.Trigger === 'after_save'">{{ $t('settings.scripts.triggerAfterSave') }}</span>
-            <span v-else-if="row.Trigger === 'manual'">{{ $t('settings.scripts.triggerManual') }}</span>
+            <span v-if="row.Trigger === 'after_save'">{{
+              $t("settings.scripts.triggerAfterSave")
+            }}</span>
+            <span v-else-if="row.Trigger === 'manual'">{{
+              $t("settings.scripts.triggerManual")
+            }}</span>
             <span v-else>{{ row.Trigger }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="Enabled" :label="$t('settings.scripts.enabled')" width="100">
+        <el-table-column
+          prop="Enabled"
+          :label="$t('settings.scripts.enabled')"
+          width="100"
+        >
           <template #default="{ row }">
             <el-switch
               v-model="row.Enabled"
@@ -43,13 +77,21 @@
             />
           </template>
         </el-table-column>
-        <el-table-column :label="$t('common.actions')" width="134" fixed="right">
+        <el-table-column
+          :label="$t('common.actions')"
+          width="134"
+          fixed="right"
+        >
           <template #default="{ row }">
             <el-button size="small" @click="handleEditScript(row.ID)">
-              {{ $t('common.edit') }}
+              {{ $t("common.edit") }}
             </el-button>
-            <el-button size="small" type="danger" @click="handleDeleteScript(row.ID, row.Name)">
-              {{ $t('common.delete') }}
+            <el-button
+              size="small"
+              type="danger"
+              @click="handleDeleteScript(row.ID, row.Name)"
+            >
+              {{ $t("common.delete") }}
             </el-button>
           </template>
         </el-table-column>
@@ -72,148 +114,172 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { useI18n } from 'vue-i18n'
-import { GetAllUserScripts, DeleteUserScript, UpdateUserScriptOrder, OpenURL, GetUserScriptByID, SaveUserScript } from '../../../../wailsjs/go/main/App'
-import { common } from '../../../../wailsjs/go/models'
-import ScriptEditor from './ScriptEditor.vue'
-import OnlineScriptList from './OnlineScriptList.vue'
+import { ref, watch } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { useI18n } from "vue-i18n";
+import {
+  GetAllUserScripts,
+  DeleteUserScript,
+  UpdateUserScriptOrder,
+  OpenURL,
+  GetUserScriptByID,
+  SaveUserScript,
+} from "../../../../wailsjs/go/main/App";
+import { common } from "../../../../wailsjs/go/models";
+import ScriptEditor from "./ScriptEditor.vue";
+import OnlineScriptList from "./OnlineScriptList.vue";
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const props = defineProps<{
-  modelValue: boolean
-}>()
+  modelValue: boolean;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
+  "update:modelValue": [value: boolean];
+}>();
 
-const visible = ref(false)
-const loading = ref(false)
-const scripts = ref<common.UserScript[]>([])
-const showScriptEditor = ref(false)
-const editingScriptId = ref<string | undefined>()
-const showOnlineScriptList = ref(false)
+const visible = ref(false);
+const loading = ref(false);
+const scripts = ref<common.UserScript[]>([]);
+const showScriptEditor = ref(false);
+const editingScriptId = ref<string | undefined>();
+const showOnlineScriptList = ref(false);
 // 跟踪每个脚本的更新状态
-const updatingEnabledMap = ref<Map<string, boolean>>(new Map())
-
+const updatingEnabledMap = ref<Map<string, boolean>>(new Map());
+const isFirstLoad = ref(true);
 watch(
   () => props.modelValue,
   (val) => {
-    visible.value = val
+    visible.value = val;
     if (val) {
-      loadScripts()
+      loadScripts();
     }
   }
-)
+);
 
 watch(visible, (val) => {
-  emit('update:modelValue', val)
-})
+  emit("update:modelValue", val);
+});
 
 async function loadScripts() {
-  loading.value = true
+  loading.value = true;
   try {
-    scripts.value = await GetAllUserScripts()
+    scripts.value = await GetAllUserScripts();
+    if (isFirstLoad.value && (!scripts.value || scripts.value.length === 0)) {
+      showOnlineScriptList.value = true;
+      isFirstLoad.value = false;
+    }
   } catch (error: any) {
-    ElMessage.error(`加载脚本失败: ${error.message || error}`)
+    ElMessage.error(`加载脚本失败: ${error.message || error}`);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function handleNewScript() {
-  editingScriptId.value = undefined
-  showScriptEditor.value = true
+  editingScriptId.value = undefined;
+  showScriptEditor.value = true;
 }
 
 function handleFindScripts() {
-  showOnlineScriptList.value = true
+  OpenURL("https://github.com/snsogbl/clip-save/blob/main/scriptingExample/README.md");
 }
 
 function handleEditScript(id: string) {
-  editingScriptId.value = id
-  showScriptEditor.value = true
+  editingScriptId.value = id;
+  showScriptEditor.value = true;
 }
 
 async function handleDeleteScript(id: string, name: string) {
   try {
     await ElMessageBox.confirm(
-      t('settings.scripts.deleteConfirm', { name }) || `确定要删除脚本 "${name}" 吗？`,
-      t('settings.scripts.deleteTitle') || '删除脚本',
+      t("settings.scripts.deleteConfirm", { name }) ||
+        `确定要删除脚本 "${name}" 吗？`,
+      t("settings.scripts.deleteTitle") || "删除脚本",
       {
-        confirmButtonText: t('common.delete') || '删除',
-        cancelButtonText: t('common.cancel') || '取消',
-        type: 'warning',
+        confirmButtonText: t("common.delete") || "删除",
+        cancelButtonText: t("common.cancel") || "取消",
+        type: "warning",
       }
-    )
+    );
 
-    await DeleteUserScript(id)
-    ElMessage.success(t('settings.scripts.deleteSuccess') || '脚本已删除')
-    await loadScripts()
+    await DeleteUserScript(id);
+    ElMessage.success(t("settings.scripts.deleteSuccess") || "脚本已删除");
+    await loadScripts();
   } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(`${t('settings.scripts.deleteError') || '删除脚本失败'}: ${error.message || error}`)
+    if (error !== "cancel") {
+      ElMessage.error(
+        `${t("settings.scripts.deleteError") || "删除脚本失败"}: ${
+          error.message || error
+        }`
+      );
     }
   }
 }
 
 function handleScriptSaved() {
-  loadScripts()
+  loadScripts();
 }
 
 async function handleOrderChange(row: common.UserScript) {
   // changedScript.SortOrder 检测不是数字，则不保存
   if (isNaN(parseInt(row.SortOrder.toString()))) {
-    ElMessage.error(t('settings.scripts.orderInvalid') || '顺序无效')
-    return
+    ElMessage.error(t("settings.scripts.orderInvalid") || "顺序无效");
+    return;
   }
-  await saveOrder(row)
+  await saveOrder(row);
 }
 
 async function saveOrder(changedScript: common.UserScript) {
   try {
-    const sortOrder = parseInt(changedScript.SortOrder.toString()) || 0
-    await UpdateUserScriptOrder(changedScript.ID, sortOrder)
-    ElMessage.success(t('settings.scripts.orderUpdated') || '顺序已更新')
+    const sortOrder = parseInt(changedScript.SortOrder.toString()) || 0;
+    await UpdateUserScriptOrder(changedScript.ID, sortOrder);
+    ElMessage.success(t("settings.scripts.orderUpdated") || "顺序已更新");
   } catch (error: any) {
-    ElMessage.error(`${t('settings.scripts.orderUpdateError') || '更新顺序失败'}: ${error.message || error}`)
+    ElMessage.error(
+      `${t("settings.scripts.orderUpdateError") || "更新顺序失败"}: ${
+        error.message || error
+      }`
+    );
     // 重新加载以恢复原始顺序
-    await loadScripts()
+    await loadScripts();
   }
 }
 
 async function handleEnabledChange(row: common.UserScript) {
   // 设置更新状态，防止重复点击
-  updatingEnabledMap.value.set(row.ID, true)
-  
+  updatingEnabledMap.value.set(row.ID, true);
+
   try {
     // 获取完整的脚本数据
-    const fullScript = await GetUserScriptByID(row.ID)
+    const fullScript = await GetUserScriptByID(row.ID);
     if (!fullScript) {
-      throw new Error('脚本不存在')
+      throw new Error("脚本不存在");
     }
-    
+
     // 更新启用状态
-    fullScript.Enabled = row.Enabled
-    
+    fullScript.Enabled = row.Enabled;
+
     // 保存脚本
-    const scriptJSON = JSON.stringify(fullScript)
-    await SaveUserScript(scriptJSON)
-    
+    const scriptJSON = JSON.stringify(fullScript);
+    await SaveUserScript(scriptJSON);
+
     ElMessage.success(
-      row.Enabled 
-        ? (t('settings.scripts.enabledSuccess') || '脚本已启用')
-        : (t('settings.scripts.disabledSuccess') || '脚本已禁用')
-    )
+      row.Enabled
+        ? t("settings.scripts.enabledSuccess") || "脚本已启用"
+        : t("settings.scripts.disabledSuccess") || "脚本已禁用"
+    );
   } catch (error: any) {
     // 恢复原状态
-    row.Enabled = !row.Enabled
-    ElMessage.error(`${t('settings.scripts.enabledUpdateError') || '更新启用状态失败'}: ${error.message || error}`)
+    row.Enabled = !row.Enabled;
+    ElMessage.error(
+      `${t("settings.scripts.enabledUpdateError") || "更新启用状态失败"}: ${
+        error.message || error
+      }`
+    );
   } finally {
-    updatingEnabledMap.value.set(row.ID, false)
+    updatingEnabledMap.value.set(row.ID, false);
   }
 }
 </script>
@@ -229,4 +295,3 @@ async function handleEnabledChange(row: common.UserScript) {
   justify-content: flex-end;
 }
 </style>
-

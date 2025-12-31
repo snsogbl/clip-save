@@ -73,6 +73,12 @@ wails build
 
 构建完成后，可执行文件将位于 `build/bin/` 目录下。
 
+### 自定义脚本上传、更新
+
+```bash
+wrangler pages deploy scriptingExample --project-name=clip-save-plugins
+```
+
 ### macOS 构建选项
 
 ```bash

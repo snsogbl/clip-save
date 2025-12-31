@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    :title="$t('settings.scripts.onlineScripts')"
+    :title="$t('settings.scripts.scriptMarket')"
     width="90%"
     :close-on-click-modal="false"
   >
@@ -95,18 +95,23 @@
                 <div class="plugin-title-section">
                   <h3 class="plugin-name">{{ plugin.name }}</h3>
                   <div class="plugin-version-info">
-                    <el-tag 
-                      size="small" 
-                      :type="hasUpdate(plugin) ? 'warning' : 'info'" 
+                    <el-tag
+                      size="small"
+                      :type="hasUpdate(plugin) ? 'warning' : 'info'"
                       class="plugin-version"
                     >
                       v{{ plugin.version }}
                     </el-tag>
-                    <span 
-                      v-if="isInstalled(plugin) && installedMap.get(plugin.id)?.version" 
+                    <span
+                      v-if="
+                        isInstalled(plugin) &&
+                        installedMap.get(plugin.id)?.version
+                      "
                       class="installed-version"
                     >
-                      ({{ $t('settings.scripts.installedVersion') }}: v{{ installedMap.get(plugin.id)?.version }})
+                      ({{ $t("settings.scripts.installedVersion") }}: v{{
+                        installedMap.get(plugin.id)?.version
+                      }})
                     </span>
                   </div>
                 </div>
@@ -257,9 +262,8 @@ const installingMap = ref<Map<string, boolean>>(new Map());
 const updatingMap = ref<Map<string, boolean>>(new Map());
 const installedMap = ref<Map<string, { version: string }>>(new Map());
 
-// jsDelivr CDN URL
-const PLUGINS_JSON_URL =
-  "https://cdn.jsdelivr.net/gh/snsogbl/clip-save@master/scriptingExample/plugins.json";
+// Cloudflare Pages URL
+const PLUGINS_JSON_URL = "https://clip-save-plugins.pages.dev/plugins.json";
 
 watch(
   () => props.modelValue,
@@ -362,6 +366,7 @@ async function loadPlugins() {
 // 检查已安装的插件
 async function checkInstalledPlugins() {
   try {
+    installedMap.value = new Map();
     const userScripts = await GetAllUserScripts();
     const installed = new Map<string, { version: string }>();
 
@@ -369,7 +374,7 @@ async function checkInstalledPlugins() {
     userScripts.forEach((script) => {
       if (script.PluginID) {
         installed.set(script.PluginID, {
-          version: script.PluginVersion || ''
+          version: script.PluginVersion || "",
         });
       }
     });
@@ -383,11 +388,11 @@ async function checkInstalledPlugins() {
 // 比较版本号（简单语义化版本比较）
 function compareVersions(v1: string, v2: string): number {
   if (!v1 || !v2) return 0;
-  
-  const parts1 = v1.split('.').map(Number);
-  const parts2 = v2.split('.').map(Number);
+
+  const parts1 = v1.split(".").map(Number);
+  const parts2 = v2.split(".").map(Number);
   const maxLen = Math.max(parts1.length, parts2.length);
-  
+
   for (let i = 0; i < maxLen; i++) {
     const num1 = parts1[i] || 0;
     const num2 = parts2[i] || 0;
@@ -434,10 +439,10 @@ async function handleUpdate(plugin: Plugin) {
 
   try {
     await ElMessageBox.confirm(
-      t("settings.scripts.updateConfirm", { 
+      t("settings.scripts.updateConfirm", {
         name: plugin.name,
-        currentVersion: installed?.version || '',
-        newVersion: plugin.version
+        currentVersion: installed?.version || "",
+        newVersion: plugin.version,
       }),
       t("settings.scripts.updateTitle"),
       {
@@ -458,8 +463,8 @@ async function handleUpdate(plugin: Plugin) {
 
     // 获取已安装的脚本ID
     const userScripts = await GetAllUserScripts();
-    const existingScript = userScripts.find(s => s.PluginID === plugin.id);
-    
+    const existingScript = userScripts.find((s) => s.PluginID === plugin.id);
+
     if (!existingScript) {
       throw new Error("未找到已安装的脚本");
     }
@@ -484,9 +489,9 @@ async function handleUpdate(plugin: Plugin) {
 
     installedMap.value.set(plugin.id, { version: plugin.version });
     ElMessage.success(
-      t("settings.scripts.updateSuccess", { 
+      t("settings.scripts.updateSuccess", {
         name: plugin.name,
-        version: plugin.version
+        version: plugin.version,
       })
     );
     emit("installed");
@@ -670,7 +675,6 @@ onMounted(() => {
   font-size: 12px;
   color: #909399;
 }
-
 
 .plugin-description {
   margin: 0 0 6px 0;
