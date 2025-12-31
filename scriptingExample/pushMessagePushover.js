@@ -13,8 +13,7 @@
 const reqdata = {
   token: 'your pushover token',
   user: 'your pushover user key',
-  device: 'your device name',
-  message: message
+  device: 'your device name'
 };
 
 // 从剪贴板项获取消息内容
@@ -36,6 +35,7 @@ if (!message) {
     error: '剪贴板内容为空，无法发送推送'
   };
 }
+reqdata.message = message;
 
 // 发送 POST 请求到 Pushover API
 try {
