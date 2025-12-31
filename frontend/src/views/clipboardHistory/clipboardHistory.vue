@@ -94,6 +94,7 @@
               v-else-if="
                 currentItem.ContentType === 'Image' && currentItem.ImageData
               "
+              ref="imageViewRef"
               :imageData="
                 Array.isArray(currentItem.ImageData)
                   ? currentItem.ImageData.map((b) =>
@@ -234,6 +235,7 @@ const currentItem = ref<ClipboardItem | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 const contentAreaRef = ref<HTMLElement | null>(null);
 const textEditorRef = ref<InstanceType<typeof ClipboardTextView> | null>(null);
+const imageViewRef = ref<InstanceType<typeof ClipboardImageView> | null>(null);
 const jsonEditorRef = ref<InstanceType<typeof ClipboardJsonView> | null>(null);
 const minimalModeRef = ref<InstanceType<typeof MinimalModeView> | null>(null);
 const normalModeRef = ref<InstanceType<typeof NormalModeView> | null>(null);
@@ -887,6 +889,23 @@ onMounted(() => {
   eventCleanupFunctions.push(
     EventsOn("translate.current", () => {
       textEditorRef.value?.translateText();
+    })
+  );
+
+  eventCleanupFunctions.push(
+    EventsOn("play.current", () => {
+      if (!currentItem.value) return;
+      
+      // 根据内容类型播放
+      if (currentItem.value.ContentType === "Image") {
+        // 图片类型：播放 OCR 文字
+        imageViewRef.value?.playOCRText();
+      } else if (currentItem.value.ContentType === "Text") {
+        // 文本类型：播放文本内容
+        textEditorRef.value?.playText();
+      } else {
+        ElMessage.error(t("components.text.playEmpty"));
+      }
     })
   );
 

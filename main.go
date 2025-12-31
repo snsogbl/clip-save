@@ -120,6 +120,9 @@ func main() {
 	displaySubMenu.AddText(common.T("menu.runScript"), keys.CmdOrCtrl("r"), func(_ *menu.CallbackData) {
 		app.RunScript()
 	})
+	displaySubMenu.AddText(common.T("menu.playCurrent"), keys.CmdOrCtrl("p"), func(_ *menu.CallbackData) {
+		app.PlayCurrentItem()
+	})
 	displaySubMenu.AddText(common.T("menu.translateCurrent"), keys.CmdOrCtrl("t"), func(_ *menu.CallbackData) {
 		app.TranslateCurrentItem()
 	})

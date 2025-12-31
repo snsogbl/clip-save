@@ -491,6 +491,50 @@ func (a *App) OpenURL(urlStr string) error {
 	}
 }
 
+// SayText 使用 macOS 的 say 命令播放文字（仅 macOS）
+func (a *App) SayText(text string) error {
+	if gRuntime.GOOS != "darwin" {
+		return fmt.Errorf("say 命令仅在 macOS 系统上可用")
+	}
+
+	if text == "" {
+		return fmt.Errorf("文本不能为空")
+	}
+
+	// 调用 say 命令
+	cmd := exec.Command("say", text)
+	if err := cmd.Run(); err != nil {
+		log.Printf("播放文字失败: %v", err)
+		return fmt.Errorf("播放文字失败: %v", err)
+	}
+	return nil
+}
+
+// StopSay 停止当前正在播放的 say 命令（仅 macOS）
+func (a *App) StopSay() error {
+	if gRuntime.GOOS != "darwin" {
+		return fmt.Errorf("stop say 命令仅在 macOS 系统上可用")
+	}
+
+	// 使用 pkill 命令停止所有 say 进程
+	cmd := exec.Command("pkill", "say")
+	if err := cmd.Run(); err != nil {
+		// pkill 如果没有找到进程会返回非零退出码，这是正常的
+		// 检查是否是"没有找到进程"的错误
+		if exitError, ok := err.(*exec.ExitError); ok {
+			if exitError.ExitCode() == 1 {
+				// 退出码 1 表示没有找到进程，这是正常的
+				return nil
+			}
+		}
+		log.Printf("停止播放失败: %v", err)
+		return fmt.Errorf("停止播放失败: %v", err)
+	}
+
+	log.Printf("已停止播放")
+	return nil
+}
+
 // ShowWindow 显示并聚焦窗口（供快捷键调用）
 func (a *App) ShowWindow() {
 	if a.ctx != nil {
@@ -826,6 +870,13 @@ func (a *App) CopyImageToClipboard(base64Data string) error {
 func (a *App) TranslateCurrentItem() {
 	if a.ctx != nil {
 		runtime.EventsEmit(a.ctx, "translate.current")
+	}
+}
+
+// PlayCurrentItem 播放当前项（供前端调用）
+func (a *App) PlayCurrentItem() {
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "play.current")
 	}
 }
 

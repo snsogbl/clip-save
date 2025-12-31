@@ -138,6 +138,10 @@ export function OpenURL(arg1) {
   return window['go']['main']['App']['OpenURL'](arg1);
 }
 
+export function PlayCurrentItem() {
+  return window['go']['main']['App']['PlayCurrentItem']();
+}
+
 export function PrevItem() {
   return window['go']['main']['App']['PrevItem']();
 }
@@ -164,6 +168,10 @@ export function SaveImagePNG(arg1, arg2) {
 
 export function SaveUserScript(arg1) {
   return window['go']['main']['App']['SaveUserScript'](arg1);
+}
+
+export function SayText(arg1) {
+  return window['go']['main']['App']['SayText'](arg1);
 }
 
 export function SearchClipboardItems(arg1, arg2, arg3, arg4, arg5) {
@@ -196,6 +204,10 @@ export function ShowSetting() {
 
 export function ShowWindow() {
   return window['go']['main']['App']['ShowWindow']();
+}
+
+export function StopSay() {
+  return window['go']['main']['App']['StopSay']();
 }
 
 export function SwitchLeftTab(arg1) {

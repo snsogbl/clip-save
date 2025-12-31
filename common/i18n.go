@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-const AppVersion = "2.2.7"
+const AppVersion = "2.2.8"
 
 // 支持的语言
 const (
@@ -56,6 +56,7 @@ func InitI18n() error {
 			"menu.favoriteCurrent":  "收藏当前项",
 			"menu.runScript":        "运行脚本",
 			"menu.translateCurrent": "翻译",
+			"menu.playCurrent":      "播放",
 		},
 	}
 
@@ -82,6 +83,7 @@ func InitI18n() error {
 			"menu.favoriteCurrent":  "Favorite Current Item",
 			"menu.runScript":        "Run Script",
 			"menu.translateCurrent": "Translate",
+			"menu.playCurrent":      "Play",
 		},
 	}
 
@@ -108,6 +110,7 @@ func InitI18n() error {
 			"menu.favoriteCurrent":  "Ajouter l'élément courant aux favoris",
 			"menu.runScript":        "Exécuter le script",
 			"menu.translateCurrent": "Traduire",
+			"menu.playCurrent":      "Lire",
 		},
 	}
 
@@ -134,6 +137,7 @@ func InitI18n() error {
 			"menu.favoriteCurrent":  "إضافة العنصر الحالي للمفضلة",
 			"menu.runScript":        "تشغيل السكريبت",
 			"menu.translateCurrent": "ترجمة",
+			"menu.playCurrent":      "تشغيل",
 		},
 	}
 

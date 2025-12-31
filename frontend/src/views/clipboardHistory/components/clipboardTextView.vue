@@ -4,13 +4,32 @@
     <pre class="content-text"><code>{{ text }}</code></pre>
 
     <!-- 解码按钮 -->
-    <div class="decode-buttons" v-if="needsURIDecoding || needsUnicodeDecoding">
-      <!-- <el-button class="decode-btn" @click="translateText" :loading="loading">
+    <div
+      class="decode-buttons"
+      v-if="needsURIDecoding || needsUnicodeDecoding || isMacOS"
+    >
+      <el-button
+        v-if="isMacOS && !playing"
+        class="me-button"
+        round
+        @click="playText"
+      >
         <el-icon :size="14" style="margin-right: 4px">
-          <Document />
+          <VideoPlay />
         </el-icon>
-        {{ $t("components.text.translate") }}
-      </el-button> -->
+        {{ $t("components.text.play") }}
+      </el-button>
+      <el-button
+        v-if="isMacOS && playing"
+        class="me-button"
+        round
+        @click="stopPlayback"
+      >
+        <el-icon :size="14" style="margin-right: 4px">
+          <VideoPause />
+        </el-icon>
+        {{ $t("components.text.stop") }}
+      </el-button>
       <el-button
         v-if="needsURIDecoding"
         class="me-button"
@@ -82,11 +101,19 @@
 <script lang="ts" setup>
 import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { Link, Document, Switch } from "@element-plus/icons-vue";
+import {
+  Link,
+  Document,
+  Switch,
+  VideoPlay,
+  VideoPause,
+} from "@element-plus/icons-vue";
 import hljs from "highlight.js";
 import { translateAPI } from "../../../composables/translate";
 import type { TranslateOptions } from "../../../composables/translate";
 import type { Language } from "../../../composables/translate";
+import { SayText, StopSay } from "../../../../wailsjs/go/main/App";
+import { ElMessage } from "element-plus";
 
 const { t } = useI18n();
 
@@ -100,6 +127,9 @@ const translatedText = ref("");
 const translateFromLanguage = ref<Language>("zh");
 const translateToLanguage = ref<Language>("en");
 const loading = ref(false);
+const playing = ref(false);
+// 检测是否为 macOS
+const isMacOS = ref(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
 const languages = computed(() => [
   { label: t("components.language.zh"), value: "zh" as Language },
   { label: t("components.language.en"), value: "en" as Language },
@@ -199,6 +229,47 @@ const translateTextAssign = () => {
   });
 };
 
+// 停止播放
+const stopPlayback = async () => {
+  if (!isMacOS.value) {
+    return;
+  }
+
+  try {
+    await StopSay();
+    playing.value = false;
+  } catch (error: any) {
+    console.error("停止播放失败:", error);
+    // 即使停止失败，也重置播放状态
+    playing.value = false;
+  }
+};
+
+// 播放文本（仅 macOS）
+const playText = async () => {
+  if (!isMacOS.value) {
+    return;
+  }
+
+  // 如果正在播放，先停止
+  await stopPlayback();
+
+  const textToPlay = props.text;
+  if (!textToPlay || textToPlay.trim() === "") {
+    ElMessage.warning(t("components.text.playEmpty"));
+    return;
+  }
+
+  playing.value = true;
+  try {
+    await SayText(textToPlay);
+  } catch (error: any) {
+    console.error("播放失败:", error);
+  } finally {
+    playing.value = false;
+  }
+};
+
 const checkIsCode = () => {
   const text = props.text || "";
   if (!text) return false;
@@ -282,6 +353,7 @@ onMounted(() => {
 
 defineExpose({
   translateText,
+  playText,
 });
 </script>
 

@@ -70,6 +70,8 @@ export function OpenFileInFinder(arg1:string):Promise<void>;
 
 export function OpenURL(arg1:string):Promise<void>;
 
+export function PlayCurrentItem():Promise<void>;
+
 export function PrevItem():Promise<void>;
 
 export function RecognizeQRCode(arg1:string):Promise<string>;
@@ -83,6 +85,8 @@ export function SaveAppSettings(arg1:string):Promise<void>;
 export function SaveImagePNG(arg1:string,arg2:string):Promise<string>;
 
 export function SaveUserScript(arg1:string):Promise<void>;
+
+export function SayText(arg1:string):Promise<void>;
 
 export function SearchClipboardItems(arg1:boolean,arg2:string,arg3:string,arg4:number,arg5:boolean):Promise<Array<common.ClipboardItem>>;
 
@@ -99,6 +103,8 @@ export function ShowAbout():Promise<void>;
 export function ShowSetting():Promise<void>;
 
 export function ShowWindow():Promise<void>;
+
+export function StopSay():Promise<void>;
 
 export function SwitchLeftTab(arg1:string):Promise<void>;
 

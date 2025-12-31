@@ -66,6 +66,28 @@
             : $t("components.image.extractText")
         }}
       </el-button>
+      <el-button
+        v-if="isMacOS && ocrText && !playing"
+        class="me-button"
+        round
+        @click="playOCRText"
+      >
+        <el-icon :size="14" style="margin-right: 4px">
+          <VideoPlay />
+        </el-icon>
+        {{ $t("components.text.play") }}
+      </el-button>
+      <el-button
+        v-if="isMacOS && ocrText && playing"
+        class="me-button"
+        round
+        @click="stopPlayback"
+      >
+        <el-icon :size="14" style="margin-right: 4px">
+          <VideoPause />
+        </el-icon>
+        {{ $t("components.text.stop") }}
+      </el-button>
     </div>
   </div>
 </template>
@@ -73,11 +95,14 @@
 <script lang="ts" setup>
 import { ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
+import { VideoPlay, VideoPause } from "@element-plus/icons-vue";
 import {
   SaveImagePNG,
   DetectQRCode,
   RecognizeQRCode,
   GetClipboardItemByID,
+  SayText,
+  StopSay,
 } from "../../../../wailsjs/go/main/App";
 import { ElMessage } from "element-plus";
 
@@ -106,6 +131,7 @@ const showOCRText = ref(false);
 const ocrTextResult = ref("");
 const isLoadingOCR = ref(false);
 const ocrResultRef = ref<HTMLElement | null>(null);
+const playing = ref(false);
 
 // 检测图片中是否包含二维码
 async function detectQRCode() {
@@ -220,6 +246,45 @@ function copyOCRResult() {
   }
 }
 
+// 停止播放
+async function stopPlayback() {
+  if (!isMacOS.value) {
+    return;
+  }
+
+  try {
+    await StopSay();
+    playing.value = false;
+  } catch (error: any) {
+    console.error("停止播放失败:", error);
+    playing.value = false;
+  }
+}
+
+// 播放 OCR 文字（仅 macOS）
+async function playOCRText() {
+  if (!isMacOS.value) {
+    return;
+  }
+
+  if (!props.ocrText || props.ocrText.trim() === "") {
+    ElMessage.warning(t("components.text.playEmpty"));
+    return;
+  }
+
+  // 先停止之前的播放
+  await stopPlayback();
+
+  playing.value = true;
+  try {
+    await SayText(props.ocrText || "");
+  } catch (error: any) {
+    console.error("播放失败:", error);
+  } finally {
+    playing.value = false;
+  }
+}
+
 function handleSave() {
   try {
     const ts = new Date();
@@ -299,6 +364,11 @@ onUnmounted(() => {
   if (detectTimeout) {
     clearTimeout(detectTimeout);
   }
+});
+
+// 暴露方法供父组件调用
+defineExpose({
+  playOCRText,
 });
 </script>
 

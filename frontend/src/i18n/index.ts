@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import { GetCurrentLanguage } from '../../wailsjs/go/main/App'
 
-const AppVersion = '2.2.7'
+const AppVersion = '2.2.8'
 
 // 中文语言包
 const zhCN = {
@@ -165,7 +165,12 @@ const zhCN = {
       decodedText: '解码后文本',
       decodeFailed: '解码失败：{0}',
       translate: '翻译',
-      translatedText: '翻译'
+      translatedText: '翻译',
+      play: '播放',
+      playSuccess: '播放成功',
+      playError: '播放失败：{0}',
+      playEmpty: '文本为空，无法播放',
+      stop: '停止'
     },
     // 语言列表
     language: {
@@ -456,7 +461,12 @@ const enUS = {
       decodedText: 'Decoded Text',
       decodeFailed: 'Decode failed: {0}',
       translate: 'Translate',
-      translatedText: 'Translation'
+      translatedText: 'Translation',
+      play: 'Play',
+      playSuccess: 'Playback successful',
+      playError: 'Playback failed: {0}',
+      playEmpty: 'Text is empty, cannot play',
+      stop: 'Stop'
     },
     // 语言列表
     language: {
@@ -747,7 +757,12 @@ const frFR = {
       decodedText: 'Texte Décodé',
       decodeFailed: 'Échec du décodage : {0}',
       translate: 'Traduire',
-      translatedText: 'Traduction'
+      translatedText: 'Traduction',
+      play: 'Lire',
+      playSuccess: 'Lecture réussie',
+      playError: 'Échec de la lecture : {0}',
+      playEmpty: 'Le texte est vide, impossible de lire',
+      stop: 'Arrêter'
     },
     // 语言列表
     language: {
@@ -1034,7 +1049,12 @@ const arSA = {
       decodedText: 'النص المفكوك',
       decodeFailed: 'فشل فك التشفير: {0}',
       translate: 'ترجمة',
-      translatedText: 'الترجمة'
+      translatedText: 'الترجمة',
+      play: 'تشغيل',
+      playSuccess: 'تم التشغيل بنجاح',
+      playError: 'فشل التشغيل: {0}',
+      playEmpty: 'النص فارغ، لا يمكن التشغيل',
+      stop: 'إيقاف'
     },
     // 语言列表
     language: {
