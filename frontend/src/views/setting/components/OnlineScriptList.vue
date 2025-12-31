@@ -47,6 +47,7 @@
           :reserve-keyword="false"
           collapse-tags-tooltip
           clearable
+          collapse-tags
           class="tag-select"
         >
           <el-option

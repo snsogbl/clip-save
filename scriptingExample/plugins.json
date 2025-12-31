@@ -32,7 +32,7 @@
     {
       "id": "jwt-generate",
       "name": "JWT Token 生成",
-      "description": "根据剪贴板内容生成 JWT（JSON Web Token）令牌，使用 Web Crypto API 生成签名",
+      "description": "根据剪贴板内容生成 JWT 令牌，使用 Web Crypto API 生成签名",
       "author": "剪存团队",
       "version": "1.0.0",
       "category": "开发工具",
