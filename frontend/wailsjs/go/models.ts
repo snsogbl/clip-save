@@ -88,6 +88,7 @@ export namespace common {
 	    Description: string;
 	    SortOrder: number;
 	    PluginID: string;
+	    PluginVersion: string;
 	    // Go type: time
 	    CreatedAt: any;
 	    // Go type: time
@@ -109,6 +110,7 @@ export namespace common {
 	        this.Description = source["Description"];
 	        this.SortOrder = source["SortOrder"];
 	        this.PluginID = source["PluginID"];
+	        this.PluginVersion = source["PluginVersion"];
 	        this.CreatedAt = this.convertValues(source["CreatedAt"], null);
 	        this.UpdatedAt = this.convertValues(source["UpdatedAt"], null);
 	    }

@@ -127,7 +127,15 @@ const zhCN = {
       installSuccess: '脚本 "{name}" 安装成功',
       installError: '安装脚本失败：{error}',
       alreadyInstalled: '该脚本已安装',
-      supportedTypes: '支持类型'
+      supportedTypes: '支持类型',
+      update: '更新',
+      updateTitle: '更新脚本',
+      updateConfirm: '确定要更新脚本 "{name}" 吗？\n当前版本：v{currentVersion}\n新版本：v{newVersion}',
+      updateSuccess: '脚本 "{name}" 已更新到 v{version}',
+      updateError: '更新脚本失败：{error}',
+      alreadyLatestVersion: '已是最新版本',
+      notInstalled: '该脚本未安装',
+      installedVersion: '已安装版本'
     }
   },
 
@@ -422,7 +430,15 @@ const enUS = {
       installSuccess: 'Script "{name}" installed successfully',
       installError: 'Failed to install script: {error}',
       alreadyInstalled: 'This script is already installed',
-      supportedTypes: 'Supported Types'
+      supportedTypes: 'Supported Types',
+      update: 'Update',
+      updateTitle: 'Update Script',
+      updateConfirm: 'Are you sure you want to update script "{name}"?\nCurrent version: v{currentVersion}\nNew version: v{newVersion}',
+      updateSuccess: 'Script "{name}" has been updated to v{version}',
+      updateError: 'Failed to update script: {error}',
+      alreadyLatestVersion: 'Already the latest version',
+      notInstalled: 'This script is not installed',
+      installedVersion: 'Installed version'
     },
     interface: 'Interface Settings',
     pageSize: 'Items Per Page',
@@ -755,7 +771,15 @@ const frFR = {
       installSuccess: 'Script "{name}" installé avec succès',
       installError: 'Échec de l\'installation du script: {error}',
       alreadyInstalled: 'Ce script est déjà installé',
-      supportedTypes: 'Types Supportés'
+      supportedTypes: 'Types Supportés',
+      update: 'Mettre à Jour',
+      updateTitle: 'Mettre à Jour le Script',
+      updateConfirm: 'Êtes-vous sûr de vouloir mettre à jour le script "{name}" ?\nVersion actuelle : v{currentVersion}\nNouvelle version : v{newVersion}',
+      updateSuccess: 'Le script "{name}" a été mis à jour vers v{version}',
+      updateError: 'Échec de la mise à jour du script: {error}',
+      alreadyLatestVersion: 'Déjà la dernière version',
+      notInstalled: 'Ce script n\'est pas installé',
+      installedVersion: 'Version Installée'
     }
   },
 
@@ -1064,7 +1088,15 @@ const arSA = {
       installSuccess: 'تم تثبيت السكريبت "{name}" بنجاح',
       installError: 'فشل تثبيت السكريبت: {error}',
       alreadyInstalled: 'تم تثبيت هذا السكريبت بالفعل',
-      supportedTypes: 'الأنواع المدعومة'
+      supportedTypes: 'الأنواع المدعومة',
+      update: 'تحديث',
+      updateTitle: 'تحديث السكريبت',
+      updateConfirm: 'هل أنت متأكد من تحديث السكريبت "{name}"؟\nالإصدار الحالي: v{currentVersion}\nالإصدار الجديد: v{newVersion}',
+      updateSuccess: 'تم تحديث السكريبت "{name}" إلى v{version}',
+      updateError: 'فشل تحديث السكريبت: {error}',
+      alreadyLatestVersion: 'أحدث إصدار بالفعل',
+      notInstalled: 'لم يتم تثبيت هذا السكريبت',
+      installedVersion: 'الإصدار المثبت'
     }
   },
 

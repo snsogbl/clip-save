@@ -94,26 +94,53 @@
               <div class="plugin-header">
                 <div class="plugin-title-section">
                   <h3 class="plugin-name">{{ plugin.name }}</h3>
-                  <el-tag size="small" type="info" class="plugin-version">
-                    v{{ plugin.version }}
-                  </el-tag>
+                  <div class="plugin-version-info">
+                    <el-tag 
+                      size="small" 
+                      :type="hasUpdate(plugin) ? 'warning' : 'info'" 
+                      class="plugin-version"
+                    >
+                      v{{ plugin.version }}
+                    </el-tag>
+                    <span 
+                      v-if="isInstalled(plugin) && installedMap.get(plugin.id)?.version" 
+                      class="installed-version"
+                    >
+                      ({{ $t('settings.scripts.installedVersion') }}: v{{ installedMap.get(plugin.id)?.version }})
+                    </span>
+                  </div>
                 </div>
-                <el-button
-                  type="primary"
-                  size="small"
-                  :loading="installingMap.get(plugin.id) || false"
-                  :disabled="installedMap.has(plugin.id)"
-                  @click="handleInstall(plugin)"
-                >
-                  <template v-if="installedMap.has(plugin.id)">
+                <div class="plugin-actions">
+                  <el-button
+                    v-if="isInstalled(plugin) && hasUpdate(plugin)"
+                    type="warning"
+                    size="small"
+                    :loading="updatingMap.get(plugin.id) || false"
+                    @click="handleUpdate(plugin)"
+                  >
+                    <el-icon><Refresh /></el-icon>
+                    {{ $t("settings.scripts.update") }}
+                  </el-button>
+                  <el-button
+                    v-else-if="isInstalled(plugin)"
+                    type="success"
+                    size="small"
+                    disabled
+                  >
                     <el-icon><Check /></el-icon>
                     {{ $t("settings.scripts.installed") }}
-                  </template>
-                  <template v-else>
+                  </el-button>
+                  <el-button
+                    v-else
+                    type="primary"
+                    size="small"
+                    :loading="installingMap.get(plugin.id) || false"
+                    @click="handleInstall(plugin)"
+                  >
                     <el-icon><Download /></el-icon>
                     {{ $t("settings.scripts.install") }}
-                  </template>
-                </el-button>
+                  </el-button>
+                </div>
               </div>
             </template>
 
@@ -227,7 +254,8 @@ const searchKeyword = ref("");
 const selectedCategory = ref("");
 const selectedTags = ref<string[]>([]);
 const installingMap = ref<Map<string, boolean>>(new Map());
-const installedMap = ref<Set<string>>(new Set());
+const updatingMap = ref<Map<string, boolean>>(new Map());
+const installedMap = ref<Map<string, { version: string }>>(new Map());
 
 // jsDelivr CDN URL
 const PLUGINS_JSON_URL =
@@ -335,19 +363,50 @@ async function loadPlugins() {
 async function checkInstalledPlugins() {
   try {
     const userScripts = await GetAllUserScripts();
-    const installedIds = new Set<string>();
+    const installed = new Map<string, { version: string }>();
 
-    // 直接使用 PluginID 字段
+    // 直接使用 PluginID 和 PluginVersion 字段
     userScripts.forEach((script) => {
       if (script.PluginID) {
-        installedIds.add(script.PluginID);
+        installed.set(script.PluginID, {
+          version: script.PluginVersion || ''
+        });
       }
     });
 
-    installedMap.value = installedIds;
+    installedMap.value = installed;
   } catch (error: any) {
     console.error("检查已安装插件失败:", error);
   }
+}
+
+// 比较版本号（简单语义化版本比较）
+function compareVersions(v1: string, v2: string): number {
+  if (!v1 || !v2) return 0;
+  
+  const parts1 = v1.split('.').map(Number);
+  const parts2 = v2.split('.').map(Number);
+  const maxLen = Math.max(parts1.length, parts2.length);
+  
+  for (let i = 0; i < maxLen; i++) {
+    const num1 = parts1[i] || 0;
+    const num2 = parts2[i] || 0;
+    if (num1 > num2) return 1;
+    if (num1 < num2) return -1;
+  }
+  return 0;
+}
+
+// 检查是否有更新
+function hasUpdate(plugin: Plugin): boolean {
+  const installed = installedMap.value.get(plugin.id);
+  if (!installed || !installed.version) return false;
+  return compareVersions(plugin.version, installed.version) > 0;
+}
+
+// 检查是否已安装
+function isInstalled(plugin: Plugin): boolean {
+  return installedMap.value.has(plugin.id);
 }
 
 // 切换标签筛选
@@ -360,9 +419,92 @@ function toggleTag(tag: string) {
   }
 }
 
+// 更新插件
+async function handleUpdate(plugin: Plugin) {
+  if (!isInstalled(plugin)) {
+    ElMessage.warning(t("settings.scripts.notInstalled"));
+    return;
+  }
+
+  const installed = installedMap.value.get(plugin.id);
+  if (!hasUpdate(plugin)) {
+    ElMessage.info(t("settings.scripts.alreadyLatestVersion"));
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      t("settings.scripts.updateConfirm", { 
+        name: plugin.name,
+        currentVersion: installed?.version || '',
+        newVersion: plugin.version
+      }),
+      t("settings.scripts.updateTitle"),
+      {
+        confirmButtonText: t("settings.scripts.update"),
+        cancelButtonText: t("common.cancel"),
+        type: "warning",
+      }
+    );
+
+    updatingMap.value.set(plugin.id, true);
+
+    // 下载新版本脚本内容
+    const scriptResponse = await fetch(plugin.scriptUrl);
+    if (!scriptResponse.ok) {
+      throw new Error(`下载脚本失败: HTTP ${scriptResponse.status}`);
+    }
+    const scriptContent = await scriptResponse.text();
+
+    // 获取已安装的脚本ID
+    const userScripts = await GetAllUserScripts();
+    const existingScript = userScripts.find(s => s.PluginID === plugin.id);
+    
+    if (!existingScript) {
+      throw new Error("未找到已安装的脚本");
+    }
+
+    // 更新脚本数据
+    const scriptData = {
+      ID: existingScript.ID,
+      Name: plugin.name,
+      Enabled: existingScript.Enabled, // 保持原有启用状态
+      Trigger: plugin.trigger || "manual",
+      ContentType: plugin.contentTypes || [],
+      Keywords: plugin.keywords || [],
+      Script: scriptContent,
+      Description: plugin.description || "",
+      PluginID: plugin.id,
+      PluginVersion: plugin.version, // 更新版本号
+      SortOrder: existingScript.SortOrder, // 保持原有排序
+    };
+
+    // 保存脚本
+    await SaveUserScript(JSON.stringify(scriptData));
+
+    installedMap.value.set(plugin.id, { version: plugin.version });
+    ElMessage.success(
+      t("settings.scripts.updateSuccess", { 
+        name: plugin.name,
+        version: plugin.version
+      })
+    );
+    emit("installed");
+  } catch (error: any) {
+    if (error !== "cancel") {
+      console.error("更新插件失败:", error);
+      ElMessage.error(
+        t("settings.scripts.updateError", { error: error.message || error })
+      );
+    }
+  } finally {
+    updatingMap.value.set(plugin.id, false);
+  }
+}
+
 // 安装插件
 async function handleInstall(plugin: Plugin) {
-  if (installedMap.value.has(plugin.id)) {
+  if (isInstalled(plugin)) {
     ElMessage.warning(t("settings.scripts.alreadyInstalled"));
     return;
   }
@@ -398,13 +540,14 @@ async function handleInstall(plugin: Plugin) {
       Script: scriptContent,
       Description: plugin.description || "",
       PluginID: plugin.id, // 直接设置插件ID
+      PluginVersion: plugin.version, // 保存版本号
       SortOrder: 0,
     };
 
     // 保存脚本
     await SaveUserScript(JSON.stringify(scriptData));
 
-    installedMap.value.add(plugin.id);
+    installedMap.value.set(plugin.id, { version: plugin.version });
     ElMessage.success(
       t("settings.scripts.installSuccess", { name: plugin.name })
     );
@@ -493,9 +636,17 @@ onMounted(() => {
 
 .plugin-title-section {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 1;
+}
+
+.plugin-version-info {
+  display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
+  flex-wrap: wrap;
 }
 
 .plugin-name {
@@ -505,12 +656,21 @@ onMounted(() => {
   color: #303133;
 }
 
-.plugin-version {
-  margin-left: 4px;
+.plugin-version-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.plugin-content {
+.plugin-version {
+  flex-shrink: 0;
 }
+
+.installed-version {
+  font-size: 12px;
+  color: #909399;
+}
+
 
 .plugin-description {
   margin: 0 0 6px 0;
