@@ -19,6 +19,12 @@ if (item.ContentType !== "Text") {
   };
 }
 
+if (apiKey === "your-api-key" || appId === "your-app-id") {
+  return {
+    error: "请编辑脚本，更新代码中的 apiKey 和 appId 为你的 API Key 和 App ID",
+  };
+}
+
 const content = item.Content || "";
 if (!content) {
   return {

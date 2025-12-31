@@ -128,8 +128,8 @@
       "keywords": []
     },
     {
-      "id": "modelscope-ai-stream",
-      "name": "ModelScope AI 流式请求",
+      "id": "common-ai-stream",
+      "name": "通用AI",
       "description": "调用 ModelScope API 进行通用 AI 流式请求，支持实时输出",
       "author": "剪存团队",
       "version": "1.0.0",
