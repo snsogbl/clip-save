@@ -15,7 +15,7 @@
         </el-button>
       </div>
 
-      <el-table :data="scripts" style="width: 100%" v-loading="loading" row-key="ID">
+      <el-table :data="scripts" height="66vh" style="width: 100%" v-loading="loading" row-key="ID">
         <el-table-column :label="$t('settings.scripts.order')" width="86" fixed="left">
           <template #default="{ row }">
             <el-input
@@ -62,6 +62,12 @@
       :script-id="editingScriptId"
       @saved="handleScriptSaved"
     />
+
+    <!-- 在线脚本列表 -->
+    <OnlineScriptList
+      v-model="showOnlineScriptList"
+      @installed="handleScriptSaved"
+    />
   </el-dialog>
 </template>
 
@@ -72,6 +78,7 @@ import { useI18n } from 'vue-i18n'
 import { GetAllUserScripts, DeleteUserScript, UpdateUserScriptOrder, OpenURL, GetUserScriptByID, SaveUserScript } from '../../../../wailsjs/go/main/App'
 import { common } from '../../../../wailsjs/go/models'
 import ScriptEditor from './ScriptEditor.vue'
+import OnlineScriptList from './OnlineScriptList.vue'
 
 const { t } = useI18n()
 
@@ -88,6 +95,7 @@ const loading = ref(false)
 const scripts = ref<common.UserScript[]>([])
 const showScriptEditor = ref(false)
 const editingScriptId = ref<string | undefined>()
+const showOnlineScriptList = ref(false)
 // 跟踪每个脚本的更新状态
 const updatingEnabledMap = ref<Map<string, boolean>>(new Map())
 
@@ -121,12 +129,8 @@ function handleNewScript() {
   showScriptEditor.value = true
 }
 
-async function handleFindScripts() {
-  try {
-    await OpenURL('https://github.com/snsogbl/clip-save/tree/main/scriptingExample')
-  } catch (error: any) {
-    ElMessage.error(`打开链接失败: ${error.message || error}`)
-  }
+function handleFindScripts() {
+  showOnlineScriptList.value = true
 }
 
 function handleEditScript(id: string) {
@@ -216,11 +220,11 @@ async function handleEnabledChange(row: common.UserScript) {
 
 <style scoped>
 .script-manager {
-  min-height: 400px;
+  min-height: 72vh;
 }
 
 .script-manager-header {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: flex-end;
 }

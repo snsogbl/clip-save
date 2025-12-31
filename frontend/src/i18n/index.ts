@@ -110,7 +110,24 @@ const zhCN = {
       findScripts: '查找脚本',
       enabledSuccess: '脚本已启用',
       disabledSuccess: '脚本已禁用',
-      enabledUpdateError: '更新启用状态失败'
+      enabledUpdateError: '更新启用状态失败',
+      onlineScripts: '在线脚本列表',
+      searchPlaceholder: '搜索脚本名称、描述、作者或标签...',
+      categoryFilter: '分类筛选',
+      allCategories: '全部分类',
+      tagFilter: '标签筛选',
+      totalPlugins: '共找到 {total} 个插件（共 {all} 个）',
+      noPluginsFound: '未找到匹配的插件',
+      loadPluginsSuccess: '成功加载 {count} 个插件',
+      loadPluginsError: '加载插件列表失败：{error}',
+      install: '安装',
+      installed: '已安装',
+      installTitle: '安装脚本',
+      installConfirm: '确定要安装脚本 "{name}" 吗？',
+      installSuccess: '脚本 "{name}" 安装成功',
+      installError: '安装脚本失败：{error}',
+      alreadyInstalled: '该脚本已安装',
+      supportedTypes: '支持类型'
     }
   },
 
@@ -283,7 +300,8 @@ const zhCN = {
     cancel: '取消',
     save: '保存',
     close: '关闭',
-    actions: '操作'
+    actions: '操作',
+    refresh: '刷新'
   },
 
   // 脚本相关
@@ -387,7 +405,24 @@ const enUS = {
       findScripts: 'Find Scripts',
       enabledSuccess: 'Script enabled successfully',
       disabledSuccess: 'Script disabled successfully',
-      enabledUpdateError: 'Failed to update enabled status'
+      enabledUpdateError: 'Failed to update enabled status',
+      onlineScripts: 'Online Scripts',
+      searchPlaceholder: 'Search script name, description, author or tags...',
+      categoryFilter: 'Category Filter',
+      allCategories: 'All Categories',
+      tagFilter: 'Tag Filter',
+      totalPlugins: 'Found {total} plugins (Total: {all})',
+      noPluginsFound: 'No matching plugins found',
+      loadPluginsSuccess: 'Successfully loaded {count} plugins',
+      loadPluginsError: 'Failed to load plugins: {error}',
+      install: 'Install',
+      installed: 'Installed',
+      installTitle: 'Install Script',
+      installConfirm: 'Are you sure you want to install script "{name}"?',
+      installSuccess: 'Script "{name}" installed successfully',
+      installError: 'Failed to install script: {error}',
+      alreadyInstalled: 'This script is already installed',
+      supportedTypes: 'Supported Types'
     },
     interface: 'Interface Settings',
     pageSize: 'Items Per Page',
@@ -579,7 +614,8 @@ const enUS = {
     cancel: 'Cancel',
     save: 'Save',
     close: 'Close',
-    actions: 'Actions'
+    actions: 'Actions',
+    refresh: 'Refresh'
   },
 
   // 脚本相关
@@ -702,7 +738,24 @@ const frFR = {
       findScripts: 'Trouver des Scripts',
       enabledSuccess: 'Script activé avec succès',
       disabledSuccess: 'Script désactivé avec succès',
-      enabledUpdateError: 'Échec de la mise à jour de l\'état d\'activation'
+      enabledUpdateError: 'Échec de la mise à jour de l\'état d\'activation',
+      onlineScripts: 'Scripts en Ligne',
+      searchPlaceholder: 'Rechercher le nom, la description, l\'auteur ou les tags...',
+      categoryFilter: 'Filtrer par Catégorie',
+      allCategories: 'Toutes les Catégories',
+      tagFilter: 'Filtrer par Tag',
+      totalPlugins: 'Trouvé {total} plugins (Total: {all})',
+      noPluginsFound: 'Aucun plugin correspondant trouvé',
+      loadPluginsSuccess: 'Chargé avec succès {count} plugins',
+      loadPluginsError: 'Échec du chargement des plugins: {error}',
+      install: 'Installer',
+      installed: 'Installé',
+      installTitle: 'Installer le Script',
+      installConfirm: 'Êtes-vous sûr de vouloir installer le script "{name}" ?',
+      installSuccess: 'Script "{name}" installé avec succès',
+      installError: 'Échec de l\'installation du script: {error}',
+      alreadyInstalled: 'Ce script est déjà installé',
+      supportedTypes: 'Types Supportés'
     }
   },
 
@@ -994,7 +1047,24 @@ const arSA = {
       findScripts: 'البحث عن السكريبتات',
       enabledSuccess: 'تم تفعيل السكريبت بنجاح',
       disabledSuccess: 'تم تعطيل السكريبت بنجاح',
-      enabledUpdateError: 'فشل تحديث حالة التفعيل'
+      enabledUpdateError: 'فشل تحديث حالة التفعيل',
+      onlineScripts: 'قائمة السكريبتات عبر الإنترنت',
+      searchPlaceholder: 'البحث عن اسم السكريبت، الوصف، المؤلف أو العلامات...',
+      categoryFilter: 'تصفية الفئة',
+      allCategories: 'جميع الفئات',
+      tagFilter: 'تصفية العلامات',
+      totalPlugins: 'تم العثور على {total} من الإضافات (الإجمالي: {all})',
+      noPluginsFound: 'لم يتم العثور على إضافات مطابقة',
+      loadPluginsSuccess: 'تم تحميل {count} من الإضافات بنجاح',
+      loadPluginsError: 'فشل تحميل الإضافات: {error}',
+      install: 'تثبيت',
+      installed: 'مثبت',
+      installTitle: 'تثبيت السكريبت',
+      installConfirm: 'هل أنت متأكد من تثبيت السكريبت "{name}"؟',
+      installSuccess: 'تم تثبيت السكريبت "{name}" بنجاح',
+      installError: 'فشل تثبيت السكريبت: {error}',
+      alreadyInstalled: 'تم تثبيت هذا السكريبت بالفعل',
+      supportedTypes: 'الأنواع المدعومة'
     }
   },
 

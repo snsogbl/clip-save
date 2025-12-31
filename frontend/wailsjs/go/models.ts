@@ -87,6 +87,7 @@ export namespace common {
 	    Script: string;
 	    Description: string;
 	    SortOrder: number;
+	    PluginID: string;
 	    // Go type: time
 	    CreatedAt: any;
 	    // Go type: time
@@ -107,6 +108,7 @@ export namespace common {
 	        this.Script = source["Script"];
 	        this.Description = source["Description"];
 	        this.SortOrder = source["SortOrder"];
+	        this.PluginID = source["PluginID"];
 	        this.CreatedAt = this.convertValues(source["CreatedAt"], null);
 	        this.UpdatedAt = this.convertValues(source["UpdatedAt"], null);
 	    }

@@ -20,6 +20,7 @@ type UserScript struct {
 	Script      string   // JavaScript 脚本代码
 	Description string   // 脚本描述
 	SortOrder   int      // 排序顺序
+	PluginID    string   // 在线插件的 ID（如果是从在线插件安装的）
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -62,6 +63,7 @@ func checkAndAddScriptTable() error {
 			script TEXT NOT NULL,
 			description TEXT,
 			sort_order INTEGER DEFAULT 0,
+			plugin_id TEXT, -- 在线插件的 ID
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
@@ -69,6 +71,7 @@ func checkAndAddScriptTable() error {
 		CREATE INDEX IF NOT EXISTS idx_script_trigger ON user_scripts(trigger);
 		CREATE INDEX IF NOT EXISTS idx_script_enabled ON user_scripts(enabled);
 		CREATE INDEX IF NOT EXISTS idx_script_sort_order ON user_scripts(sort_order);
+		CREATE INDEX IF NOT EXISTS idx_script_plugin_id ON user_scripts(plugin_id);
 		`
 
 		_, err := DB.Exec(createTableSQL)
@@ -76,6 +79,27 @@ func checkAndAddScriptTable() error {
 			return fmt.Errorf("创建脚本表失败: %v", err)
 		}
 		log.Printf("✅ 已创建 user_scripts 表")
+	}
+
+	// 检查并添加 plugin_id 字段（兼容老用户）
+	checkPluginIDSQL := `SELECT COUNT(*) FROM pragma_table_info('user_scripts') WHERE name = 'plugin_id'`
+	var pluginIDCount int
+	err = DB.QueryRow(checkPluginIDSQL).Scan(&pluginIDCount)
+	if err != nil {
+		log.Printf("⚠️ 检查 plugin_id 字段失败: %v", err)
+	} else if pluginIDCount == 0 {
+		log.Printf("🔧 正在添加 plugin_id 字段...")
+		_, err = DB.Exec("ALTER TABLE user_scripts ADD COLUMN plugin_id TEXT")
+		if err != nil {
+			log.Printf("⚠️ 添加 plugin_id 字段失败: %v", err)
+		} else {
+			log.Printf("✅ 已添加 plugin_id 字段")
+			// 添加索引
+			_, err = DB.Exec("CREATE INDEX IF NOT EXISTS idx_script_plugin_id ON user_scripts(plugin_id)")
+			if err != nil {
+				log.Printf("⚠️ 创建 plugin_id 索引失败: %v", err)
+			}
+		}
 	}
 
 	return nil
@@ -88,7 +112,7 @@ func GetAllUserScripts() ([]UserScript, error) {
 	}
 
 	query := `SELECT id, name, enabled, trigger, content_types, keywords, 
-	                 script, description, sort_order, created_at, updated_at
+	                 script, description, sort_order, COALESCE(plugin_id, '') as plugin_id, created_at, updated_at
 	          FROM user_scripts
 	          ORDER BY sort_order DESC, created_at DESC`
 
@@ -106,7 +130,7 @@ func GetAllUserScripts() ([]UserScript, error) {
 		err := rows.Scan(
 			&script.ID, &script.Name, &script.Enabled, &script.Trigger,
 			&contentTypesJSON, &keywordsJSON, &script.Script,
-			&script.Description, &script.SortOrder, &script.CreatedAt, &script.UpdatedAt,
+			&script.Description, &script.SortOrder, &script.PluginID, &script.CreatedAt, &script.UpdatedAt,
 		)
 		if err != nil {
 			log.Printf("扫描脚本行失败: %v", err)
@@ -134,7 +158,7 @@ func GetEnabledUserScripts(trigger string) ([]UserScript, error) {
 	}
 
 	query := `SELECT id, name, enabled, trigger, content_types, keywords, 
-	                 script, description, sort_order, created_at, updated_at
+	                 script, description, sort_order, COALESCE(plugin_id, '') as plugin_id, created_at, updated_at
 	          FROM user_scripts
 	          WHERE enabled = 1 AND trigger = ?
 	          ORDER BY sort_order DESC, created_at DESC`
@@ -153,7 +177,7 @@ func GetEnabledUserScripts(trigger string) ([]UserScript, error) {
 		err := rows.Scan(
 			&script.ID, &script.Name, &script.Enabled, &script.Trigger,
 			&contentTypesJSON, &keywordsJSON, &script.Script,
-			&script.Description, &script.SortOrder, &script.CreatedAt, &script.UpdatedAt,
+			&script.Description, &script.SortOrder, &script.PluginID, &script.CreatedAt, &script.UpdatedAt,
 		)
 		if err != nil {
 			continue
@@ -209,8 +233,8 @@ func SaveUserScript(script *UserScript) error {
 
 	insertSQL := `
 	INSERT INTO user_scripts 
-	(id, name, enabled, trigger, content_types, keywords, script, description, sort_order, updated_at)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+	(id, name, enabled, trigger, content_types, keywords, script, description, sort_order, plugin_id, updated_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 	ON CONFLICT(id) DO UPDATE SET
 		name = excluded.name,
 		enabled = excluded.enabled,
@@ -220,13 +244,14 @@ func SaveUserScript(script *UserScript) error {
 		script = excluded.script,
 		description = excluded.description,
 		sort_order = excluded.sort_order,
+		plugin_id = excluded.plugin_id,
 		updated_at = datetime('now')
 	`
 
 	_, err := DB.Exec(insertSQL,
 		script.ID, script.Name, enabled, script.Trigger,
 		string(contentTypesJSON), string(keywordsJSON),
-		script.Script, script.Description, script.SortOrder,
+		script.Script, script.Description, script.SortOrder, script.PluginID,
 	)
 
 	if err != nil {
@@ -265,7 +290,7 @@ func GetUserScriptByID(id string) (*UserScript, error) {
 	}
 
 	query := `SELECT id, name, enabled, trigger, content_types, keywords, 
-	                 script, description, sort_order, created_at, updated_at
+	                 script, description, sort_order, COALESCE(plugin_id, '') as plugin_id, created_at, updated_at
 	          FROM user_scripts WHERE id = ?`
 
 	var script UserScript
@@ -274,7 +299,7 @@ func GetUserScriptByID(id string) (*UserScript, error) {
 	err := DB.QueryRow(query, id).Scan(
 		&script.ID, &script.Name, &script.Enabled, &script.Trigger,
 		&contentTypesJSON, &keywordsJSON, &script.Script,
-		&script.Description, &script.SortOrder, &script.CreatedAt, &script.UpdatedAt,
+		&script.Description, &script.SortOrder, &script.PluginID, &script.CreatedAt, &script.UpdatedAt,
 	)
 
 	if err == sql.ErrNoRows {
@@ -313,7 +338,7 @@ func GetUserScriptsByIDs(ids []string) ([]UserScript, error) {
 	}
 
 	query := fmt.Sprintf(`SELECT id, name, enabled, trigger, content_types, keywords, 
-	                            script, description, sort_order, created_at, updated_at
+	                            script, description, sort_order, COALESCE(plugin_id, '') as plugin_id, created_at, updated_at
 	                     FROM user_scripts WHERE id IN (%s)`,
 		strings.Join(placeholders, ","))
 
@@ -331,7 +356,7 @@ func GetUserScriptsByIDs(ids []string) ([]UserScript, error) {
 		err := rows.Scan(
 			&script.ID, &script.Name, &script.Enabled, &script.Trigger,
 			&contentTypesJSON, &keywordsJSON, &script.Script,
-			&script.Description, &script.SortOrder, &script.CreatedAt, &script.UpdatedAt,
+			&script.Description, &script.SortOrder, &script.PluginID, &script.CreatedAt, &script.UpdatedAt,
 		)
 		if err != nil {
 			log.Printf("扫描脚本行失败: %v", err)
