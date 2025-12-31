@@ -7,12 +7,22 @@
  * @returns {object} - API 返回的结果数据
  */
 
+const apiKey = "your api key";
+const model = "Qwen/Qwen3-235B-A22B-Instruct-2507";
+
 // 从剪贴板项获取内容
 if (item.ContentType !== "Text") {
   return {
     error: "只支持文本类型的剪贴板内容",
   };
 }
+
+if (apiKey === "your api key") {
+  return {
+    error: "请编辑脚本，更新代码中的 apiKey 为你的 API Key",
+  };
+}
+
 
 const content = item.Content || "";
 if (!content) {
@@ -21,8 +31,7 @@ if (!content) {
   };
 }
 
-const apiKey = "your api key";
-const model = "Qwen/Qwen3-235B-A22B-Instruct-2507";
+
 const messages = [
   {
     role: "system",

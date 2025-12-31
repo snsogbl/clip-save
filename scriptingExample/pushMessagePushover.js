@@ -9,19 +9,6 @@
  * @returns {object} - 错误信息
  */
 
-// 从剪贴板项获取消息内容
-if (item.ContentType !== 'Text') {
-  return {
-    error: '不支持的类型'
-  };
-}
-const message = item.Content || '';
-if (!message) {
-  return {
-    error: '剪贴板内容为空，无法发送推送'
-  };
-}
-
 // 构建请求数据
 const reqdata = {
   token: 'your pushover token',
@@ -29,6 +16,26 @@ const reqdata = {
   device: 'your device name',
   message: message
 };
+
+// 从剪贴板项获取消息内容
+if (item.ContentType !== 'Text') {
+  return {
+    error: '不支持的类型'
+  };
+}
+
+if (reqdata.token === 'your pushover token') {
+  return {
+    error: '请编辑脚本，更新代码中的 token、user 和 device 为你的 Pushover token、user key 和 device name',
+  };
+}
+
+const message = item.Content || '';
+if (!message) {
+  return {
+    error: '剪贴板内容为空，无法发送推送'
+  };
+}
 
 // 发送 POST 请求到 Pushover API
 try {

@@ -18,6 +18,12 @@ if (item.ContentType !== "Text") {
   };
 }
 
+if (access_token === "your-access-token") {
+  return {
+    error: "请编辑脚本，更新代码中的 access_token 为你的钉钉机器人 access_token",
+  };
+}
+
 const message = item.Content || "";
 if (!message) {
   return {
