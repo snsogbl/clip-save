@@ -9,7 +9,7 @@
       v-if="needsURIDecoding || needsUnicodeDecoding || isMacOS"
     >
       <el-button
-        v-if="isMacOS && !playing"
+        v-if="isMacOS && !props.playing"
         class="me-button"
         round
         @click="playText"
@@ -20,7 +20,7 @@
         {{ $t("components.text.play") }}
       </el-button>
       <el-button
-        v-if="isMacOS && playing"
+        v-if="isMacOS && props.playing"
         class="me-button"
         round
         @click="stopPlayback"
@@ -112,13 +112,17 @@ import hljs from "highlight.js";
 import { translateAPI } from "../../../composables/translate";
 import type { TranslateOptions } from "../../../composables/translate";
 import type { Language } from "../../../composables/translate";
-import { SayText, StopSay } from "../../../../wailsjs/go/main/App";
+import {
+  SayText,
+  StopSay,
+} from "../../../../wailsjs/go/main/App";
 import { ElMessage } from "element-plus";
 
 const { t } = useI18n();
 
 const props = defineProps<{
   text: string;
+  playing?: boolean;
 }>();
 
 const decodedText = ref("");
@@ -127,7 +131,6 @@ const translatedText = ref("");
 const translateFromLanguage = ref<Language>("zh");
 const translateToLanguage = ref<Language>("en");
 const loading = ref(false);
-const playing = ref(false);
 // 检测是否为 macOS
 const isMacOS = ref(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
 const languages = computed(() => [
@@ -237,11 +240,8 @@ const stopPlayback = async () => {
 
   try {
     await StopSay();
-    playing.value = false;
   } catch (error: any) {
     console.error("停止播放失败:", error);
-    // 即使停止失败，也重置播放状态
-    playing.value = false;
   }
 };
 
@@ -251,8 +251,10 @@ const playText = async () => {
     return;
   }
 
-  // 如果正在播放，先停止
-  await stopPlayback();
+  if (props.playing) {
+    stopPlayback();
+    return;
+  }
 
   const textToPlay = props.text;
   if (!textToPlay || textToPlay.trim() === "") {
@@ -260,13 +262,12 @@ const playText = async () => {
     return;
   }
 
-  playing.value = true;
   try {
+    // SayText 现在立即返回，不等待播放完成
+    // 播放完成时会通过事件通知父组件更新状态
     await SayText(textToPlay);
   } catch (error: any) {
     console.error("播放失败:", error);
-  } finally {
-    playing.value = false;
   }
 };
 

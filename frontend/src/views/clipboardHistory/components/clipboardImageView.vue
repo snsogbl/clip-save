@@ -67,7 +67,7 @@
         }}
       </el-button>
       <el-button
-        v-if="isMacOS && ocrText && !playing"
+        v-if="isMacOS && ocrText && !props.playing"
         class="me-button"
         round
         @click="playOCRText"
@@ -78,7 +78,7 @@
         {{ $t("components.text.play") }}
       </el-button>
       <el-button
-        v-if="isMacOS && ocrText && playing"
+        v-if="isMacOS && ocrText && props.playing"
         class="me-button"
         round
         @click="stopPlayback"
@@ -115,6 +115,7 @@ interface Props {
   imageData: string;
   ocrText?: string;
   itemId?: string;
+  playing?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -131,7 +132,6 @@ const showOCRText = ref(false);
 const ocrTextResult = ref("");
 const isLoadingOCR = ref(false);
 const ocrResultRef = ref<HTMLElement | null>(null);
-const playing = ref(false);
 
 // 检测图片中是否包含二维码
 async function detectQRCode() {
@@ -254,10 +254,8 @@ async function stopPlayback() {
 
   try {
     await StopSay();
-    playing.value = false;
   } catch (error: any) {
     console.error("停止播放失败:", error);
-    playing.value = false;
   }
 }
 
@@ -267,21 +265,22 @@ async function playOCRText() {
     return;
   }
 
+  if (props.playing) {
+    stopPlayback();
+    return;
+  }
+
   if (!props.ocrText || props.ocrText.trim() === "") {
     ElMessage.warning(t("components.text.playEmpty"));
     return;
   }
 
-  // 先停止之前的播放
-  await stopPlayback();
-
-  playing.value = true;
   try {
+    // SayText 现在立即返回，不等待播放完成
+    // 播放完成时会通过事件通知父组件更新状态
     await SayText(props.ocrText || "");
   } catch (error: any) {
     console.error("播放失败:", error);
-  } finally {
-    playing.value = false;
   }
 }
 

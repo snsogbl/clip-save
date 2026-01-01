@@ -126,6 +126,10 @@ export function HttpRequest(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['HttpRequest'](arg1, arg2, arg3, arg4);
 }
 
+export function IsSayPlaying() {
+  return window['go']['main']['App']['IsSayPlaying']();
+}
+
 export function NextItem() {
   return window['go']['main']['App']['NextItem']();
 }

@@ -64,6 +64,8 @@ export function HideWindowAndQuit():Promise<void>;
 
 export function HttpRequest(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
+export function IsSayPlaying():Promise<boolean>;
+
 export function NextItem():Promise<void>;
 
 export function OpenFileInFinder(arg1:string):Promise<void>;

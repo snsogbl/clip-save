@@ -104,6 +104,7 @@
               "
               :ocrText="currentItem.OCRText"
               :itemId="currentItem.ID"
+              :playing="isSayPlaying"
             />
             <!-- 文件内容展示 -->
             <ClipboardFileView
@@ -133,6 +134,7 @@
               v-else
               ref="textEditorRef"
               :text="currentItem?.Content || '空内容'"
+              :playing="isSayPlaying"
             />
           </div>
         </div>
@@ -197,6 +199,8 @@ import {
   AutoPasteCurrentItemToPreviousApp,
   SetWindowAlwaysOnTop,
   ActivatePreviousApp,
+  StopSay,
+  IsSayPlaying,
 } from "../../../wailsjs/go/main/App";
 
 // 组件导入
@@ -246,6 +250,7 @@ const loading = ref(false);
 const showSetting = ref(false);
 const showScriptSelector = ref(false);
 const leftTab = ref<"all" | "fav">("all");
+const isSayPlaying = ref(false);
 
 // 脚本执行结果存储
 interface ScriptExecutionResult {
@@ -743,8 +748,8 @@ function changeLanguage(lang: string) {
   locale.value = lang as any;
 }
 
-// 初始化和定时刷新
-onMounted(() => {
+  // 初始化和定时刷新
+onMounted(async () => {
   getSettings().then(() => {
     loadItems();
     autoCleanOldItems();
@@ -757,6 +762,25 @@ onMounted(() => {
   eventCleanupFunctions.push(
     EventsOn("clipboard.updated", () => {
       checkForUpdates();
+    })
+  );
+
+  // 统一监听播放状态事件
+  eventCleanupFunctions.push(
+    EventsOn("say.started", () => {
+      isSayPlaying.value = true;
+    })
+  );
+
+  eventCleanupFunctions.push(
+    EventsOn("say.finished", () => {
+      isSayPlaying.value = false;
+    })
+  );
+
+  eventCleanupFunctions.push(
+    EventsOn("say.stopped", () => {
+      isSayPlaying.value = false;
     })
   );
 

@@ -33,7 +33,9 @@ import (
 type App struct {
 	ctx                  context.Context
 	isWindowHidden       bool
-	isUserSetAlwaysOnTop bool // 用户是否设置了置顶
+	isUserSetAlwaysOnTop bool        // 用户是否设置了置顶
+	sayProcess           *os.Process // 保存 say 进程对象
+	sayProcessMutex      sync.Mutex  // 保护并发访问
 }
 
 // ShowAbout 显示关于对话框
@@ -501,12 +503,38 @@ func (a *App) SayText(text string) error {
 		return fmt.Errorf("文本不能为空")
 	}
 
-	// 调用 say 命令
+	// 先停止之前的播放（如果有）
+	a.StopSay()
+
+	// 启动 say 命令
 	cmd := exec.Command("say", text)
-	if err := cmd.Run(); err != nil {
-		log.Printf("播放文字失败: %v", err)
-		return fmt.Errorf("播放文字失败: %v", err)
+	if err := cmd.Start(); err != nil {
+		log.Printf("启动播放失败: %v", err)
+		return fmt.Errorf("启动播放失败: %v", err)
 	}
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "say.started")
+	}
+
+	// 保存进程对象
+	a.sayProcessMutex.Lock()
+	a.sayProcess = cmd.Process
+	a.sayProcessMutex.Unlock()
+
+	// 在 goroutine 中等待进程结束，清除进程对象并发送事件
+	go func() {
+		cmd.Wait()
+		a.sayProcessMutex.Lock()
+		a.sayProcess = nil
+		a.sayProcessMutex.Unlock()
+
+		// 播放完成，发送事件通知前端
+		if a.ctx != nil {
+			runtime.EventsEmit(a.ctx, "say.finished")
+		}
+	}()
+
+	log.Printf("已启动播放，进程 ID: %d", cmd.Process.Pid)
 	return nil
 }
 
@@ -516,23 +544,35 @@ func (a *App) StopSay() error {
 		return fmt.Errorf("stop say 命令仅在 macOS 系统上可用")
 	}
 
-	// 使用 pkill 命令停止所有 say 进程
-	cmd := exec.Command("pkill", "say")
-	if err := cmd.Run(); err != nil {
-		// pkill 如果没有找到进程会返回非零退出码，这是正常的
-		// 检查是否是"没有找到进程"的错误
-		if exitError, ok := err.(*exec.ExitError); ok {
-			if exitError.ExitCode() == 1 {
-				// 退出码 1 表示没有找到进程，这是正常的
-				return nil
-			}
-		}
-		log.Printf("停止播放失败: %v", err)
-		return fmt.Errorf("停止播放失败: %v", err)
+	a.sayProcessMutex.Lock()
+	process := a.sayProcess
+	a.sayProcess = nil // 先清除，避免重复调用
+	a.sayProcessMutex.Unlock()
+
+	if process == nil {
+		// 没有正在播放的进程
+		return nil
 	}
 
-	log.Printf("已停止播放")
+	// 使用 Process.Kill() 终止进程（沙盒环境下可以终止自己启动的进程）
+	if err := process.Kill(); err != nil {
+		log.Printf("停止播放失败（进程可能已结束）: %v", err)
+		return nil // 不返回错误，因为进程可能已经结束
+	}
+
+	// 停止成功，发送事件通知前端
+	if a.ctx != nil {
+		runtime.EventsEmit(a.ctx, "say.stopped")
+	}
+
+	log.Printf("已停止播放（进程 ID: %d）", process.Pid)
 	return nil
+}
+
+func (a *App) IsSayPlaying() bool {
+	a.sayProcessMutex.Lock()
+	defer a.sayProcessMutex.Unlock()
+	return a.sayProcess != nil
 }
 
 // ShowWindow 显示并聚焦窗口（供快捷键调用）
