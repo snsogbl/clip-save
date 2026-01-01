@@ -6,7 +6,7 @@
       "name": "Base64 编码",
       "description": "将文本内容编码为 Base64 格式，支持 Unicode 字符",
       "author": "剪存团队",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "category": "编码解码",
       "tags": ["base64", "编码", "工具"],
       "scriptUrl": "https://clip-save-plugins.pages.dev/base64Encode.js",

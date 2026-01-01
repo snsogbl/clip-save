@@ -73,11 +73,47 @@ wails build
 
 构建完成后，可执行文件将位于 `build/bin/` 目录下。
 
-### 自定义脚本上传、更新
+### 自定义脚本部署到 Cloudflare Pages
+
+项目使用 Cloudflare Pages 托管在线脚本列表，支持用户从"脚本市场"直接安装和更新脚本。
+
+#### 1. 安装 Wrangler CLI
+
+```bash
+npm install -g wrangler
+```
+
+#### 2. 登录 Cloudflare
+
+```bash
+wrangler login
+```
+
+这会打开浏览器，登录你的 Cloudflare 账号。
+
+#### 3. 部署脚本
 
 ```bash
 wrangler pages deploy scriptingExample --project-name=clip-save-plugins
 ```
+
+部署完成后，脚本将通过以下 URL 访问：
+- 插件列表：`https://clip-save-plugins.pages.dev/plugins.json`
+- 脚本文件：`https://clip-save-plugins.pages.dev/{脚本文件名}.js`
+
+#### 4. 更新脚本
+
+每次修改 `scriptingExample` 目录中的文件后，重新运行部署命令：
+
+```bash
+wrangler pages deploy scriptingExample --project-name=clip-save-plugins
+```
+
+#### 5. 注意事项
+
+- 确保 `plugins.json` 中的 `scriptUrl` 使用 Cloudflare Pages 的 URL
+- 部署后通常几秒内生效（Cloudflare Pages 缓存时间很短）
+- 可以通过 Cloudflare Dashboard 查看部署历史和日志
 
 ### macOS 构建选项
 

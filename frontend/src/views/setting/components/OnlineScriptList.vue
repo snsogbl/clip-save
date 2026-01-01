@@ -679,7 +679,6 @@ onMounted(() => {
 
 .plugin-description {
   margin: 0 0 6px 0;
-  color: #606266;
   line-height: 1.6;
   font-size: 14px;
 }
@@ -689,7 +688,6 @@ onMounted(() => {
   gap: 16px;
   margin-bottom: 8px;
   font-size: 13px;
-  color: #909399;
 }
 
 .meta-item {
@@ -725,7 +723,6 @@ onMounted(() => {
 
 .content-types-label {
   font-size: 12px;
-  color: #909399;
   margin-right: 4px;
 }
 
