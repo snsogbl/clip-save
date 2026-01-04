@@ -133,7 +133,7 @@ func GetAllUserScripts() ([]UserScript, error) {
 	                 script, description, sort_order, COALESCE(plugin_id, '') as plugin_id, 
 	                 COALESCE(plugin_version, '') as plugin_version, created_at, updated_at
 	          FROM user_scripts
-	          ORDER BY sort_order DESC, created_at DESC`
+	          ORDER BY sort_order ASC, created_at ASC`
 
 	rows, err := DB.Query(query)
 	if err != nil {
@@ -181,7 +181,7 @@ func GetEnabledUserScripts(trigger string) ([]UserScript, error) {
 	                 COALESCE(plugin_version, '') as plugin_version, created_at, updated_at
 	          FROM user_scripts
 	          WHERE enabled = 1 AND trigger = ?
-	          ORDER BY sort_order DESC, created_at DESC`
+	          ORDER BY sort_order ASC, created_at ASC`
 
 	rows, err := DB.Query(query, trigger)
 	if err != nil {

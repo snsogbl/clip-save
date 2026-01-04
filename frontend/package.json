@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@types/sortablejs": "^1.15.9",
     "element-plus": "^2.11.4",
     "highlight.js": "^11.11.1",
     "json-editor-vue": "^0.18.1",
+    "sortablejs": "^1.15.6",
     "vanilla-jsoneditor": "^2.4.0",
     "vue": "^3.2.37",
     "vue-i18n": "^9.14.5"
