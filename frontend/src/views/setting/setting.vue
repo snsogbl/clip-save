@@ -128,6 +128,20 @@
           <el-switch v-model="settings.doubleClickPaste" />
         </div>
 
+        <!-- 开机自启（仅 Windows） -->
+        <div class="setting-item" v-if="isWindows">
+          <div class="setting-item-left">
+            <el-icon :size="20" class="setting-icon">
+              <Switch />
+            </el-icon>
+            <div class="setting-item-info">
+              <div class="setting-item-title">{{ $t('settings.autoStart') }}</div>
+              <div class="setting-item-desc">{{ $t('settings.autoStartDesc') }}</div>
+            </div>
+          </div>
+          <el-switch v-model="settings.autoStart" @change="handleAutoStartChange" />
+        </div>
+
         <div class="setting-item">
           <div class="setting-item-left">
             <el-icon :size="20" class="setting-icon">
@@ -311,7 +325,8 @@ import {
   Delete,
   Operation,
   Star,
-  Document
+  Document,
+  Switch
 } from "@element-plus/icons-vue";
 import HotkeyDisplay from "./components/HotkeyDisplay.vue";
 import ScriptManager from "./components/ScriptManager.vue";
@@ -327,6 +342,8 @@ import {
   SetLanguage,
   SetDockIconVisibility,
   OpenURL,
+  IsAutoStartEnabled,
+  SetAutoStart,
 } from "../../../wailsjs/go/main/App";
 
 const { t, locale } = useI18n();
@@ -343,6 +360,7 @@ const settings = ref({
   hotkey: "Command+Option+c", // 全局快捷键
   backgroundMode: false, // 后台运行模式（仅 macOS）
   doubleClickPaste: true, // 双击自动粘贴功能
+  autoStart: false, // 开机自启（仅 Windows 生效）
 });
 
 // 当前语言
@@ -350,6 +368,9 @@ const currentLanguage = ref('zh-CN');
 
 // 检测是否为 macOS
 const isMacOS = ref(navigator.platform.toUpperCase().indexOf('MAC') >= 0);
+
+// 检测是否为 Windows
+const isWindows = ref(navigator.platform.toUpperCase().indexOf('WIN') >= 0);
 
 // 原始快捷键值，用于比较是否有修改
 const originalHotkey = ref("");
@@ -438,6 +459,17 @@ async function loadSettings() {
           console.error("同步后台模式状态失败:", error);
         }
       }
+      // 同步开机自启状态（仅 Windows）：以注册表真实值为准
+      if (isWindows.value) {
+        try {
+          const realAutoStart = await IsAutoStartEnabled();
+          if (realAutoStart !== settings.value.autoStart) {
+            settings.value.autoStart = realAutoStart;
+          }
+        } catch (error) {
+          console.warn("查询开机自启状态失败:", error);
+        }
+      }
       console.log("✅ 已从数据库加载设置:", settings.value);
     } else {
       // 数据库应该已经有默认设置，如果没有则使用代码中的默认值
@@ -485,6 +517,17 @@ async function handleBackgroundModeChange(value: boolean) {
     ElMessage.error("设置后台模式失败");
     // 恢复开关状态
     settings.value.backgroundMode = !value;
+  }
+}
+
+// 处理开机自启切换（仅 Windows 生效）
+async function handleAutoStartChange(value: boolean) {
+  try {
+    await SetAutoStart(value);
+  } catch (error) {
+    console.error("设置开机自启失败:", error);
+    // 恢复开关状态
+    settings.value.autoStart = !value;
   }
 }
 

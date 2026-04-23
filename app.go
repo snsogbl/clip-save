@@ -311,6 +311,16 @@ func (a *App) GetCurrentLanguage() (string, error) {
 	return common.GetCurrentLanguage(), nil
 }
 
+// SetAutoStart 设置开机自启（仅 Windows 有效，其他平台 no-op）
+func (a *App) SetAutoStart(enable bool) error {
+	return common.SetAutoStart(enable)
+}
+
+// IsAutoStartEnabled 查询开机自启状态（供前端调用）
+func (a *App) IsAutoStartEnabled() (bool, error) {
+	return common.IsAutoStartEnabled()
+}
+
 // SetLanguage 设置语言（供前端调用）
 func (a *App) SetLanguage(lang string) error {
 	err := common.SetLanguage(lang)

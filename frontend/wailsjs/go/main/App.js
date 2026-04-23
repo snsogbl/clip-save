@@ -138,6 +138,10 @@ export function HttpRequest(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['HttpRequest'](arg1, arg2, arg3, arg4);
 }
 
+export function IsAutoStartEnabled() {
+  return window['go']['main']['App']['IsAutoStartEnabled']();
+}
+
 export function IsSayPlaying() {
   return window['go']['main']['App']['IsSayPlaying']();
 }
@@ -200,6 +204,10 @@ export function SearchClipboardItems(arg1, arg2, arg3, arg4, arg5) {
 
 export function SearchItem() {
   return window['go']['main']['App']['SearchItem']();
+}
+
+export function SetAutoStart(arg1) {
+  return window['go']['main']['App']['SetAutoStart'](arg1);
 }
 
 export function SetDockIconVisibility(arg1) {

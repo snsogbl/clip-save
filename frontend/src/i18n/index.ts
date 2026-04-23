@@ -67,6 +67,11 @@ const zhCN = {
     languageDesc: "选择应用界面语言",
     backgroundMode: "后台运行",
     backgroundModeDesc: "开启后应用将在后台运行，不显示 Dock 图标",
+    autoStart: "开机自启",
+    autoStartDesc: "开机时自动启动剪存（静默启动到后台）",
+    autoStartEnabled: "已开启开机自启",
+    autoStartDisabled: "已关闭开机自启",
+    autoStartError: "设置开机自启失败",
     donation: "赞赏支持",
     donationTitle: "请作者喝杯咖啡",
     donationDesc:
@@ -480,6 +485,11 @@ const enUS = {
     backgroundMode: "Background Mode",
     backgroundModeDesc:
       "When enabled, the app will run in the background without showing Dock icon",
+    autoStart: "Launch at Startup",
+    autoStartDesc: "Launch ClipSave automatically when the system starts (silently)",
+    autoStartEnabled: "Launch at startup enabled",
+    autoStartDisabled: "Launch at startup disabled",
+    autoStartError: "Failed to update launch at startup",
     donation: "Support",
     donationTitle: "Buy the Author a Coffee",
     donationDesc:
@@ -758,6 +768,11 @@ const frFR = {
     backgroundMode: "Mode Arrière-plan",
     backgroundModeDesc:
       "Lorsqu'il est activé, l'application fonctionnera en arrière-plan sans afficher l'icône du Dock",
+    autoStart: "Démarrage automatique",
+    autoStartDesc: "Lancer ClipSave automatiquement au démarrage du système (silencieusement)",
+    autoStartEnabled: "Démarrage automatique activé",
+    autoStartDisabled: "Démarrage automatique désactivé",
+    autoStartError: "Échec de la mise à jour du démarrage automatique",
     donation: "Soutien",
     donationTitle: "Offrez un Café à l'Auteur",
     donationDesc:
@@ -1098,6 +1113,11 @@ const arSA = {
     backgroundMode: "وضع الخلفية",
     backgroundModeDesc:
       "عند التمكين، سيعمل التطبيق في الخلفية دون عرض أيقونة Dock",
+    autoStart: "التشغيل التلقائي عند بدء التشغيل",
+    autoStartDesc: "تشغيل ClipSave تلقائياً عند بدء تشغيل النظام (بصمت)",
+    autoStartEnabled: "تم تفعيل التشغيل التلقائي",
+    autoStartDisabled: "تم تعطيل التشغيل التلقائي",
+    autoStartError: "فشل في تحديث التشغيل التلقائي",
     donation: "الدعم",
     donationTitle: "اشتري للمؤلف فنجان قهوة",
     donationDesc:

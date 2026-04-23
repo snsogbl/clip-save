@@ -70,6 +70,8 @@ export function HideWindowAndQuit():Promise<void>;
 
 export function HttpRequest(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
+export function IsAutoStartEnabled():Promise<boolean>;
+
 export function IsSayPlaying():Promise<boolean>;
 
 export function IsScriptHTTPServiceEnabled(arg1:string):Promise<boolean>;
@@ -101,6 +103,8 @@ export function SayText(arg1:string):Promise<void>;
 export function SearchClipboardItems(arg1:boolean,arg2:string,arg3:string,arg4:number,arg5:boolean):Promise<Array<common.ClipboardItem>>;
 
 export function SearchItem():Promise<void>;
+
+export function SetAutoStart(arg1:boolean):Promise<void>;
 
 export function SetDockIconVisibility(arg1:number):Promise<void>;
 
