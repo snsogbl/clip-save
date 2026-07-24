@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=snsogbl&project=clip-save&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 # 剪存 - 剪贴板历史管理工具
 
 一个基于 Wails + Vue 3 + TypeScript 的多平台剪贴板历史管理工具。
